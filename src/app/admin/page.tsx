@@ -53,43 +53,43 @@ import PageLayout from '@/components/PageLayout';
 // 统一按钮样式系统
 const buttonStyles = {
   // 主要操作按钮（蓝色）- 用于配置、设置、确认等
-  primary: 'px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg transition-colors',
+  primary: 'px-3 py-1.5 text-sm font-medium bg-accent hover:bg-accent-strong text-accent-foreground rounded-xl transition-colors',
   // 成功操作按钮（绿色）- 用于添加、启用、保存等
-  success: 'px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg transition-colors',
+  success: 'px-3 py-1.5 text-sm font-medium bg-accent hover:bg-accent-strong text-accent-foreground rounded-xl transition-colors',
   // 危险操作按钮（红色）- 用于删除、禁用、重置等
-  danger: 'px-3 py-1.5 text-sm font-medium bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 text-white rounded-lg transition-colors',
+  danger: 'px-3 py-1.5 text-sm font-medium bg-danger hover:bg-danger/90 text-white rounded-xl transition-colors',
   // 次要操作按钮（灰色）- 用于取消、关闭等
-  secondary: 'px-3 py-1.5 text-sm font-medium bg-gray-600 hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded-lg transition-colors',
+  secondary: 'px-3 py-1.5 text-sm font-medium bg-surface-secondary hover:bg-surface-tertiary text-foreground border border-border rounded-xl transition-colors',
   // 警告操作按钮（黄色）- 用于批量禁用等
   warning: 'px-3 py-1.5 text-sm font-medium bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-600 dark:hover:bg-yellow-700 text-white rounded-lg transition-colors',
   // 小尺寸主要按钮
-  primarySmall: 'px-2 py-1 text-xs font-medium bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-md transition-colors',
+  primarySmall: 'px-2 py-1 text-xs font-medium bg-accent hover:bg-accent-strong text-accent-foreground rounded-lg transition-colors',
   // 小尺寸成功按钮
-  successSmall: 'px-2 py-1 text-xs font-medium bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-md transition-colors',
+  successSmall: 'px-2 py-1 text-xs font-medium bg-accent hover:bg-accent-strong text-accent-foreground rounded-lg transition-colors',
   // 小尺寸危险按钮
   dangerSmall: 'px-2 py-1 text-xs font-medium bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 text-white rounded-md transition-colors',
   // 小尺寸次要按钮
-  secondarySmall: 'px-2 py-1 text-xs font-medium bg-gray-600 hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded-md transition-colors',
+  secondarySmall: 'px-2 py-1 text-xs font-medium bg-surface-secondary hover:bg-surface-tertiary text-foreground border border-border rounded-lg transition-colors',
   // 小尺寸警告按钮
   warningSmall: 'px-2 py-1 text-xs font-medium bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-600 dark:hover:bg-yellow-700 text-white rounded-md transition-colors',
   // 圆角小按钮（用于表格操作）
-  roundedPrimary: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 dark:text-blue-200 transition-colors',
-  roundedSuccess: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 dark:text-blue-200 transition-colors',
+  roundedPrimary: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-accent/10 text-accent hover:bg-accent/15 transition-colors',
+  roundedSuccess: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-accent/10 text-accent hover:bg-accent/15 transition-colors',
   roundedDanger: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-900/60 dark:text-red-200 transition-colors',
-  roundedSecondary: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-700/40 dark:hover:bg-gray-700/60 dark:text-gray-200 transition-colors',
+  roundedSecondary: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-secondary text-foreground hover:bg-surface-tertiary transition-colors',
   roundedWarning: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/40 dark:hover:bg-yellow-900/60 dark:text-yellow-200 transition-colors',
-  roundedPurple: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 hover:bg-purple-200 dark:bg-purple-900/40 dark:hover:bg-purple-900/60 dark:text-purple-200 transition-colors',
+  roundedPurple: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-accent/10 text-accent hover:bg-accent/15 transition-colors',
   // 禁用状态
   disabled: 'px-3 py-1.5 text-sm font-medium bg-gray-400 dark:bg-gray-600 cursor-not-allowed text-white rounded-lg transition-colors',
   disabledSmall: 'px-2 py-1 text-xs font-medium bg-gray-400 dark:bg-gray-600 cursor-not-allowed text-white rounded-md transition-colors',
   // 开关按钮样式
-  toggleOn: 'bg-blue-600 dark:bg-blue-600',
-  toggleOff: 'bg-gray-200 dark:bg-gray-700',
-  toggleThumb: 'bg-white',
+  toggleOn: 'bg-accent',
+  toggleOff: 'bg-surface-tertiary',
+  toggleThumb: 'bg-surface',
   toggleThumbOn: 'translate-x-6',
   toggleThumbOff: 'translate-x-1',
   // 快速操作按钮样式
-  quickAction: 'px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors',
+  quickAction: 'px-3 py-1.5 text-xs font-medium text-muted bg-surface border border-border hover:bg-surface-secondary rounded-lg transition-colors',
 };
 
 // 获取用户头像的函数
@@ -548,18 +548,18 @@ const CollapsibleTab = ({
   children,
 }: CollapsibleTabProps) => {
   return (
-    <div className='rounded-xl shadow-sm mb-4 overflow-hidden bg-white/80 backdrop-blur-md dark:bg-gray-800/50 dark:ring-1 dark:ring-gray-700'>
+    <div className='mb-4 overflow-hidden rounded-3xl border border-border/70 bg-surface/80 shadow-sm backdrop-blur-md'>
       <button
         onClick={onToggle}
-        className='w-full px-6 py-4 flex items-center justify-between bg-gray-50/70 dark:bg-gray-800/60 hover:bg-gray-100/80 dark:hover:bg-gray-700/60 transition-colors'
+        className='flex w-full items-center justify-between bg-surface-secondary/70 px-6 py-4 transition-colors hover:bg-surface-tertiary/70'
       >
         <div className='flex items-center gap-3'>
           {icon}
-          <h3 className='text-lg font-medium text-gray-900 dark:text-gray-100'>
+          <h3 className='text-lg font-semibold text-foreground'>
             {title}
           </h3>
         </div>
-        <div className='text-gray-500 dark:text-gray-400'>
+        <div className='text-muted'>
           {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </div>
       </button>
@@ -1255,7 +1255,7 @@ const UserConfig = ({ config, role, refreshConfig, machineCodeUsers, fetchMachin
           data-table="user-list"
           style={{
             scrollbarWidth: 'thin',
-            ['scrollbar-color' as any]: '#cbd5e0 transparent'
+            scrollbarColor: '#cbd5e0 transparent',
           }}
           onMouseEnter={(e) => {
             const target = e.currentTarget;

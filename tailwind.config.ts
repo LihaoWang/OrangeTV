@@ -10,15 +10,39 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      screens: {
-        'mobile-landscape': {
-          raw: '(orientation: landscape) and (max-height: 700px)',
-        },
-      },
       fontFamily: {
-        primary: ['Inter', ...defaultTheme.fontFamily.sans],
+        primary: ['var(--font-body)', ...defaultTheme.fontFamily.sans],
+        mono: ['var(--font-mono)', ...defaultTheme.fontFamily.mono],
       },
       colors: {
+        background: 'rgb(var(--color-background) / <alpha-value>)',
+        foreground: 'rgb(var(--color-foreground) / <alpha-value>)',
+        surface: 'rgb(var(--color-surface) / <alpha-value>)',
+        'surface-secondary': 'rgb(var(--color-surface-secondary) / <alpha-value>)',
+        'surface-tertiary': 'rgb(var(--color-surface-tertiary) / <alpha-value>)',
+        overlay: 'rgb(var(--color-overlay) / <alpha-value>)',
+        border: 'rgb(var(--color-border) / <alpha-value>)',
+        accent: 'rgb(var(--color-accent) / <alpha-value>)',
+        'accent-strong': 'rgb(var(--color-accent-strong) / <alpha-value>)',
+        'accent-foreground': 'rgb(var(--color-background) / <alpha-value>)',
+        field: 'rgb(var(--color-surface) / <alpha-value>)',
+        success: 'rgb(var(--color-success) / <alpha-value>)',
+        warning: 'rgb(var(--color-warning) / <alpha-value>)',
+        danger: 'rgb(var(--color-danger) / <alpha-value>)',
+        canvas: 'rgb(var(--a2-canvas) / <alpha-value>)',
+        stage: 'rgb(var(--a2-stage) / <alpha-value>)',
+        rail: 'rgb(var(--a2-rail) / <alpha-value>)',
+        ink: 'rgb(var(--a2-text) / <alpha-value>)',
+        'ink-soft': 'rgb(var(--a2-text-soft) / <alpha-value>)',
+        muted: 'rgb(var(--a2-text-muted) / <alpha-value>)',
+        copper: 'rgb(var(--a2-copper) / <alpha-value>)',
+        'copper-strong': 'rgb(var(--a2-copper-strong) / <alpha-value>)',
+        line: 'rgb(var(--a2-line) / <alpha-value>)',
+        signal: {
+          stable: 'rgb(var(--a2-signal-stable) / <alpha-value>)',
+          warn: 'rgb(var(--a2-signal-warn) / <alpha-value>)',
+          error: 'rgb(var(--a2-signal-error) / <alpha-value>)',
+        },
         primary: {
           50: 'rgb(var(--color-primary-50) / <alpha-value>)',
           100: 'rgb(var(--color-primary-100) / <alpha-value>)',

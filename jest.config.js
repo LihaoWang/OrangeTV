@@ -20,10 +20,12 @@ const customJestConfig = {
    * Absolute imports and Module Path Aliases
    */
   moduleNameMapper: {
+    '^@heroui/react$': '<rootDir>/src/__mocks__/heroui-react.tsx',
     '^@/(.*)$': '<rootDir>/src/$1',
     '^~/(.*)$': '<rootDir>/public/$1',
     '^.+\\.(svg)$': '<rootDir>/src/__mocks__/svg.tsx',
   },
+  modulePathIgnorePatterns: ['<rootDir>/.next/'],
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

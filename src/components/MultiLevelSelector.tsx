@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { Dropdown, Label } from '@heroui/react';
+import React, { useState } from 'react';
+
+import { AppButton } from './ui/HeroPrimitives';
 
 interface MultiLevelOption {
   label: string;
@@ -24,15 +26,7 @@ const MultiLevelSelector: React.FC<MultiLevelSelectorProps> = ({
   onChange,
   contentType = 'movie',
 }) => {
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [dropdownPosition, setDropdownPosition] = useState<{
-    x: number;
-    y: number;
-    width: number;
-  }>({ x: 0, y: 0, width: 0 });
   const [values, setValues] = useState<Record<string, string>>({});
-  const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // 根据内容类型获取对应的类型选项
   const getTypeOptions = (
@@ -333,54 +327,6 @@ const MultiLevelSelector: React.FC<MultiLevelSelectorProps> = ({
     },
   ];
 
-  // 计算下拉框位置
-  const calculateDropdownPosition = (categoryKey: string) => {
-    const element = categoryRefs.current[categoryKey];
-    if (element) {
-      const rect = element.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const isMobile = viewportWidth < 768; // md breakpoint
-
-      let x = rect.left;
-      let dropdownWidth = Math.max(rect.width, 300);
-      let useFixedWidth = false; // 标记是否使用固定宽度
-
-      // 移动端优化：防止下拉框被右侧视口截断
-      if (isMobile) {
-        const padding = 16; // 左右各留16px的边距
-        const maxWidth = viewportWidth - padding * 2;
-        dropdownWidth = Math.min(dropdownWidth, maxWidth);
-        useFixedWidth = true; // 移动端使用固定宽度
-
-        // 如果右侧超出视口，则调整x位置
-        if (x + dropdownWidth > viewportWidth - padding) {
-          x = viewportWidth - dropdownWidth - padding;
-        }
-
-        // 如果左侧超出视口，则贴左边
-        if (x < padding) {
-          x = padding;
-        }
-      }
-
-      setDropdownPosition({
-        x,
-        y: rect.bottom,
-        width: useFixedWidth ? dropdownWidth : rect.width, // PC端保持原有逻辑
-      });
-    }
-  };
-
-  // 处理分类点击
-  const handleCategoryClick = (categoryKey: string) => {
-    if (activeCategory === categoryKey) {
-      setActiveCategory(null);
-    } else {
-      setActiveCategory(categoryKey);
-      calculateDropdownPosition(categoryKey);
-    }
-  };
-
   // 处理选项选择
   const handleOptionSelect = (categoryKey: string, optionValue: string) => {
     // 更新本地状态
@@ -419,7 +365,6 @@ const MultiLevelSelector: React.FC<MultiLevelSelectorProps> = ({
     // 调用父组件的回调，传递处理后的选择值
     onChange(selectionsForParent);
 
-    setActiveCategory(null);
   };
 
   // 获取显示文本
@@ -460,131 +405,67 @@ const MultiLevelSelector: React.FC<MultiLevelSelectorProps> = ({
     return value === optionValue;
   };
 
-  // 监听滚动和窗口大小变化事件
-  useEffect(() => {
-    const handleScroll = () => {
-      // 滚动时直接关闭面板，而不是重新计算位置
-      if (activeCategory) {
-        setActiveCategory(null);
-      }
-    };
-
-    const handleResize = () => {
-      if (activeCategory) {
-        calculateDropdownPosition(activeCategory);
-      }
-    };
-
-    // 监听 body 滚动事件，因为该项目的滚动容器是 document.body
-    document.body.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleResize);
-    return () => {
-      document.body.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [activeCategory]);
-
-  // 点击外部关闭下拉框
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        !Object.values(categoryRefs.current).some(
-          (ref) => ref && ref.contains(event.target as Node)
-        )
-      ) {
-        setActiveCategory(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   return (
-    <>
-      {/* 胶囊样式筛选栏 */}
-      <div className='relative inline-flex rounded-full p-0.5 sm:p-1 bg-transparent gap-1 sm:gap-2'>
-        {categories.map((category) => (
-          <div
-            key={category.key}
-            ref={(el) => {
-              categoryRefs.current[category.key] = el;
-            }}
-            className='relative'
+    <div className='app-filter-dropdowns'>
+      {categories.map((category) => (
+        <Dropdown key={category.key}>
+          <AppButton
+            aria-label={`${category.label}筛选`}
+            variant='tertiary'
+            className={`app-filter-trigger ${
+              isDefaultValue(category.key)
+                ? ''
+                : 'app-filter-trigger-active'
+            }`}
           >
-            <button
-              onClick={() => handleCategoryClick(category.key)}
-              className={`relative z-10 px-1.5 py-0.5 sm:px-2 sm:py-1 md:px-4 md:py-2 text-xs sm:text-sm font-medium rounded-full transition-all duration-200 whitespace-nowrap ${activeCategory === category.key
-                  ? isDefaultValue(category.key)
-                    ? 'text-gray-900 dark:text-gray-100 cursor-default'
-                    : 'text-green-600 dark:text-green-400 cursor-default'
-                  : isDefaultValue(category.key)
-                    ? 'text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 cursor-pointer'
-                    : 'text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 cursor-pointer'
-                }`}
+            <span>{getDisplayText(category.key)}</span>
+            <svg
+              className='ml-0.5 inline-block h-2.5 w-2.5 sm:ml-1 sm:h-3 sm:w-3'
+              fill='none'
+              stroke='currentColor'
+              viewBox='0 0 24 24'
             >
-              <span>{getDisplayText(category.key)}</span>
-              <svg
-                className={`inline-block w-2.5 h-2.5 sm:w-3 sm:h-3 ml-0.5 sm:ml-1 transition-transform duration-200 ${activeCategory === category.key ? 'rotate-180' : ''
-                  }`}
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M19 9l-7 7-7-7'
-                />
-              </svg>
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* 展开的筛选选项 - 悬浮显示 */}
-      {activeCategory &&
-        createPortal(
-          <div
-            ref={dropdownRef}
-            className='fixed z-[9999] bg-white/95 dark:bg-gray-800/95 rounded-xl border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm'
-            style={{
-              left: `${dropdownPosition.x}px`,
-              top: `${dropdownPosition.y}px`,
-              ...(window.innerWidth < 768
-                ? { width: `${dropdownPosition.width}px` } // 移动端使用固定宽度
-                : { minWidth: `${Math.max(dropdownPosition.width, 300)}px` }), // PC端使用最小宽度
-              maxWidth: '600px',
-              position: 'fixed',
-            }}
-          >
-            <div className='p-2 sm:p-4'>
-              <div className='grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1 sm:gap-2'>
-                {categories
-                  .find((cat) => cat.key === activeCategory)
-                  ?.options.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() =>
-                        handleOptionSelect(activeCategory, option.value)
-                      }
-                      className={`px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-lg transition-all duration-200 text-left ${isOptionSelected(activeCategory, option.value)
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-700'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-700/80'
-                        }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
-    </>
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth={2}
+                d='M19 9l-7 7-7-7'
+              />
+            </svg>
+          </AppButton>
+          <Dropdown.Popover className='w-[min(92vw,600px)]'>
+            <Dropdown.Menu
+              aria-label={`${category.label}选项`}
+              selectionMode='single'
+              selectedKeys={
+                new Set([
+                  values[category.key] ||
+                    (category.key === 'sort' ? 'T' : 'all'),
+                ])
+              }
+              onAction={(key) => handleOptionSelect(category.key, String(key))}
+              className='grid grid-cols-3 gap-1 p-2 sm:grid-cols-4 sm:gap-2 md:grid-cols-5'
+            >
+              {category.options.map((option) => (
+                <Dropdown.Item
+                  key={option.value}
+                  id={option.value}
+                  textValue={option.label}
+                  className={
+                    isOptionSelected(category.key, option.value)
+                      ? 'a2-selector-option-active'
+                      : ''
+                  }
+                >
+                  <Label>{option.label}</Label>
+                  <Dropdown.ItemIndicator />
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown.Popover>
+        </Dropdown>
+      ))}
+    </div>
   );
 };
 

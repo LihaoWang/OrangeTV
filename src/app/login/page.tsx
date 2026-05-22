@@ -3,6 +3,7 @@
 'use client';
 
 import { AlertCircle, CheckCircle, Shield } from 'lucide-react';
+import { Form, Input, Label, TextField } from '@heroui/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
@@ -13,6 +14,7 @@ import MachineCode from '@/lib/machine-code';
 import { useSite } from '@/components/SiteProvider';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import GlobalThemeLoader from '@/components/GlobalThemeLoader';
+import { AppButton, AppSurface } from '@/components/ui/HeroPrimitives';
 
 // 版本显示组件
 function VersionDisplay() {
@@ -200,54 +202,36 @@ function LoginPageClient() {
       <div className='absolute top-4 right-4'>
         <ThemeToggle />
       </div>
-      <div className='relative z-10 w-full max-w-md rounded-3xl bg-gradient-to-b from-white/90 via-white/70 to-white/40 dark:from-zinc-900/90 dark:via-zinc-900/70 dark:to-zinc-900/40 backdrop-blur-xl shadow-2xl p-10 dark:border dark:border-zinc-800'>
+      <AppSurface className='relative z-10 w-full max-w-md p-8 sm:p-10'>
         <h1 className='text-blue-600 tracking-tight text-center text-3xl font-extrabold mb-8 bg-clip-text drop-shadow-sm'>
           {siteName}
         </h1>
-        <form onSubmit={handleSubmit} className='space-y-8'>
+        <Form onSubmit={handleSubmit} className='space-y-6'>
           {shouldAskUsername && (
-            <div className='relative'>
-              <input
+            <TextField name='username' className='w-full'>
+              <Label>用户名</Label>
+              <Input
                 id='username'
                 type='text'
                 autoComplete='username'
-                className='peer block w-full rounded-lg border-0 py-4 px-4 pt-6 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-white/60 dark:ring-white/20 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:text-base bg-white/60 dark:bg-zinc-800/60 backdrop-blur placeholder-transparent'
                 placeholder='用户名'
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
-              <label
-                htmlFor='username'
-                className={`absolute left-4 transition-all duration-200 pointer-events-none ${username
-                  ? 'top-1 text-xs text-blue-600 dark:text-blue-400'
-                  : 'top-4 text-base text-gray-500 dark:text-gray-400 peer-focus:top-1 peer-focus:text-xs peer-focus:text-blue-600 peer-focus:dark:text-blue-400'
-                  }`}
-              >
-                用户名
-              </label>
-            </div>
+            </TextField>
           )}
 
-          <div className='relative'>
-            <input
+          <TextField name='password' className='w-full'>
+            <Label>密码</Label>
+            <Input
               id='password'
               type='password'
               autoComplete='current-password'
-              className='peer block w-full rounded-lg border-0 py-4 px-4 pt-6 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-white/60 dark:ring-white/20 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:text-base bg-white/60 dark:bg-zinc-800/60 backdrop-blur placeholder-transparent'
               placeholder='密码'
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <label
-              htmlFor='password'
-              className={`absolute left-4 transition-all duration-200 pointer-events-none ${password
-                ? 'top-1 text-xs text-blue-600 dark:text-blue-400'
-                : 'top-4 text-base text-gray-500 dark:text-gray-400 peer-focus:top-1 peer-focus:text-xs peer-focus:text-blue-600 peer-focus:dark:text-blue-400'
-                }`}
-            >
-              密码
-            </label>
-          </div>
+          </TextField>
 
           {/* 机器码信息显示 - 只有在启用设备码功能时才显示 */}
           {deviceCodeEnabled && machineCodeGenerated && shouldAskUsername && (
@@ -295,20 +279,21 @@ function LoginPageClient() {
           )}
 
           {/* 登录按钮 */}
-          <button
+          <AppButton
             type='submit'
-            disabled={
+            fullWidth
+            isDisabled={
               !password ||
               loading ||
               (shouldAskUsername && !username) ||
               (deviceCodeEnabled && machineCodeGenerated && shouldAskUsername && !requireMachineCode && !bindMachineCode)
             }
-            className='inline-flex w-full justify-center rounded-lg bg-blue-600 py-3 text-base font-semibold text-white shadow-lg transition-all duration-200 hover:from-blue-600 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50'
+            isPending={loading}
           >
             {loading ? '登录中...' : '登录'}
-          </button>
-        </form>
-      </div>
+          </AppButton>
+        </Form>
+      </AppSurface>
 
       {/* 版本信息显示 */}
       <VersionDisplay />

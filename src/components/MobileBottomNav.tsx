@@ -96,7 +96,7 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
 
   return (
     <nav
-      className='md:hidden fixed left-0 right-0 z-[600] bg-white/90 backdrop-blur-xl border-t border-gray-200/50 overflow-hidden dark:bg-gray-900/80 dark:border-gray-700/50'
+      className='fixed left-0 right-0 z-[600] overflow-hidden border-t border-border/70 bg-surface/90 shadow-[0_-12px_40px_-30px_rgb(15_23_42)] backdrop-blur-xl md:hidden'
       style={{
         /* 紧贴视口底部，同时在内部留出安全区高度 */
         bottom: 0,
@@ -115,19 +115,20 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
             >
               <Link
                 href={item.href}
-                className='flex flex-col items-center justify-center w-full h-14 gap-1 text-xs'
+                className='theme-transition relative flex h-14 w-full flex-col items-center justify-center gap-1 text-xs font-medium tracking-normal'
               >
+                {active && <span className='absolute left-3 right-3 top-1 h-1 rounded-full bg-accent' />}
                 <item.icon
-                  className={`h-6 w-6 ${active
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-500 dark:text-gray-400'
+                  className={`h-5 w-5 ${active
+                    ? 'text-accent'
+                    : 'text-muted'
                     }`}
                 />
                 <span
                   className={
                     active
-                      ? 'text-blue-600 dark:text-blue-400'
-                      : 'text-gray-600 dark:text-gray-300'
+                      ? 'text-foreground'
+                      : 'text-muted'
                   }
                 >
                   {item.label}

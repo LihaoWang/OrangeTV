@@ -42,7 +42,7 @@ function SearchPageClient() {
   const flushTimerRef = useRef<number | null>(null);
   const [useFluidSearch, setUseFluidSearch] = useState(true);
   // 聚合卡片 refs 与聚合统计缓存
-  const groupRefs = useRef<Map<string, React.RefObject<VideoCardHandle>>>(new Map());
+  const groupRefs = useRef<Map<string, React.RefObject<VideoCardHandle | null>>>(new Map());
   const groupStatsRef = useRef<Map<string, { douban_id?: number; episodes?: number; source_names: string[] }>>(new Map());
 
   // 执行搜索的通用函数
@@ -1020,7 +1020,7 @@ function SearchPageClient() {
         <div className='mb-8'>
           <form onSubmit={handleSearch} className='max-w-2xl mx-auto'>
             <div className='relative'>
-              <Search className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 dark:text-gray-500' />
+              <Search className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted' />
               <input
                 id='searchInput'
                 type='text'
@@ -1029,7 +1029,7 @@ function SearchPageClient() {
                 onFocus={handleInputFocus}
                 placeholder='搜索电影、电视剧、短剧...'
                 autoComplete="off"
-                className='w-full h-12 rounded-lg bg-gray-50/80 py-3 pl-10 pr-12 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white border border-gray-200/50 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:placeholder-gray-500 dark:focus:bg-gray-700 dark:border-gray-700'
+                className='w-full h-12 rounded-2xl border border-border bg-surface/90 py-3 pl-10 pr-12 text-sm text-foreground placeholder:text-muted shadow-sm backdrop-blur focus:border-accent focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent/20'
               />
 
               {/* 清除按钮 */}
@@ -1041,7 +1041,7 @@ function SearchPageClient() {
                     setShowSuggestions(false);
                     document.getElementById('searchInput')?.focus();
                   }}
-                  className='absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500 dark:hover:text-gray-300'
+                  className='absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted transition-colors hover:text-foreground'
                   aria-label='清除搜索内容'
                 >
                   <X className='h-5 w-5' />
@@ -1071,19 +1071,19 @@ function SearchPageClient() {
         {/* 搜索结果或搜索历史 */}
         <div className='max-w-[95%] mx-auto mt-12 overflow-visible'>
           {showResults ? (
-            <section className='mb-12'>
+            <section className='mb-12 rounded-3xl border border-border/70 bg-surface/70 p-5 shadow-sm backdrop-blur sm:p-6'>
               {/* 标题 */}
               <div className='mb-4'>
-                <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
+                <h2 className='text-xl font-semibold tracking-normal text-foreground'>
                   搜索结果
                   {totalSources > 0 && useFluidSearch && (
-                    <span className='ml-2 text-sm font-normal text-gray-500 dark:text-gray-400'>
+                    <span className='ml-2 text-sm font-normal text-muted'>
                       {completedSources}/{totalSources}
                     </span>
                   )}
                   {isLoading && useFluidSearch && (
                     <span className='ml-2 inline-block align-middle'>
-                      <span className='inline-block h-3 w-3 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin'></span>
+                      <span className='inline-block h-3 w-3 animate-spin rounded-full border-2 border-border border-t-accent'></span>
                     </span>
                   )}
                 </h2>
@@ -1107,7 +1107,7 @@ function SearchPageClient() {
                 </div>
                 {/* 聚合开关 */}
                 <label className='flex items-center gap-2 cursor-pointer select-none shrink-0'>
-                  <span className='text-xs sm:text-sm text-gray-700 dark:text-gray-300'>聚合</span>
+                  <span className='text-xs sm:text-sm font-medium text-muted'>聚合</span>
                   <div className='relative'>
                     <input
                       type='checkbox'
@@ -1115,18 +1115,18 @@ function SearchPageClient() {
                       checked={viewMode === 'agg'}
                       onChange={() => setViewMode(viewMode === 'agg' ? 'all' : 'agg')}
                     />
-                    <div className='w-9 h-5 bg-gray-300 rounded-full peer-checked:bg-blue-500 transition-colors dark:bg-gray-600'></div>
-                    <div className='absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4'></div>
+                    <div className='w-9 h-5 rounded-full bg-surface-secondary transition-colors peer-checked:bg-accent'></div>
+                    <div className='absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-surface shadow-sm transition-transform peer-checked:translate-x-4'></div>
                   </div>
                 </label>
               </div>
               {searchResults.length === 0 ? (
                 isLoading ? (
                   <div className='flex justify-center items-center h-40'>
-                    <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500'></div>
+                    <div className='h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent'></div>
                   </div>
                 ) : (
-                  <div className='text-center text-gray-500 py-8 dark:text-gray-400'>
+                  <div className='rounded-2xl border border-dashed border-border bg-surface-secondary/60 py-8 text-center text-muted'>
                     未找到相关结果
                   </div>
                 )
@@ -1199,15 +1199,15 @@ function SearchPageClient() {
             </section>
           ) : searchHistory.length > 0 ? (
             // 搜索历史
-            <section className='mb-12'>
-              <h2 className='mb-4 text-xl font-bold text-gray-800 text-left dark:text-gray-200'>
+            <section className='mb-12 rounded-3xl border border-border/70 bg-surface/70 p-5 shadow-sm backdrop-blur sm:p-6'>
+              <h2 className='mb-4 text-left text-xl font-semibold tracking-normal text-foreground'>
                 搜索历史
                 {searchHistory.length > 0 && (
                   <button
                     onClick={() => {
                       clearSearchHistory(); // 事件监听会自动更新界面
                     }}
-                    className='ml-3 text-sm text-gray-500 hover:text-red-500 transition-colors dark:text-gray-400 dark:hover:text-red-500'
+                    className='ml-3 text-sm text-muted transition-colors hover:text-danger'
                   >
                     清空
                   </button>
@@ -1221,7 +1221,7 @@ function SearchPageClient() {
                         // 直接调用搜索函数
                         performSearch(item.trim());
                       }}
-                      className='px-4 py-2 bg-gray-500/10 hover:bg-gray-300 rounded-full text-sm text-gray-700 transition-colors duration-200 dark:bg-gray-700/50 dark:hover:bg-gray-600 dark:text-gray-300'
+                      className='rounded-full border border-border bg-surface-secondary px-4 py-2 text-sm text-foreground transition-colors duration-200 hover:border-accent/40 hover:bg-accent/10 hover:text-accent'
                     >
                       {item}
                     </button>
@@ -1233,7 +1233,7 @@ function SearchPageClient() {
                         e.preventDefault();
                         deleteSearchHistory(item); // 事件监听会自动更新界面
                       }}
-                      className='absolute -top-1 -right-1 w-4 h-4 opacity-0 group-hover:opacity-100 bg-gray-400 hover:bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] transition-colors'
+                      className='absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-muted text-[10px] text-white opacity-0 transition-colors hover:bg-danger group-hover:opacity-100'
                     >
                       <X className='w-3 h-3' />
                     </button>
@@ -1245,7 +1245,7 @@ function SearchPageClient() {
         </div>
       </div>
 
-      {/* 返回顶部悬浮按钮 - 科技风格 */}
+      {/* 返回顶部悬浮按钮 */}
       <div
         className={`fixed bottom-20 md:bottom-6 right-6 z-[500] transition-all duration-300 ease-in-out ${showBackToTop
           ? 'opacity-100 translate-y-0 pointer-events-auto'
@@ -1254,15 +1254,15 @@ function SearchPageClient() {
       >
         <button
           onClick={scrollToTop}
-          className='relative w-14 h-14 bg-gradient-to-br from-blue-500/20 via-cyan-500/20 to-purple-500/20 backdrop-blur-xl rounded-full shadow-2xl transition-all duration-300 ease-out group hover:scale-110 hover:shadow-blue-500/50 focus:outline-none focus:ring-2 focus:ring-blue-400/50 border border-white/20'
+          className='group relative h-14 w-14 rounded-2xl border border-border bg-overlay shadow-xl backdrop-blur-xl transition-all duration-300 ease-out hover:scale-105 hover:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/20'
           aria-label={`返回顶部 (${Math.round(scrollProgress)}%)`}
           style={{
-            background: `conic-gradient(from 0deg, #3b82f6 ${scrollProgress * 3.6}deg, rgba(59, 130, 246, 0.1) ${scrollProgress * 3.6}deg)`
+            background: `conic-gradient(from 0deg, rgb(var(--color-accent)) ${scrollProgress * 3.6}deg, rgb(var(--color-accent) / 0.12) ${scrollProgress * 3.6}deg)`
           }}
         >
           {/* 内部发光圆圈 */}
-          <div className='absolute inset-1 bg-gradient-to-br from-blue-500/30 to-cyan-500/30 rounded-full backdrop-blur-sm flex items-center justify-center transition-all duration-300 group-hover:from-blue-400/40 group-hover:to-cyan-400/40'>
-            <ChevronUp className='w-6 h-6 text-white/90 transition-all duration-300 group-hover:scale-110 group-hover:text-white drop-shadow-lg' />
+          <div className='absolute inset-1 flex items-center justify-center rounded-xl bg-surface/90 backdrop-blur-sm transition-all duration-300 group-hover:bg-accent/15'>
+            <ChevronUp className='w-6 h-6 text-accent transition-all duration-300 group-hover:scale-110' />
           </div>
 
           {/* 进度环 */}
@@ -1288,25 +1288,25 @@ function SearchPageClient() {
             />
             <defs>
               <linearGradient id='progressGradient' x1='0%' y1='0%' x2='100%' y2='100%'>
-                <stop offset='0%' stopColor='#3b82f6' />
-                <stop offset='50%' stopColor='#06b6d4' />
-                <stop offset='100%' stopColor='#8b5cf6' />
+                <stop offset='0%' stopColor='rgb(var(--color-accent))' />
+                <stop offset='50%' stopColor='rgb(var(--color-accent))' />
+                <stop offset='100%' stopColor='rgb(var(--color-accent-strong))' />
               </linearGradient>
             </defs>
           </svg>
 
           {/* 悬停时的进度提示 */}
           <div className='absolute -top-12 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none'>
-            <div className='bg-gray-900/90 text-white text-xs px-3 py-1.5 rounded-lg backdrop-blur-sm border border-white/10 shadow-xl'>
+            <div className='rounded-xl border border-border bg-overlay px-3 py-1.5 text-xs text-foreground shadow-xl backdrop-blur'>
               <div className='text-center font-medium'>
                 {Math.round(scrollProgress)}%
               </div>
-              <div className='w-2 h-2 bg-gray-900/90 rotate-45 absolute -bottom-1 left-1/2 transform -translate-x-1/2 border-r border-b border-white/10'></div>
+              <div className='absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border-b border-r border-border bg-overlay'></div>
             </div>
           </div>
 
           {/* 脉冲动画 */}
-          <div className='absolute inset-0 rounded-full bg-gradient-to-br from-blue-400/20 to-cyan-400/20 animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+          <div className='absolute inset-0 animate-pulse rounded-2xl bg-accent/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100'></div>
         </button>
       </div>
     </PageLayout>

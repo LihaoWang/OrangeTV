@@ -8,7 +8,7 @@ import { getConfig, setCachedConfig, clearCachedConfig } from '@/lib/config';
 export async function GET() {
   try {
     // 创建一个模拟的NextRequest对象来使用getAuthInfoFromCookie
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const authCookie = cookieStore.get('auth');
 
     if (!authCookie) {
@@ -42,7 +42,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     // 获取认证信息
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const authCookie = cookieStore.get('auth');
 
     if (!authCookie) {

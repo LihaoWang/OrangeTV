@@ -2,7 +2,19 @@
 
 'use client';
 
-import { Cat, Clover, Film, Home, Menu, PlayCircle, Radio, Search, Star, Tv, ExternalLink } from 'lucide-react';
+import {
+  Cat,
+  Clover,
+  ExternalLink,
+  Film,
+  Home,
+  Menu,
+  PlayCircle,
+  Radio,
+  Search,
+  Star,
+  Tv,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -40,7 +52,7 @@ const Logo = ({ isCollapsed, onClick }: LogoProps) => {
     return (
       <button
         onClick={onClick}
-        className='flex items-center justify-center w-12 h-12 hover:opacity-80 transition-opacity duration-200 cursor-pointer'
+        className='theme-transition flex h-12 w-12 cursor-pointer items-center justify-center hover:opacity-80'
         title='点击展开侧边栏'
       >
         <Image
@@ -57,7 +69,7 @@ const Logo = ({ isCollapsed, onClick }: LogoProps) => {
   return (
     <Link
       href='/'
-      className='flex items-center justify-center h-16 select-none hover:opacity-80 transition-opacity duration-200'
+      className='theme-transition flex h-16 items-center justify-center select-none hover:opacity-80'
     >
       <div className='flex items-center gap'>
         <Image
@@ -67,7 +79,7 @@ const Logo = ({ isCollapsed, onClick }: LogoProps) => {
           height={40}
           className='rounded-lg'
         />
-        <span className='text-2xl font-bold text-blue-600 tracking-tight'>
+        <span className='text-xl font-semibold tracking-normal text-foreground'>
           {siteName}
         </span>
       </div>
@@ -205,27 +217,30 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
     }
   }, []);
 
+  const getNavClasses = (isActive: boolean) =>
+    `group flex min-h-[42px] items-center gap-3 rounded-xl border px-3 py-2 text-sm font-medium tracking-normal transition-all duration-200 ${
+      isActive
+        ? 'border-accent/25 bg-accent/10 text-accent shadow-sm'
+        : 'border-transparent text-muted hover:border-border hover:bg-surface-secondary hover:text-foreground'
+    }`;
+
   return (
     <SidebarContext.Provider value={contextValue}>
       {/* 在移动端隐藏侧边栏 */}
       <div className='hidden md:flex'>
         <aside
           data-sidebar
-          className={`fixed top-0 left-0 h-screen bg-white/40 backdrop-blur-xl transition-all duration-300 border-r border-gray-200/50 z-10 shadow-lg dark:bg-gray-900/70 dark:border-gray-700/50 ${isCollapsed ? 'w-16' : 'w-64'
+          className={`fixed left-0 top-0 z-10 h-screen border-r border-border/70 bg-surface/90 shadow-sm backdrop-blur-xl transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'
             }`}
-          style={{
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-          }}
         >
           <div className='flex h-full flex-col'>
             {/* 顶部 Logo 区域 */}
-            <div className='relative h-16'>
+            <div className='relative h-16 border-b border-border/70'>
               <div className='absolute inset-0 flex items-center justify-center transition-all duration-200'>
                 {isCollapsed ? (
                   <Logo isCollapsed={true} onClick={handleToggle} />
                 ) : (
-                  <div className='w-[calc(100%-4rem)] flex justify-center'>
+                  <div className='flex w-[calc(100%-4rem)] justify-center'>
                     <Logo isCollapsed={false} />
                   </div>
                 )}
@@ -233,7 +248,7 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
               {!isCollapsed && (
                 <button
                   onClick={handleToggle}
-                  className='absolute top-1/2 -translate-y-1/2 right-2 flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100/50 transition-colors duration-200 z-10 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700/50'
+                  className='a2-icon-button absolute right-3 top-1/2 z-10 -translate-y-1/2'
                   title='收起侧边栏'
                 >
                   <Menu className='h-4 w-4' />
@@ -242,19 +257,18 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
             </div>
 
             {/* 首页和搜索导航 */}
-            <nav className='px-2 mt-4 space-y-1'>
+            <nav className='mt-6 space-y-1 px-3'>
               <Link
                 href='/'
                 onClick={() => setActive('/')}
                 data-active={active === '/'}
-                className={`group flex items-center rounded-lg px-2 py-2 pl-4 text-gray-700 hover:bg-gray-100/30 hover:text-blue-600 data-[active=true]:bg-blue-500/20 data-[active=true]:text-blue-700 font-medium transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-blue-400 dark:data-[active=true]:bg-blue-500/10 dark:data-[active=true]:text-blue-400 ${isCollapsed ? 'w-full max-w-none mx-0' : 'mx-0'
-                  } gap-3 justify-start`}
+                className={getNavClasses(active === '/')}
               >
                 <div className='w-4 h-4 flex items-center justify-center'>
-                  <Home className='h-4 w-4 text-gray-500 group-hover:text-blue-600 group-data-[active=true]:text-blue-700 dark:text-gray-400 dark:group-hover:text-blue-400 dark:group-data-[active=true]:text-blue-400' />
+                  <Home className='h-4 w-4' />
                 </div>
                 {!isCollapsed && (
-                  <span className='whitespace-nowrap transition-opacity duration-200 opacity-100'>
+                  <span className='opacity-100 transition-opacity duration-200 whitespace-nowrap'>
                     首页
                   </span>
                 )}
@@ -267,14 +281,13 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                   setActive('/search');
                 }}
                 data-active={active === '/search'}
-                className={`group flex items-center rounded-lg px-2 py-2 pl-4 text-gray-700 hover:bg-gray-100/30 hover:text-blue-600 data-[active=true]:bg-blue-500/20 data-[active=true]:text-blue-700 font-medium transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-blue-400 dark:data-[active=true]:bg-blue-500/10 dark:data-[active=true]:text-blue-400 ${isCollapsed ? 'w-full max-w-none mx-0' : 'mx-0'
-                  } gap-3 justify-start`}
+                className={getNavClasses(active === '/search')}
               >
                 <div className='w-4 h-4 flex items-center justify-center'>
-                  <Search className='h-4 w-4 text-gray-500 group-hover:text-blue-600 group-data-[active=true]:text-blue-700 dark:text-gray-400 dark:group-hover:text-blue-400 dark:group-data-[active=true]:text-blue-400' />
+                  <Search className='h-4 w-4' />
                 </div>
                 {!isCollapsed && (
-                  <span className='whitespace-nowrap transition-opacity duration-200 opacity-100'>
+                  <span className='opacity-100 transition-opacity duration-200 whitespace-nowrap'>
                     搜索
                   </span>
                 )}
@@ -282,8 +295,8 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
             </nav>
 
             {/* 菜单项 */}
-            <div className='flex-1 overflow-y-auto px-2 pt-4'>
-              <div className='space-y-1'>
+            <div className='flex-1 overflow-y-auto px-3 pt-6'>
+              <div className='space-y-1 border-t border-border/70 pt-4'>
                 {menuItems.map((item) => {
                   // 检查当前路径是否匹配这个菜单项
                   const typeMatch = item.href.match(/type=([^&]+)/)?.[1];
@@ -304,14 +317,13 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                       href={item.href}
                       onClick={() => setActive(item.href)}
                       data-active={isActive}
-                      className={`group flex items-center rounded-lg px-2 py-2 pl-4 text-sm text-gray-700 hover:bg-gray-100/30 hover:text-blue-600 data-[active=true]:bg-blue-500/20 data-[active=true]:text-blue-700 font-medium transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-blue-400 dark:data-[active=true]:bg-blue-500/10 dark:data-[active=true]:text-blue-400 ${isCollapsed ? 'w-full max-w-none mx-0' : 'mx-0'
-                        } gap-3 justify-start`}
+                      className={getNavClasses(isActive)}
                     >
                       <div className='w-4 h-4 flex items-center justify-center'>
-                        <Icon className='h-4 w-4 text-gray-500 group-hover:text-blue-600 group-data-[active=true]:text-blue-700 dark:text-gray-400 dark:group-hover:text-blue-400 dark:group-data-[active=true]:text-blue-400' />
+                        <Icon className='h-4 w-4' />
                       </div>
                       {!isCollapsed && (
-                        <span className='whitespace-nowrap transition-opacity duration-200 opacity-100'>
+                        <span className='opacity-100 transition-opacity duration-200 whitespace-nowrap'>
                           {item.label}
                         </span>
                       )}
@@ -322,20 +334,20 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
             </div>
 
             {/* 致谢信息 */}
-            <div className='px-2 pb-4'>
-              <div className='border-t border-gray-200/50 dark:border-gray-700/50 pt-3'>
+            <div className='px-3 pb-5'>
+              <div className='border-t border-border/70 pt-4'>
                 {!isCollapsed ? (
-                  <div className='text-xs text-gray-500 dark:text-gray-400 text-center px-2 leading-relaxed'>
+                  <div className='px-2 text-center text-xs leading-relaxed text-muted'>
                     <span>本项目基于 </span>
                     <button
                       onClick={() => window.open('https://github.com/MoonTechLab/LunaTV', '_blank')}
-                      className='text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors'
+                      className='theme-transition font-medium text-accent hover:text-accent-strong'
                     >
                       MoonTV
                     </button>
                     <button
                       onClick={() => window.open('https://github.com/MoonTechLab/LunaTV', '_blank')}
-                      className='text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors ml-1'
+                      className='theme-transition ml-1 text-accent hover:text-accent-strong'
                       title='访问 MoonTV 项目'
                     >
                       <ExternalLink className='h-3 w-3 inline' />
@@ -346,7 +358,7 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                   <div className='flex justify-center'>
                     <button
                       onClick={() => window.open('https://github.com/MoonTechLab/LunaTV', '_blank')}
-                      className='text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors p-1'
+                      className='theme-transition p-1 text-accent hover:text-accent-strong'
                       title='基于 MoonTV 的二次开发'
                     >
                       <ExternalLink className='h-4 w-4' />

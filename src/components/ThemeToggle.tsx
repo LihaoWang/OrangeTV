@@ -2,11 +2,12 @@
 
 'use client';
 
-import { Moon, Sun, MessageCircle } from 'lucide-react';
+import { MessageCircle, Moon, Sun } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState, useCallback } from 'react';
 import { ChatModal } from './ChatModal';
+import { AppIconButton } from './ui/HeroPrimitives';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { WebSocketMessage } from '../lib/types';
 
@@ -46,10 +47,10 @@ export function ThemeToggle() {
     if (!meta) {
       const meta = document.createElement('meta');
       meta.name = 'theme-color';
-      meta.content = theme === 'dark' ? '#0c111c' : '#f9fbfe';
+      meta.content = theme === 'dark' ? '#080707' : '#151212';
       document.head.appendChild(meta);
     } else {
-      meta.setAttribute('content', theme === 'dark' ? '#0c111c' : '#f9fbfe');
+      meta.setAttribute('content', theme === 'dark' ? '#080707' : '#151212');
     }
   };
 
@@ -102,24 +103,24 @@ export function ThemeToggle() {
       <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-2'}`}>
         {/* 聊天按钮 - 在登录页面不显示 */}
         {!isLoginPage && (
-          <button
-            onClick={() => setIsChatModalOpen(true)}
-            className={`${isMobile ? 'w-8 h-8 p-1.5' : 'w-10 h-10 p-2'} rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-gray-700/50 transition-colors relative`}
+          <AppIconButton
+            onPress={() => setIsChatModalOpen(true)}
+            className={`a2-icon-button relative ${isMobile ? 'h-8 w-8 p-1.5' : 'h-10 w-10 p-2'}`}
             aria-label='Open chat'
           >
             <MessageCircle className='w-full h-full' />
             {messageCount > 0 && (
-              <span className={`absolute ${isMobile ? '-top-0.5 -right-0.5 w-4 h-4 text-xs' : '-top-1 -right-1 w-5 h-5 text-xs'} bg-red-500 text-white rounded-full flex items-center justify-center`}>
+              <span className={`absolute ${isMobile ? '-right-0.5 -top-0.5 h-4 w-4 text-[10px]' : '-right-1 -top-1 h-5 w-5 text-[10px]'} flex items-center justify-center border border-border/70 bg-accent text-accent-foreground`}>
                 {messageCount > 99 ? '99+' : messageCount}
               </span>
             )}
-          </button>
+          </AppIconButton>
         )}
 
         {/* 主题切换按钮 */}
-        <button
-          onClick={toggleTheme}
-          className={`${isMobile ? 'w-8 h-8 p-1.5' : 'w-10 h-10 p-2'} rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-gray-700/50 transition-colors`}
+        <AppIconButton
+          onPress={toggleTheme}
+          className={`a2-icon-button ${isMobile ? 'h-8 w-8 p-1.5' : 'h-10 w-10 p-2'}`}
           aria-label='Toggle theme'
         >
           {resolvedTheme === 'dark' ? (
@@ -127,7 +128,7 @@ export function ThemeToggle() {
           ) : (
             <Moon className='w-full h-full' />
           )}
-        </button>
+        </AppIconButton>
       </div>
 
       {/* 聊天模态框 - 在登录页面不渲染 */}
