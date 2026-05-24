@@ -39,9 +39,8 @@ import {
   Video,
 } from 'lucide-react';
 import { GripVertical, Palette } from 'lucide-react';
-import Image from 'next/image';
+import { Alert, Avatar, Button, Card, Checkbox, Chip, Input, Label, Skeleton, Switch, Table, TextArea, TextField } from '@heroui/react';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 
 import { AdminConfig, AdminConfigResult } from '../../lib/admin.types';
 import { getAuthInfoFromBrowserCookie } from '@/lib/auth';
@@ -49,6 +48,7 @@ import { getAuthInfoFromBrowserCookie } from '@/lib/auth';
 import DataMigration from '@/components/DataMigration';
 import ThemeManager from '@/components/ThemeManager';
 import PageLayout from '@/components/PageLayout';
+import { AppDialog, AppFilterSelect } from '@/components/ui/HeroPrimitives';
 
 // 统一按钮样式系统
 const buttonStyles = {
@@ -92,6 +92,85 @@ const buttonStyles = {
   quickAction: 'px-3 py-1.5 text-xs font-medium text-muted bg-surface border border-border hover:bg-surface-secondary rounded-lg transition-colors',
 };
 
+const AdminTable = ({
+  ariaLabel,
+  minWidth = 'min-w-[900px]',
+  children,
+}: {
+  ariaLabel: string;
+  minWidth?: string;
+  children: React.ReactNode;
+}) => (
+  <Table variant='secondary' className='overflow-visible'>
+    <Table.ScrollContainer>
+      <Table.Content aria-label={ariaLabel} className={minWidth}>
+        {children}
+      </Table.Content>
+    </Table.ScrollContainer>
+  </Table>
+);
+
+const AdminCheckbox = ({
+  ariaLabel,
+  isSelected,
+  onChange,
+  isDisabled,
+}: {
+  ariaLabel: string;
+  isSelected: boolean;
+  onChange: (isSelected: boolean) => void;
+  isDisabled?: boolean;
+}) => (
+  <Checkbox
+    aria-label={ariaLabel}
+    isSelected={isSelected}
+    isDisabled={isDisabled}
+    slot='selection'
+    variant='secondary'
+    onChange={onChange}
+  >
+    <Checkbox.Control>
+      <Checkbox.Indicator />
+    </Checkbox.Control>
+  </Checkbox>
+);
+
+const AdminChip = ({
+  children,
+  color = 'default',
+}: {
+  children: React.ReactNode;
+  color?: 'default' | 'accent' | 'success' | 'warning' | 'danger';
+}) => (
+  <Chip size='sm' color={color} variant='soft'>
+    <Chip.Label>{children}</Chip.Label>
+  </Chip>
+);
+
+const AdminSettingSwitch = ({
+  label,
+  description,
+  isSelected,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  isSelected: boolean;
+  onChange: (isSelected: boolean) => void;
+}) => (
+  <div className='flex items-start justify-between gap-4'>
+    <div className='space-y-1'>
+      <Label className='text-sm'>{label}</Label>
+      <p className='text-xs text-muted'>{description}</p>
+    </div>
+    <Switch aria-label={label} isSelected={isSelected} onChange={onChange}>
+      <Switch.Control>
+        <Switch.Thumb />
+      </Switch.Control>
+    </Switch>
+  </div>
+);
+
 // 获取用户头像的函数
 const getUserAvatar = async (username: string): Promise<string | null> => {
   try {
@@ -127,36 +206,20 @@ const UserAvatar = ({ username, size = 'sm' }: UserAvatarProps) => {
     fetchAvatar();
   }, [username]);
 
-  const sizeClasses = {
-    sm: 'w-8 h-8',
-    md: 'w-10 h-10',
-    lg: 'w-12 h-12'
-  };
-
-  const iconSizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-5 h-5',
-    lg: 'w-6 h-6'
-  };
-
   return (
-    <div className={`${sizeClasses[size]} rounded-full overflow-hidden relative flex-shrink-0`}>
+    <Avatar size={size}>
       {loading ? (
-        <div className='w-full h-full bg-gray-100 dark:bg-gray-800 animate-pulse' />
+        <Avatar.Fallback>
+          <Skeleton className='h-full w-full' />
+        </Avatar.Fallback>
       ) : avatarUrl ? (
-        <Image
-          src={avatarUrl}
-          alt={`${username} 的头像`}
-          fill
-          sizes={size === 'sm' ? '32px' : size === 'md' ? '40px' : '48px'}
-          className='object-cover'
-        />
+        <Avatar.Image src={avatarUrl} alt={`${username} 的头像`} />
       ) : (
-        <div className='w-full h-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center'>
-          <User className={`${iconSizeClasses[size]} text-blue-500 dark:text-blue-400`} />
-        </div>
+        <Avatar.Fallback>
+          <User className='h-4 w-4' />
+        </Avatar.Fallback>
       )}
-    </div>
+    </Avatar>
   );
 };
 
@@ -183,27 +246,11 @@ const MachineCodeCell = ({ username, canManage, machineCodeData, onRefresh, show
 
     const element = codeRef.current;
     const rect = element.getBoundingClientRect();
-    const tableContainer = element.closest('[data-table="user-list"]');
-
-    if (tableContainer) {
-      const containerRect = tableContainer.getBoundingClientRect();
-      const elementCenterY = rect.top + rect.height / 2;
-      const containerCenterY = containerRect.top + containerRect.height / 2;
-
-      // 如果元素在容器上半部分，悬浮框向下显示；否则向上显示
-      if (elementCenterY < containerCenterY) {
-        setTooltipPosition('bottom');
-      } else {
-        setTooltipPosition('top');
-      }
+    const viewportHeight = window.innerHeight;
+    if (rect.top < viewportHeight / 2) {
+      setTooltipPosition('bottom');
     } else {
-      // 后备方案：根据视口位置决定
-      const viewportHeight = window.innerHeight;
-      if (rect.top < viewportHeight / 2) {
-        setTooltipPosition('bottom');
-      } else {
-        setTooltipPosition('top');
-      }
+      setTooltipPosition('top');
     }
   }, []);
 
@@ -258,7 +305,7 @@ const MachineCodeCell = ({ username, canManage, machineCodeData, onRefresh, show
   if (!machineCodeInfo) {
     return (
       <div className="flex items-center space-x-2">
-        <span className="text-sm text-gray-500 dark:text-gray-400">未绑定</span>
+        <span className="text-sm text-muted">未绑定</span>
       </div>
     );
   }
@@ -269,7 +316,7 @@ const MachineCodeCell = ({ username, canManage, machineCodeData, onRefresh, show
         <div className="group relative" onMouseEnter={handleMouseEnter}>
           <code
             ref={codeRef}
-            className="text-xs font-mono text-gray-700 dark:text-gray-300 cursor-help"
+            className="text-xs font-mono text-foreground cursor-help"
           >
             {formatMachineCode(machineCodeInfo.machineCode).substring(0, 12)}...
           </code>
@@ -300,20 +347,18 @@ const MachineCodeCell = ({ username, canManage, machineCodeData, onRefresh, show
           </div>
         </div>
         {canManage && (
-          <button
-            onClick={handleUnbind}
-            disabled={unbinding}
-            className={`${buttonStyles.roundedDanger} ${unbinding ? 'opacity-50 cursor-not-allowed' : ''}`}
-            title="解绑机器码"
+          <Button
+            size='sm'
+            variant='danger-soft'
+            onPress={handleUnbind}
+            isDisabled={unbinding}
           >
             {unbinding ? '解绑中...' : '解绑'}
-          </button>
+          </Button>
         )}
       </div>
       <div className="flex items-center space-x-1">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300">
-          已绑定
-        </span>
+        <AdminChip color='success'>已绑定</AdminChip>
       </div>
     </div>
   );
@@ -339,79 +384,57 @@ const AlertModal = ({
   timer,
   showConfirm = false
 }: AlertModalProps) => {
-  const [isVisible, setIsVisible] = useState(false);
-
   useEffect(() => {
-    if (isOpen) {
-      setIsVisible(true);
-      if (timer) {
-        setTimeout(() => {
-          onClose();
-        }, timer);
-      }
-    } else {
-      setIsVisible(false);
+    if (isOpen && timer) {
+      const timeout = setTimeout(onClose, timer);
+      return () => clearTimeout(timeout);
     }
   }, [isOpen, timer, onClose]);
-
-  if (!isOpen) return null;
 
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="w-8 h-8 text-blue-500" />;
+        return <CheckCircle className="w-5 h-5" />;
       case 'error':
-        return <AlertCircle className="w-8 h-8 text-red-500" />;
+        return <AlertCircle className="w-5 h-5" />;
       case 'warning':
-        return <AlertTriangle className="w-8 h-8 text-yellow-500" />;
+        return <AlertTriangle className="w-5 h-5" />;
       default:
         return null;
     }
   };
 
-  const getBgColor = () => {
+  const getStatus = () => {
     switch (type) {
       case 'success':
-        return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800';
+        return 'success';
       case 'error':
-        return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
+        return 'danger';
       case 'warning':
-        return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800';
+        return 'warning';
       default:
-        return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800';
+        return 'accent';
     }
   };
 
-  return createPortal(
-    <div className={`fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
-      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-sm w-full border ${getBgColor()} transition-all duration-200 ${isVisible ? 'scale-100' : 'scale-95'}`}>
-        <div className="p-6 text-center">
-          <div className="flex justify-center mb-4">
-            {getIcon()}
-          </div>
-
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            {title}
-          </h3>
-
-          {message && (
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {message}
-            </p>
-          )}
-
-          {showConfirm && (
-            <button
-              onClick={onClose}
-              className={`px-4 py-2 text-sm font-medium ${buttonStyles.primary}`}
-            >
-              确定
-            </button>
-          )}
-        </div>
-      </div>
-    </div>,
-    document.body
+  return (
+    <AppDialog
+      isOpen={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      title={title}
+      icon={getIcon()}
+      footer={
+        showConfirm ? (
+          <Button variant='primary' onPress={onClose}>
+            确定
+          </Button>
+        ) : null
+      }
+    >
+      {message ? <Alert status={getStatus()}>{message}</Alert> : null}
+    </AppDialog>
   );
 };
 
@@ -548,10 +571,12 @@ const CollapsibleTab = ({
   children,
 }: CollapsibleTabProps) => {
   return (
-    <div className='mb-4 overflow-hidden rounded-3xl border border-border/70 bg-surface/80 shadow-sm backdrop-blur-md'>
-      <button
-        onClick={onToggle}
-        className='flex w-full items-center justify-between bg-surface-secondary/70 px-6 py-4 transition-colors hover:bg-surface-tertiary/70'
+    <Card variant='default' className='mb-4 overflow-hidden'>
+      <Button
+        fullWidth
+        variant='tertiary'
+        className='h-auto justify-between px-6 py-4'
+        onPress={onToggle}
       >
         <div className='flex items-center gap-3'>
           {icon}
@@ -562,10 +587,10 @@ const CollapsibleTab = ({
         <div className='text-muted'>
           {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </div>
-      </button>
+      </Button>
 
       {isExpanded && <div className='px-6 py-4'>{children}</div>}
-    </div>
+    </Card>
   );
 };
 
@@ -1016,11 +1041,11 @@ const UserConfig = ({ config, role, refreshConfig, machineCodeUsers, fetchMachin
         <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
           用户统计
         </h4>
-        <div className='p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800'>
-          <div className='text-2xl font-bold text-blue-800 dark:text-blue-300'>
+        <div className='p-4 bg-accent/10 rounded-lg border border-accent/20'>
+          <div className='text-2xl font-bold text-accent'>
             {config.UserConfig.Users.length}
           </div>
-          <div className='text-sm text-blue-600 dark:text-blue-400'>
+          <div className='text-sm text-accent'>
             总用户数
           </div>
         </div>
@@ -1034,78 +1059,69 @@ const UserConfig = ({ config, role, refreshConfig, machineCodeUsers, fetchMachin
           <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
             用户组管理
           </h4>
-          <button
-            onClick={() => {
+          <Button
+            size='sm'
+            variant={showAddUserGroupForm ? 'secondary' : 'primary'}
+            onPress={() => {
               setShowAddUserGroupForm(!showAddUserGroupForm);
               if (showEditUserGroupForm) {
                 setShowEditUserGroupForm(false);
                 setEditingUserGroup(null);
               }
             }}
-            className={showAddUserGroupForm ? buttonStyles.secondary : buttonStyles.primary}
           >
             {showAddUserGroupForm ? '取消' : '添加用户组'}
-          </button>
+          </Button>
         </div>
 
         {/* 用户组列表 */}
-        <div className='border border-gray-200 dark:border-gray-700 rounded-lg max-h-[20rem] overflow-y-auto overflow-x-auto relative'>
-          <table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
-            <thead className='bg-gray-50 dark:bg-gray-900 sticky top-0 z-10'>
-              <tr>
-                <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
-                  用户组名称
-                </th>
-                <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
-                  可用视频源
-                </th>
-                <th className='px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
+        <AdminTable ariaLabel='用户组列表'>
+          <Table.Header>
+            <Table.Column isRowHeader>用户组名称</Table.Column>
+            <Table.Column>可用视频源</Table.Column>
+            <Table.Column className='text-right'>操作</Table.Column>
+          </Table.Header>
+          <Table.Body>
               {userGroups.map((group) => (
-                <tr key={group.name} className='hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors'>
-                  <td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100'>
+                <Table.Row key={group.name} id={group.name}>
+                  <Table.Cell className='font-medium'>
                     {group.name}
-                  </td>
-                  <td className='px-6 py-4 whitespace-nowrap'>
-                    <div className='flex items-center space-x-2'>
-                      <span className='text-sm text-gray-900 dark:text-gray-100'>
-                        {group.enabledApis && group.enabledApis.length > 0
-                          ? `${group.enabledApis.length} 个源`
-                          : '无限制'}
-                      </span>
-                    </div>
-                  </td>
-                  <td className='px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2'>
-                    <button
-                      onClick={() => handleStartEditUserGroup(group)}
-                      disabled={isLoading(`userGroup_edit_${group.name}`)}
-                      className={`${buttonStyles.roundedPrimary} ${isLoading(`userGroup_edit_${group.name}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  </Table.Cell>
+                  <Table.Cell>
+                    {group.enabledApis && group.enabledApis.length > 0
+                      ? `${group.enabledApis.length} 个源`
+                      : '无限制'}
+                  </Table.Cell>
+                  <Table.Cell>
+                    <div className='flex justify-end gap-2'>
+                    <Button
+                      size='sm'
+                      variant='secondary'
+                      onPress={() => handleStartEditUserGroup(group)}
+                      isDisabled={isLoading(`userGroup_edit_${group.name}`)}
                     >
                       编辑
-                    </button>
-                    <button
-                      onClick={() => handleDeleteUserGroup(group.name)}
-                      className={buttonStyles.roundedDanger}
+                    </Button>
+                    <Button
+                      size='sm'
+                      variant='danger-soft'
+                      onPress={() => handleDeleteUserGroup(group.name)}
                     >
                       删除
-                    </button>
-                  </td>
-                </tr>
+                    </Button>
+                    </div>
+                  </Table.Cell>
+                </Table.Row>
               ))}
               {userGroups.length === 0 && (
-                <tr>
-                  <td colSpan={3} className='px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400'>
+                <Table.Row id='empty-user-groups'>
+                  <Table.Cell colSpan={3} className='py-8 text-center text-muted'>
                     暂无用户组，请添加用户组来管理用户权限
-                  </td>
-                </tr>
+                  </Table.Cell>
+                </Table.Row>
               )}
-            </tbody>
-          </table>
-        </div>
+          </Table.Body>
+        </AdminTable>
       </div>
 
       {/* 用户列表 */}
@@ -1122,155 +1138,146 @@ const UserConfig = ({ config, role, refreshConfig, machineCodeUsers, fetchMachin
                   <span className='text-sm text-gray-600 dark:text-gray-400'>
                     已选择 {selectedUsers.size} 个用户
                   </span>
-                  <button
-                    onClick={() => setShowBatchUserGroupModal(true)}
-                    className={buttonStyles.primary}
+                  <Button
+                    size='sm'
+                    variant='primary'
+                    onPress={() => setShowBatchUserGroupModal(true)}
                   >
                     批量设置用户组
-                  </button>
+                  </Button>
                 </div>
                 <div className='w-px h-6 bg-gray-300 dark:bg-gray-600'></div>
               </>
             )}
-            <button
-              onClick={() => {
+            <Button
+              size='sm'
+              variant={showAddUserForm ? 'secondary' : 'primary'}
+              onPress={() => {
                 setShowAddUserForm(!showAddUserForm);
                 if (showChangePasswordForm) {
                   setShowChangePasswordForm(false);
                   setChangePasswordUser({ username: '', password: '' });
                 }
               }}
-              className={showAddUserForm ? buttonStyles.secondary : buttonStyles.success}
             >
               {showAddUserForm ? '取消' : '添加用户'}
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* 添加用户表单 */}
         {showAddUserForm && (
-          <div className='mb-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700'>
+          <Card variant='secondary' className='mb-4 p-4'>
             <div className='space-y-4'>
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                <input
-                  type='text'
-                  placeholder='用户名'
-                  value={newUser.username}
-                  onChange={(e) =>
-                    setNewUser((prev) => ({ ...prev, username: e.target.value }))
-                  }
-                  className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                />
-                <input
-                  type='password'
-                  placeholder='密码'
-                  value={newUser.password}
-                  onChange={(e) =>
-                    setNewUser((prev) => ({ ...prev, password: e.target.value }))
-                  }
-                  className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                />
+                <TextField fullWidth>
+                  <Label>用户名</Label>
+                  <Input
+                    type='text'
+                    placeholder='用户名'
+                    value={newUser.username}
+                    onChange={(e) =>
+                      setNewUser((prev) => ({ ...prev, username: e.target.value }))
+                    }
+                  />
+                </TextField>
+                <TextField fullWidth>
+                  <Label>密码</Label>
+                  <Input
+                    type='password'
+                    placeholder='密码'
+                    value={newUser.password}
+                    onChange={(e) =>
+                      setNewUser((prev) => ({ ...prev, password: e.target.value }))
+                    }
+                  />
+                </TextField>
               </div>
-              <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                  用户组（可选）
-                </label>
-                <select
-                  value={newUser.userGroup}
-                  onChange={(e) =>
-                    setNewUser((prev) => ({ ...prev, userGroup: e.target.value }))
-                  }
-                  className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                >
-                  <option value=''>无用户组（无限制）</option>
-                  {userGroups.map((group) => (
-                    <option key={group.name} value={group.name}>
-                      {group.name} ({group.enabledApis && group.enabledApis.length > 0 ? `${group.enabledApis.length} 个源` : '无限制'})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <AppFilterSelect
+                label='用户组（可选）'
+                value={newUser.userGroup}
+                placeholder='无用户组（无限制）'
+                options={[
+                  { label: '无用户组（无限制）', value: '' },
+                  ...userGroups.map((group) => ({
+                    label: `${group.name} (${group.enabledApis && group.enabledApis.length > 0 ? `${group.enabledApis.length} 个源` : '无限制'})`,
+                    value: group.name,
+                  })),
+                ]}
+                onChange={(value) =>
+                  setNewUser((prev) => ({ ...prev, userGroup: value }))
+                }
+              />
               <div className='flex justify-end'>
-                <button
-                  onClick={handleAddUser}
-                  disabled={!newUser.username || !newUser.password || isLoading('addUser')}
-                  className={!newUser.username || !newUser.password || isLoading('addUser') ? buttonStyles.disabled : buttonStyles.success}
+                <Button
+                  variant='primary'
+                  onPress={handleAddUser}
+                  isDisabled={!newUser.username || !newUser.password || isLoading('addUser')}
                 >
                   {isLoading('addUser') ? '添加中...' : '添加'}
-                </button>
+                </Button>
               </div>
             </div>
-          </div>
+          </Card>
         )}
 
         {/* 修改密码表单 */}
         {showChangePasswordForm && (
-          <div className='mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700'>
-            <h5 className='text-sm font-medium text-blue-800 dark:text-blue-300 mb-3'>
+          <div className='mb-4 p-4 bg-accent/10 rounded-lg border border-accent/20'>
+            <h5 className='text-sm font-medium text-accent mb-3'>
               修改用户密码
             </h5>
             <div className='flex flex-col sm:flex-row gap-4 sm:gap-3'>
-              <input
-                type='text'
-                placeholder='用户名'
-                value={changePasswordUser.username}
-                disabled
-                className='flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 cursor-not-allowed'
-              />
-              <input
-                type='password'
-                placeholder='新密码'
-                value={changePasswordUser.password}
-                onChange={(e) =>
-                  setChangePasswordUser((prev) => ({
-                    ...prev,
-                    password: e.target.value,
-                  }))
-                }
-                className='flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-              />
-              <button
-                onClick={handleChangePassword}
-                disabled={!changePasswordUser.password || isLoading(`changePassword_${changePasswordUser.username}`)}
-                className={`w-full sm:w-auto ${!changePasswordUser.password || isLoading(`changePassword_${changePasswordUser.username}`) ? buttonStyles.disabled : buttonStyles.primary}`}
+              <TextField className='flex-1'>
+                <Label>用户名</Label>
+                <Input
+                  type='text'
+                  placeholder='用户名'
+                  value={changePasswordUser.username}
+                  disabled
+                />
+              </TextField>
+              <TextField className='flex-1'>
+                <Label>新密码</Label>
+                <Input
+                  type='password'
+                  placeholder='新密码'
+                  value={changePasswordUser.password}
+                  onChange={(e) =>
+                    setChangePasswordUser((prev) => ({
+                      ...prev,
+                      password: e.target.value,
+                    }))
+                  }
+                />
+              </TextField>
+              <Button
+                className='w-full sm:w-auto'
+                variant='primary'
+                onPress={handleChangePassword}
+                isDisabled={!changePasswordUser.password || isLoading(`changePassword_${changePasswordUser.username}`)}
               >
                 {isLoading(`changePassword_${changePasswordUser.username}`) ? '修改中...' : '修改密码'}
-              </button>
-              <button
-                onClick={() => {
+              </Button>
+              <Button
+                className='w-full sm:w-auto'
+                variant='secondary'
+                onPress={() => {
                   setShowChangePasswordForm(false);
                   setChangePasswordUser({ username: '', password: '' });
                 }}
-                className={`w-full sm:w-auto ${buttonStyles.secondary}`}
               >
                 取消
-              </button>
+              </Button>
             </div>
           </div>
         )}
 
         {/* 用户列表 */}
-        <div
-          className='border border-gray-200 dark:border-gray-700 rounded-lg max-h-[28rem] overflow-y-auto overflow-x-auto relative'
-          data-table="user-list"
-          style={{
-            scrollbarWidth: 'thin',
-            scrollbarColor: '#cbd5e0 transparent',
-          }}
-          onMouseEnter={(e) => {
-            const target = e.currentTarget;
-            target.style.setProperty('scrollbar-color', '#94a3b8 #f1f5f9');
-          }}
-          onMouseLeave={(e) => {
-            const target = e.currentTarget;
-            target.style.setProperty('scrollbar-color', '#cbd5e0 transparent');
-          }}
-        >
-          <table className='min-w-[1200px] w-full divide-y divide-gray-200 dark:divide-gray-700'>
-            <thead className='bg-gray-50 dark:bg-gray-900 sticky top-0 z-10'>
-              <tr>
-                <th className='w-4' />
-                <th className='w-10 px-1 py-3 text-center'>
+        <AdminTable ariaLabel='用户列表' minWidth='min-w-[1200px]'>
+          <Table.Header>
+                <Table.Column className='w-4' />
+                <Table.Column className='w-10 text-center'>
                   {(() => {
                     // 检查是否有权限操作任何用户
                     const hasAnyPermission = config?.UserConfig?.Users?.some(user =>
@@ -1281,61 +1288,38 @@ const UserConfig = ({ config, role, refreshConfig, machineCodeUsers, fetchMachin
                     );
 
                     return hasAnyPermission ? (
-                      <input
-                        type='checkbox'
-                        checked={selectAllUsers}
-                        onChange={(e) => handleSelectAllUsers(e.target.checked)}
-                        className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600'
+                      <AdminCheckbox
+                        ariaLabel='选择全部用户'
+                        isSelected={selectAllUsers}
+                        onChange={handleSelectAllUsers}
                       />
                     ) : (
                       <div className='w-4 h-4' />
                     );
                   })()}
-                </th>
-                <th
-                  scope='col'
-                  className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'
-                >
+                </Table.Column>
+                <Table.Column isRowHeader>
                   用户名
-                </th>
-                <th
-                  scope='col'
-                  className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'
-                >
+                </Table.Column>
+                <Table.Column>
                   角色
-                </th>
-                <th
-                  scope='col'
-                  className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'
-                >
+                </Table.Column>
+                <Table.Column>
                   状态
-                </th>
-                <th
-                  scope='col'
-                  className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'
-                >
+                </Table.Column>
+                <Table.Column>
                   用户组
-                </th>
-                <th
-                  scope='col'
-                  className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'
-                >
+                </Table.Column>
+                <Table.Column>
                   采集源权限
-                </th>
-                <th
-                  scope='col'
-                  className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'
-                >
+                </Table.Column>
+                <Table.Column>
                   机器码
-                </th>
-                <th
-                  scope='col'
-                  className='px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'
-                >
+                </Table.Column>
+                <Table.Column className='text-right'>
                   操作
-                </th>
-              </tr>
-            </thead>
+                </Table.Column>
+          </Table.Header>
             {/* 按规则排序用户：自己 -> 站长(若非自己) -> 管理员 -> 其他 */}
             {(() => {
               const sortedUsers = [...config.UserConfig.Users].sort((a, b) => {
@@ -1349,7 +1333,7 @@ const UserConfig = ({ config, role, refreshConfig, machineCodeUsers, fetchMachin
                 return priority(a) - priority(b);
               });
               return (
-                <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
+                <Table.Body>
                   {sortedUsers.map((user) => {
                     // 修改密码权限：站长可修改管理员和普通用户密码，管理员可修改普通用户和自己的密码，但任何人都不能修改站长密码
                     const canChangePassword =
@@ -1371,61 +1355,48 @@ const UserConfig = ({ config, role, refreshConfig, machineCodeUsers, fetchMachin
                       (role === 'owner' ||
                         (role === 'admin' && user.role === 'user'));
                     return (
-                      <tr
+                      <Table.Row
                         key={user.username}
-                        className='hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors'
+                        id={user.username}
                       >
-                        <td className='w-4' />
-                        <td className='w-10 px-1 py-3 text-center'>
+                        <Table.Cell className='w-4' />
+                        <Table.Cell className='w-10 text-center'>
                           {(role === 'owner' ||
                             (role === 'admin' &&
                               (user.role === 'user' ||
                                 user.username === currentUsername))) ? (
-                            <input
-                              type='checkbox'
-                              checked={selectedUsers.has(user.username)}
-                              onChange={(e) => handleSelectUser(user.username, e.target.checked)}
-                              className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600'
+                            <AdminCheckbox
+                              ariaLabel={`选择用户 ${user.username}`}
+                              isSelected={selectedUsers.has(user.username)}
+                              onChange={(selected) => handleSelectUser(user.username, selected)}
                             />
                           ) : (
                             <div className='w-4 h-4' />
                           )}
-                        </td>
-                        <td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100'>
+                        </Table.Cell>
+                        <Table.Cell className='font-medium'>
                           <div className='flex items-center gap-3'>
                             <UserAvatar username={user.username} size="sm" />
                             <span>{user.username}</span>
                           </div>
-                        </td>
-                        <td className='px-6 py-4 whitespace-nowrap'>
-                          <span
-                            className={`px-2 py-1 text-xs rounded-full ${user.role === 'owner'
-                              ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300'
-                              : user.role === 'admin'
-                                ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300'
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                              }`}
-                          >
+                        </Table.Cell>
+                        <Table.Cell>
+                          <AdminChip color={user.role === 'owner' ? 'warning' : user.role === 'admin' ? 'accent' : 'default'}>
                             {user.role === 'owner'
                               ? '站长'
                               : user.role === 'admin'
                                 ? '管理员'
                                 : '普通用户'}
-                          </span>
-                        </td>
-                        <td className='px-6 py-4 whitespace-nowrap'>
-                          <span
-                            className={`px-2 py-1 text-xs rounded-full ${!user.banned
-                              ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'
-                              : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300'
-                              }`}
-                          >
+                          </AdminChip>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <AdminChip color={!user.banned ? 'success' : 'danger'}>
                             {!user.banned ? '正常' : '已封禁'}
-                          </span>
-                        </td>
-                        <td className='px-6 py-4 whitespace-nowrap'>
+                          </AdminChip>
+                        </Table.Cell>
+                        <Table.Cell>
                           <div className='flex items-center space-x-2'>
-                            <span className='text-sm text-gray-900 dark:text-gray-100'>
+                            <span className='text-sm'>
                               {user.tags && user.tags.length > 0
                                 ? user.tags.join(', ')
                                 : '无用户组'}
@@ -1435,18 +1406,19 @@ const UserConfig = ({ config, role, refreshConfig, machineCodeUsers, fetchMachin
                               (role === 'admin' &&
                                 (user.role === 'user' ||
                                   user.username === currentUsername))) && (
-                                <button
-                                  onClick={() => handleConfigureUserGroup(user)}
-                                  className={buttonStyles.roundedPrimary}
+                                <Button
+                                  size='sm'
+                                  variant='secondary'
+                                  onPress={() => handleConfigureUserGroup(user)}
                                 >
                                   配置
-                                </button>
+                                </Button>
                               )}
                           </div>
-                        </td>
-                        <td className='px-6 py-4 whitespace-nowrap'>
+                        </Table.Cell>
+                        <Table.Cell>
                           <div className='flex items-center space-x-2'>
-                            <span className='text-sm text-gray-900 dark:text-gray-100'>
+                            <span className='text-sm'>
                               {user.enabledApis && user.enabledApis.length > 0
                                 ? `${user.enabledApis.length} 个源`
                                 : '无限制'}
@@ -1456,16 +1428,17 @@ const UserConfig = ({ config, role, refreshConfig, machineCodeUsers, fetchMachin
                               (role === 'admin' &&
                                 (user.role === 'user' ||
                                   user.username === currentUsername))) && (
-                                <button
-                                  onClick={() => handleConfigureUserApis(user)}
-                                  className={buttonStyles.roundedPrimary}
+                                <Button
+                                  size='sm'
+                                  variant='secondary'
+                                  onPress={() => handleConfigureUserApis(user)}
                                 >
                                   配置
-                                </button>
+                                </Button>
                               )}
                           </div>
-                        </td>
-                        <td className='px-6 py-4 whitespace-nowrap'>
+                        </Table.Cell>
+                        <Table.Cell>
                           <MachineCodeCell
                             username={user.username}
                             canManage={canOperate}
@@ -1473,801 +1446,626 @@ const UserConfig = ({ config, role, refreshConfig, machineCodeUsers, fetchMachin
                             onRefresh={fetchMachineCodeUsers}
                             showAlert={showAlert}
                           />
-                        </td>
-                        <td className='px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2'>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <div className='flex flex-wrap justify-end gap-2'>
                           {/* 修改密码按钮 */}
                           {canChangePassword && (
-                            <button
-                              onClick={() =>
+                            <Button
+                              size='sm'
+                              variant='secondary'
+                              onPress={() =>
                                 handleShowChangePasswordForm(user.username)
                               }
-                              className={buttonStyles.roundedPrimary}
                             >
                               修改密码
-                            </button>
+                            </Button>
                           )}
                           {canOperate && (
                             <>
                               {/* 其他操作按钮 */}
                               {user.role === 'user' && (
-                                <button
-                                  onClick={() => handleSetAdmin(user.username)}
-                                  disabled={isLoading(`setAdmin_${user.username}`)}
-                                  className={`${buttonStyles.roundedPurple} ${isLoading(`setAdmin_${user.username}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                <Button
+                                  size='sm'
+                                  variant='secondary'
+                                  onPress={() => handleSetAdmin(user.username)}
+                                  isDisabled={isLoading(`setAdmin_${user.username}`)}
                                 >
                                   设为管理
-                                </button>
+                                </Button>
                               )}
                               {user.role === 'admin' && (
-                                <button
-                                  onClick={() =>
+                                <Button
+                                  size='sm'
+                                  variant='secondary'
+                                  onPress={() =>
                                     handleRemoveAdmin(user.username)
                                   }
-                                  disabled={isLoading(`removeAdmin_${user.username}`)}
-                                  className={`${buttonStyles.roundedSecondary} ${isLoading(`removeAdmin_${user.username}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                  isDisabled={isLoading(`removeAdmin_${user.username}`)}
                                 >
                                   取消管理
-                                </button>
+                                </Button>
                               )}
                               {user.role !== 'owner' &&
                                 (!user.banned ? (
-                                  <button
-                                    onClick={() => handleBanUser(user.username)}
-                                    disabled={isLoading(`banUser_${user.username}`)}
-                                    className={`${buttonStyles.roundedDanger} ${isLoading(`banUser_${user.username}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                  <Button
+                                    size='sm'
+                                    variant='danger-soft'
+                                    onPress={() => handleBanUser(user.username)}
+                                    isDisabled={isLoading(`banUser_${user.username}`)}
                                   >
                                     封禁
-                                  </button>
+                                  </Button>
                                 ) : (
-                                  <button
-                                    onClick={() =>
+                                  <Button
+                                    size='sm'
+                                    variant='secondary'
+                                    onPress={() =>
                                       handleUnbanUser(user.username)
                                     }
-                                    disabled={isLoading(`unbanUser_${user.username}`)}
-                                    className={`${buttonStyles.roundedSuccess} ${isLoading(`unbanUser_${user.username}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    isDisabled={isLoading(`unbanUser_${user.username}`)}
                                   >
                                     解封
-                                  </button>
+                                  </Button>
                                 ))}
                             </>
                           )}
                           {/* 删除用户按钮 - 放在最后，使用更明显的红色样式 */}
                           {canDeleteUser && (
-                            <button
-                              onClick={() => handleDeleteUser(user.username)}
-                              className={buttonStyles.roundedDanger}
+                            <Button
+                              size='sm'
+                              variant='danger-soft'
+                              onPress={() => handleDeleteUser(user.username)}
                             >
                               删除用户
-                            </button>
+                            </Button>
                           )}
-                        </td>
-                      </tr>
+                          </div>
+                        </Table.Cell>
+                      </Table.Row>
                     );
                   })}
-                </tbody>
+                </Table.Body>
               );
             })()}
-          </table>
-        </div>
+        </AdminTable>
       </div>
 
       {/* 配置用户采集源权限弹窗 */}
-      {showConfigureApisModal && selectedUser && createPortal(
-        <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4' onClick={() => {
-          setShowConfigureApisModal(false);
-          setSelectedUser(null);
-          setSelectedApis([]);
-        }}>
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto' onClick={(e) => e.stopPropagation()}>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-6'>
-                <h3 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>
-                  配置用户采集源权限 - {selectedUser.username}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowConfigureApisModal(false);
-                    setSelectedUser(null);
-                    setSelectedApis([]);
+      <AppDialog
+        isOpen={showConfigureApisModal && Boolean(selectedUser)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowConfigureApisModal(false);
+            setSelectedUser(null);
+            setSelectedApis([]);
+          }
+        }}
+        title={`配置用户采集源权限${selectedUser ? ` - ${selectedUser.username}` : ''}`}
+        size='lg'
+        footer={
+          selectedUser ? (
+            <>
+              <Button
+                variant='secondary'
+                onPress={() => {
+                  setShowConfigureApisModal(false);
+                  setSelectedUser(null);
+                  setSelectedApis([]);
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                variant='primary'
+                onPress={handleSaveUserApis}
+                isDisabled={isLoading(`saveUserApis_${selectedUser.username}`)}
+              >
+                {isLoading(`saveUserApis_${selectedUser.username}`) ? '配置中...' : '确认配置'}
+              </Button>
+            </>
+          ) : null
+        }
+      >
+        <div className='space-y-6'>
+          <Alert status='accent'>
+            <Alert.Content>
+              <Alert.Title>配置说明</Alert.Title>
+              <Alert.Description>
+                提示：全不选为无限制，选中的采集源将限制用户只能访问这些源
+              </Alert.Description>
+            </Alert.Content>
+          </Alert>
+
+          <section>
+            <h4 className='mb-4 text-sm font-medium'>选择可用的采集源：</h4>
+            <div className='grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3'>
+              {config?.SourceConfig?.map((source) => (
+                <Checkbox
+                  key={source.key}
+                  isSelected={selectedApis.includes(source.key)}
+                  onChange={(isSelected) => {
+                    if (isSelected) {
+                      setSelectedApis([...selectedApis, source.key]);
+                    } else {
+                      setSelectedApis(selectedApis.filter(api => api !== source.key));
+                    }
                   }}
-                  className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'
                 >
-                  <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                  </svg>
-                </button>
-              </div>
-
-              <div className='mb-6'>
-                <div className='bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4'>
-                  <div className='flex items-center space-x-2 mb-2'>
-                    <svg className='w-5 h-5 text-blue-600 dark:text-blue-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                    <span className='text-sm font-medium text-blue-800 dark:text-blue-300'>
-                      配置说明
-                    </span>
-                  </div>
-                  <p className='text-sm text-blue-700 dark:text-blue-400 mt-1'>
-                    提示：全不选为无限制，选中的采集源将限制用户只能访问这些源
-                  </p>
-                </div>
-              </div>
-
-              {/* 采集源选择 - 多列布局 */}
-              <div className='mb-6'>
-                <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-4'>
-                  选择可用的采集源：
-                </h4>
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                  {config?.SourceConfig?.map((source) => (
-                    <label key={source.key} className='flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors'>
-                      <input
-                        type='checkbox'
-                        checked={selectedApis.includes(source.key)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedApis([...selectedApis, source.key]);
-                          } else {
-                            setSelectedApis(selectedApis.filter(api => api !== source.key));
-                          }
-                        }}
-                        className='rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700'
-                      />
-                      <div className='flex-1 min-w-0'>
-                        <div className='text-sm font-medium text-gray-900 dark:text-gray-100 truncate'>
-                          {source.name}
+                  <Checkbox.Control>
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <Checkbox.Content>
+                    <div className='min-w-0'>
+                      <div className='truncate text-sm font-medium'>{source.name}</div>
+                      {source.api ? (
+                        <div className='truncate text-xs text-muted'>
+                          {extractDomain(source.api)}
                         </div>
-                        {source.api && (
-                          <div className='text-xs text-gray-500 dark:text-gray-400 truncate'>
-                            {extractDomain(source.api)}
-                          </div>
-                        )}
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
+                      ) : null}
+                    </div>
+                  </Checkbox.Content>
+                </Checkbox>
+              ))}
+            </div>
+          </section>
 
-              {/* 快速操作按钮 */}
-              <div className='flex flex-wrap items-center justify-between mb-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg'>
-                <div className='flex space-x-2'>
-                  <button
-                    onClick={() => setSelectedApis([])}
-                    className={buttonStyles.quickAction}
-                  >
-                    全不选（无限制）
-                  </button>
-                  <button
-                    onClick={() => {
-                      const allApis = config?.SourceConfig?.filter(source => !source.disabled).map(s => s.key) || [];
-                      setSelectedApis(allApis);
-                    }}
-                    className={buttonStyles.quickAction}
-                  >
-                    全选
-                  </button>
-                </div>
-                <div className='text-sm text-gray-600 dark:text-gray-400'>
-                  已选择：<span className='font-medium text-blue-600 dark:text-blue-400'>
-                    {selectedApis.length > 0 ? `${selectedApis.length} 个源` : '无限制'}
-                  </span>
-                </div>
-              </div>
-
-              {/* 操作按钮 */}
-              <div className='flex justify-end space-x-3'>
-                <button
-                  onClick={() => {
-                    setShowConfigureApisModal(false);
-                    setSelectedUser(null);
-                    setSelectedApis([]);
+          <Card variant='secondary' className='p-4'>
+            <div className='flex flex-wrap items-center justify-between gap-3'>
+              <div className='flex gap-2'>
+                <Button size='sm' variant='secondary' onPress={() => setSelectedApis([])}>
+                  全不选（无限制）
+                </Button>
+                <Button
+                  size='sm'
+                  variant='secondary'
+                  onPress={() => {
+                    const allApis = config?.SourceConfig?.filter(source => !source.disabled).map(s => s.key) || [];
+                    setSelectedApis(allApis);
                   }}
-                  className={`px-6 py-2.5 text-sm font-medium ${buttonStyles.secondary}`}
                 >
-                  取消
-                </button>
-                <button
-                  onClick={handleSaveUserApis}
-                  disabled={isLoading(`saveUserApis_${selectedUser?.username}`)}
-                  className={`px-6 py-2.5 text-sm font-medium ${isLoading(`saveUserApis_${selectedUser?.username}`) ? buttonStyles.disabled : buttonStyles.primary}`}
-                >
-                  {isLoading(`saveUserApis_${selectedUser?.username}`) ? '配置中...' : '确认配置'}
-                </button>
+                  全选
+                </Button>
+              </div>
+              <div className='text-sm text-muted'>
+                已选择：<span className='font-medium text-accent'>
+                  {selectedApis.length > 0 ? `${selectedApis.length} 个源` : '无限制'}
+                </span>
               </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </Card>
+        </div>
+      </AppDialog>
 
       {/* 添加用户组弹窗 */}
-      {showAddUserGroupForm && createPortal(
-        <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4' onClick={() => {
-          setShowAddUserGroupForm(false);
-          setNewUserGroup({ name: '', enabledApis: [] });
-        }}>
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto' onClick={(e) => e.stopPropagation()}>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-6'>
-                <h3 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>
-                  添加新用户组
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowAddUserGroupForm(false);
-                    setNewUserGroup({ name: '', enabledApis: [] });
-                  }}
-                  className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'
-                >
-                  <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                  </svg>
-                </button>
-              </div>
+      <AppDialog
+        isOpen={showAddUserGroupForm}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowAddUserGroupForm(false);
+            setNewUserGroup({ name: '', enabledApis: [] });
+          }
+        }}
+        title='添加新用户组'
+        size='lg'
+        footer={
+          <>
+            <Button
+              variant='secondary'
+              onPress={() => {
+                setShowAddUserGroupForm(false);
+                setNewUserGroup({ name: '', enabledApis: [] });
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              variant='primary'
+              onPress={handleAddUserGroup}
+              isDisabled={!newUserGroup.name.trim() || isLoading('userGroup_add_new')}
+            >
+              {isLoading('userGroup_add_new') ? '添加中...' : '添加用户组'}
+            </Button>
+          </>
+        }
+      >
+        <div className='space-y-6'>
+          <TextField>
+            <Label>用户组名称</Label>
+            <Input
+              type='text'
+              placeholder='请输入用户组名称'
+              value={newUserGroup.name}
+              onChange={(e) =>
+                setNewUserGroup((prev) => ({ ...prev, name: e.target.value }))
+              }
+            />
+          </TextField>
 
-              <div className='space-y-6'>
-                {/* 用户组名称 */}
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                    用户组名称
-                  </label>
-                  <input
-                    type='text'
-                    placeholder='请输入用户组名称'
-                    value={newUserGroup.name}
-                    onChange={(e) =>
-                      setNewUserGroup((prev) => ({ ...prev, name: e.target.value }))
+          <section>
+            <Label>可用视频源</Label>
+            <div className='mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3'>
+              {config?.SourceConfig?.map((source) => (
+                <Checkbox
+                  key={source.key}
+                  isSelected={newUserGroup.enabledApis.includes(source.key)}
+                  onChange={(isSelected) => {
+                    if (isSelected) {
+                      setNewUserGroup(prev => ({
+                        ...prev,
+                        enabledApis: [...prev.enabledApis, source.key]
+                      }));
+                    } else {
+                      setNewUserGroup(prev => ({
+                        ...prev,
+                        enabledApis: prev.enabledApis.filter(api => api !== source.key)
+                      }));
                     }
-                    className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                  />
-                </div>
-
-                {/* 可用视频源 */}
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4'>
-                    可用视频源
-                  </label>
-                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
-                    {config?.SourceConfig?.map((source) => (
-                      <label key={source.key} className='flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors'>
-                        <input
-                          type='checkbox'
-                          checked={newUserGroup.enabledApis.includes(source.key)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setNewUserGroup(prev => ({
-                                ...prev,
-                                enabledApis: [...prev.enabledApis, source.key]
-                              }));
-                            } else {
-                              setNewUserGroup(prev => ({
-                                ...prev,
-                                enabledApis: prev.enabledApis.filter(api => api !== source.key)
-                              }));
-                            }
-                          }}
-                          className='rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700'
-                        />
-                        <div className='flex-1 min-w-0'>
-                          <div className='text-sm font-medium text-gray-900 dark:text-gray-100 truncate'>
-                            {source.name}
-                          </div>
-                          {source.api && (
-                            <div className='text-xs text-gray-500 dark:text-gray-400 truncate'>
-                              {extractDomain(source.api)}
-                            </div>
-                          )}
+                  }}
+                >
+                  <Checkbox.Control>
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <Checkbox.Content>
+                    <div className='min-w-0'>
+                      <div className='truncate text-sm font-medium'>{source.name}</div>
+                      {source.api ? (
+                        <div className='truncate text-xs text-muted'>
+                          {extractDomain(source.api)}
                         </div>
-                      </label>
-                    ))}
-                  </div>
-
-                  {/* 快速操作按钮 */}
-                  <div className='mt-4 flex space-x-2'>
-                    <button
-                      onClick={() => setNewUserGroup(prev => ({ ...prev, enabledApis: [] }))}
-                      className={buttonStyles.quickAction}
-                    >
-                      全不选（无限制）
-                    </button>
-                    <button
-                      onClick={() => {
-                        const allApis = config?.SourceConfig?.filter(source => !source.disabled).map(s => s.key) || [];
-                        setNewUserGroup(prev => ({ ...prev, enabledApis: allApis }));
-                      }}
-                      className={buttonStyles.quickAction}
-                    >
-                      全选
-                    </button>
-                  </div>
-                </div>
-
-                {/* 操作按钮 */}
-                <div className='flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700'>
-                  <button
-                    onClick={() => {
-                      setShowAddUserGroupForm(false);
-                      setNewUserGroup({ name: '', enabledApis: [] });
-                    }}
-                    className={`px-6 py-2.5 text-sm font-medium ${buttonStyles.secondary}`}
-                  >
-                    取消
-                  </button>
-                  <button
-                    onClick={handleAddUserGroup}
-                    disabled={!newUserGroup.name.trim() || isLoading('userGroup_add_new')}
-                    className={`px-6 py-2.5 text-sm font-medium ${!newUserGroup.name.trim() || isLoading('userGroup_add_new') ? buttonStyles.disabled : buttonStyles.primary}`}
-                  >
-                    {isLoading('userGroup_add_new') ? '添加中...' : '添加用户组'}
-                  </button>
-                </div>
-              </div>
+                      ) : null}
+                    </div>
+                  </Checkbox.Content>
+                </Checkbox>
+              ))}
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+
+            <div className='mt-4 flex gap-2'>
+              <Button
+                size='sm'
+                variant='secondary'
+                onPress={() => setNewUserGroup(prev => ({ ...prev, enabledApis: [] }))}
+              >
+                全不选（无限制）
+              </Button>
+              <Button
+                size='sm'
+                variant='secondary'
+                onPress={() => {
+                  const allApis = config?.SourceConfig?.filter(source => !source.disabled).map(s => s.key) || [];
+                  setNewUserGroup(prev => ({ ...prev, enabledApis: allApis }));
+                }}
+              >
+                全选
+              </Button>
+            </div>
+          </section>
+        </div>
+      </AppDialog>
 
       {/* 编辑用户组弹窗 */}
-      {showEditUserGroupForm && editingUserGroup && createPortal(
-        <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4' onClick={() => {
-          setShowEditUserGroupForm(false);
-          setEditingUserGroup(null);
-        }}>
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto' onClick={(e) => e.stopPropagation()}>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-6'>
-                <h3 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>
-                  编辑用户组 - {editingUserGroup.name}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowEditUserGroupForm(false);
-                    setEditingUserGroup(null);
+      <AppDialog
+        isOpen={showEditUserGroupForm && Boolean(editingUserGroup)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowEditUserGroupForm(false);
+            setEditingUserGroup(null);
+          }
+        }}
+        title={`编辑用户组${editingUserGroup ? ` - ${editingUserGroup.name}` : ''}`}
+        size='lg'
+        footer={
+          editingUserGroup ? (
+            <>
+              <Button
+                variant='secondary'
+                onPress={() => {
+                  setShowEditUserGroupForm(false);
+                  setEditingUserGroup(null);
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                variant='primary'
+                onPress={handleEditUserGroup}
+                isDisabled={isLoading(`userGroup_edit_${editingUserGroup.name}`)}
+              >
+                {isLoading(`userGroup_edit_${editingUserGroup.name}`) ? '保存中...' : '保存修改'}
+              </Button>
+            </>
+          ) : null
+        }
+      >
+        {editingUserGroup ? (
+          <section>
+            <Label>可用视频源</Label>
+            <div className='mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3'>
+              {config?.SourceConfig?.map((source) => (
+                <Checkbox
+                  key={source.key}
+                  isSelected={editingUserGroup.enabledApis.includes(source.key)}
+                  onChange={(isSelected) => {
+                    if (isSelected) {
+                      setEditingUserGroup(prev => prev ? {
+                        ...prev,
+                        enabledApis: [...prev.enabledApis, source.key]
+                      } : null);
+                    } else {
+                      setEditingUserGroup(prev => prev ? {
+                        ...prev,
+                        enabledApis: prev.enabledApis.filter(api => api !== source.key)
+                      } : null);
+                    }
                   }}
-                  className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'
                 >
-                  <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                  </svg>
-                </button>
-              </div>
-
-              <div className='space-y-6'>
-                {/* 可用视频源 */}
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4'>
-                    可用视频源
-                  </label>
-                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
-                    {config?.SourceConfig?.map((source) => (
-                      <label key={source.key} className='flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors'>
-                        <input
-                          type='checkbox'
-                          checked={editingUserGroup.enabledApis.includes(source.key)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setEditingUserGroup(prev => prev ? {
-                                ...prev,
-                                enabledApis: [...prev.enabledApis, source.key]
-                              } : null);
-                            } else {
-                              setEditingUserGroup(prev => prev ? {
-                                ...prev,
-                                enabledApis: prev.enabledApis.filter(api => api !== source.key)
-                              } : null);
-                            }
-                          }}
-                          className='rounded border-gray-300 text-purple-600 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700'
-                        />
-                        <div className='flex-1 min-w-0'>
-                          <div className='text-sm font-medium text-gray-900 dark:text-gray-100 truncate'>
-                            {source.name}
-                          </div>
-                          {source.api && (
-                            <div className='text-xs text-gray-500 dark:text-gray-400 truncate'>
-                              {extractDomain(source.api)}
-                            </div>
-                          )}
+                  <Checkbox.Control>
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <Checkbox.Content>
+                    <div className='min-w-0'>
+                      <div className='truncate text-sm font-medium'>{source.name}</div>
+                      {source.api ? (
+                        <div className='truncate text-xs text-muted'>
+                          {extractDomain(source.api)}
                         </div>
-                      </label>
-                    ))}
-                  </div>
-
-                  {/* 快速操作按钮 */}
-                  <div className='mt-4 flex space-x-2'>
-                    <button
-                      onClick={() => setEditingUserGroup(prev => prev ? { ...prev, enabledApis: [] } : null)}
-                      className={buttonStyles.quickAction}
-                    >
-                      全不选（无限制）
-                    </button>
-                    <button
-                      onClick={() => {
-                        const allApis = config?.SourceConfig?.filter(source => !source.disabled).map(s => s.key) || [];
-                        setEditingUserGroup(prev => prev ? { ...prev, enabledApis: allApis } : null);
-                      }}
-                      className={buttonStyles.quickAction}
-                    >
-                      全选
-                    </button>
-                  </div>
-                </div>
-
-                {/* 操作按钮 */}
-                <div className='flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700'>
-                  <button
-                    onClick={() => {
-                      setShowEditUserGroupForm(false);
-                      setEditingUserGroup(null);
-                    }}
-                    className={`px-6 py-2.5 text-sm font-medium ${buttonStyles.secondary}`}
-                  >
-                    取消
-                  </button>
-                  <button
-                    onClick={handleEditUserGroup}
-                    disabled={isLoading(`userGroup_edit_${editingUserGroup?.name}`)}
-                    className={`px-6 py-2.5 text-sm font-medium ${isLoading(`userGroup_edit_${editingUserGroup?.name}`) ? buttonStyles.disabled : buttonStyles.primary}`}
-                  >
-                    {isLoading(`userGroup_edit_${editingUserGroup?.name}`) ? '保存中...' : '保存修改'}
-                  </button>
-                </div>
-              </div>
+                      ) : null}
+                    </div>
+                  </Checkbox.Content>
+                </Checkbox>
+              ))}
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+
+            <div className='mt-4 flex gap-2'>
+              <Button
+                size='sm'
+                variant='secondary'
+                onPress={() => setEditingUserGroup(prev => prev ? { ...prev, enabledApis: [] } : null)}
+              >
+                全不选（无限制）
+              </Button>
+              <Button
+                size='sm'
+                variant='secondary'
+                onPress={() => {
+                  const allApis = config?.SourceConfig?.filter(source => !source.disabled).map(s => s.key) || [];
+                  setEditingUserGroup(prev => prev ? { ...prev, enabledApis: allApis } : null);
+                }}
+              >
+                全选
+              </Button>
+            </div>
+          </section>
+        ) : null}
+      </AppDialog>
 
       {/* 配置用户组弹窗 */}
-      {showConfigureUserGroupModal && selectedUserForGroup && createPortal(
-        <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4' onClick={() => {
-          setShowConfigureUserGroupModal(false);
-          setSelectedUserForGroup(null);
-          setSelectedUserGroups([]);
-        }}>
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto' onClick={(e) => e.stopPropagation()}>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-6'>
-                <h3 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>
-                  配置用户组 - {selectedUserForGroup.username}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowConfigureUserGroupModal(false);
-                    setSelectedUserForGroup(null);
-                    setSelectedUserGroups([]);
-                  }}
-                  className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'
-                >
-                  <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                  </svg>
-                </button>
-              </div>
-
-              <div className='mb-6'>
-                <div className='bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4'>
-                  <div className='flex items-center space-x-2 mb-2'>
-                    <svg className='w-5 h-5 text-blue-600 dark:text-blue-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                    <span className='text-sm font-medium text-blue-800 dark:text-blue-300'>
-                      配置说明
-                    </span>
-                  </div>
-                  <p className='text-sm text-blue-700 dark:text-blue-400 mt-1'>
-                    提示：选择"无用户组"为无限制，选择特定用户组将限制用户只能访问该用户组允许的采集源
-                  </p>
-                </div>
-              </div>
-
-              {/* 用户组选择 - 下拉选择器 */}
-              <div className='mb-6'>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                  选择用户组：
-                </label>
-                <select
-                  value={selectedUserGroups.length > 0 ? selectedUserGroups[0] : ''}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSelectedUserGroups(value ? [value] : []);
-                  }}
-                  className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors'
-                >
-                  <option value=''>无用户组（无限制）</option>
-                  {userGroups.map((group) => (
-                    <option key={group.name} value={group.name}>
-                      {group.name} {group.enabledApis && group.enabledApis.length > 0 ? `(${group.enabledApis.length} 个源)` : ''}
-                    </option>
-                  ))}
-                </select>
-                <p className='mt-2 text-xs text-gray-500 dark:text-gray-400'>
-                  选择"无用户组"为无限制，选择特定用户组将限制用户只能访问该用户组允许的采集源
-                </p>
-              </div>
-
-
-
-              {/* 操作按钮 */}
-              <div className='flex justify-end space-x-3'>
-                <button
-                  onClick={() => {
-                    setShowConfigureUserGroupModal(false);
-                    setSelectedUserForGroup(null);
-                    setSelectedUserGroups([]);
-                  }}
-                  className={`px-6 py-2.5 text-sm font-medium ${buttonStyles.secondary}`}
-                >
-                  取消
-                </button>
-                <button
-                  onClick={handleSaveUserGroups}
-                  disabled={isLoading(`saveUserGroups_${selectedUserForGroup?.username}`)}
-                  className={`px-6 py-2.5 text-sm font-medium ${isLoading(`saveUserGroups_${selectedUserForGroup?.username}`) ? buttonStyles.disabled : buttonStyles.primary}`}
-                >
-                  {isLoading(`saveUserGroups_${selectedUserForGroup?.username}`) ? '配置中...' : '确认配置'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      <AppDialog
+        isOpen={showConfigureUserGroupModal && Boolean(selectedUserForGroup)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowConfigureUserGroupModal(false);
+            setSelectedUserForGroup(null);
+            setSelectedUserGroups([]);
+          }
+        }}
+        title={`配置用户组${selectedUserForGroup ? ` - ${selectedUserForGroup.username}` : ''}`}
+        size='lg'
+        footer={
+          selectedUserForGroup ? (
+            <>
+              <Button
+                variant='secondary'
+                onPress={() => {
+                  setShowConfigureUserGroupModal(false);
+                  setSelectedUserForGroup(null);
+                  setSelectedUserGroups([]);
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                variant='primary'
+                onPress={handleSaveUserGroups}
+                isDisabled={isLoading(`saveUserGroups_${selectedUserForGroup.username}`)}
+              >
+                {isLoading(`saveUserGroups_${selectedUserForGroup.username}`) ? '配置中...' : '确认配置'}
+              </Button>
+            </>
+          ) : null
+        }
+      >
+        <div className='space-y-6'>
+          <Alert status='accent'>
+            <Alert.Content>
+              <Alert.Title>配置说明</Alert.Title>
+              <Alert.Description>
+                提示：选择"无用户组"为无限制，选择特定用户组将限制用户只能访问该用户组允许的采集源
+              </Alert.Description>
+            </Alert.Content>
+          </Alert>
+          <AppFilterSelect
+            label='选择用户组'
+            value={selectedUserGroups.length > 0 ? selectedUserGroups[0] : ''}
+            options={[
+              { value: '', label: '无用户组（无限制）' },
+              ...userGroups.map((group) => ({
+                value: group.name,
+                label: `${group.name} ${group.enabledApis && group.enabledApis.length > 0 ? `(${group.enabledApis.length} 个源)` : ''}`,
+              })),
+            ]}
+            onChange={(value) => setSelectedUserGroups(value ? [value] : [])}
+          />
+          <p className='text-xs text-muted'>
+            选择"无用户组"为无限制，选择特定用户组将限制用户只能访问该用户组允许的采集源
+          </p>
+        </div>
+      </AppDialog>
 
       {/* 删除用户组确认弹窗 */}
-      {showDeleteUserGroupModal && deletingUserGroup && createPortal(
-        <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4' onClick={() => {
-          setShowDeleteUserGroupModal(false);
-          setDeletingUserGroup(null);
-        }}>
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full' onClick={(e) => e.stopPropagation()}>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-6'>
-                <h3 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>
-                  确认删除用户组
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowDeleteUserGroupModal(false);
-                    setDeletingUserGroup(null);
-                  }}
-                  className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'
-                >
-                  <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                  </svg>
-                </button>
-              </div>
-
-              <div className='mb-6'>
-                <div className='bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4'>
-                  <div className='flex items-center space-x-2 mb-2'>
-                    <svg className='w-5 h-5 text-red-600 dark:text-red-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z' />
-                    </svg>
-                    <span className='text-sm font-medium text-red-800 dark:text-red-300'>
-                      危险操作警告
-                    </span>
-                  </div>
-                  <p className='text-sm text-red-700 dark:text-red-400'>
-                    删除用户组 <strong>{deletingUserGroup.name}</strong> 将影响所有使用该组的用户，此操作不可恢复！
-                  </p>
-                </div>
-
-                {deletingUserGroup.affectedUsers.length > 0 ? (
-                  <div className='bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4'>
-                    <div className='flex items-center space-x-2 mb-2'>
-                      <svg className='w-5 h-5 text-yellow-600 dark:text-yellow-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-                      </svg>
-                      <span className='text-sm font-medium text-yellow-800 dark:text-yellow-300'>
-                        ⚠️ 将影响 {deletingUserGroup.affectedUsers.length} 个用户：
-                      </span>
-                    </div>
+      <AppDialog
+        isOpen={showDeleteUserGroupModal && Boolean(deletingUserGroup)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowDeleteUserGroupModal(false);
+            setDeletingUserGroup(null);
+          }
+        }}
+        title='确认删除用户组'
+        footer={
+          deletingUserGroup ? (
+            <>
+              <Button
+                variant='secondary'
+                onPress={() => {
+                  setShowDeleteUserGroupModal(false);
+                  setDeletingUserGroup(null);
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                variant='primary'
+                onPress={handleConfirmDeleteUserGroup}
+                isDisabled={isLoading(`userGroup_delete_${deletingUserGroup.name}`)}
+              >
+                {isLoading(`userGroup_delete_${deletingUserGroup.name}`) ? '删除中...' : '确认删除'}
+              </Button>
+            </>
+          ) : null
+        }
+      >
+        {deletingUserGroup ? (
+          <div className='space-y-4'>
+            <Alert status='danger'>
+              <Alert.Content>
+                <Alert.Title>危险操作警告</Alert.Title>
+                <Alert.Description>
+                  删除用户组 <strong>{deletingUserGroup.name}</strong> 将影响所有使用该组的用户，此操作不可恢复！
+                </Alert.Description>
+              </Alert.Content>
+            </Alert>
+            {deletingUserGroup.affectedUsers.length > 0 ? (
+              <Alert status='warning'>
+                <Alert.Content>
+                  <Alert.Title>
+                    将影响 {deletingUserGroup.affectedUsers.length} 个用户
+                  </Alert.Title>
+                  <Alert.Description>
                     <div className='space-y-1'>
                       {deletingUserGroup.affectedUsers.map((user, index) => (
-                        <div key={index} className='text-sm text-yellow-700 dark:text-yellow-300'>
+                        <div key={index}>
                           • {user.username} ({user.role})
                         </div>
                       ))}
                     </div>
-                    <p className='text-xs text-yellow-600 dark:text-yellow-400 mt-2'>
-                      这些用户的用户组将被自动移除
-                    </p>
-                  </div>
-                ) : (
-                  <div className='bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4'>
-                    <div className='flex items-center space-x-2'>
-                      <svg className='w-5 h-5 text-blue-600 dark:text-blue-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                      </svg>
-                      <span className='text-sm font-medium text-blue-800 dark:text-blue-300'>
-                        ✅ 当前没有用户使用此用户组
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* 操作按钮 */}
-              <div className='flex justify-end space-x-3'>
-                <button
-                  onClick={() => {
-                    setShowDeleteUserGroupModal(false);
-                    setDeletingUserGroup(null);
-                  }}
-                  className={`px-6 py-2.5 text-sm font-medium ${buttonStyles.secondary}`}
-                >
-                  取消
-                </button>
-                <button
-                  onClick={handleConfirmDeleteUserGroup}
-                  disabled={isLoading(`userGroup_delete_${deletingUserGroup?.name}`)}
-                  className={`px-6 py-2.5 text-sm font-medium ${isLoading(`userGroup_delete_${deletingUserGroup?.name}`) ? buttonStyles.disabled : buttonStyles.danger}`}
-                >
-                  {isLoading(`userGroup_delete_${deletingUserGroup?.name}`) ? '删除中...' : '确认删除'}
-                </button>
-              </div>
-            </div>
+                    <p className='mt-2 text-xs'>这些用户的用户组将被自动移除</p>
+                  </Alert.Description>
+                </Alert.Content>
+              </Alert>
+            ) : (
+              <Alert status='success'>
+                当前没有用户使用此用户组
+              </Alert>
+            )}
           </div>
-        </div>,
-        document.body
-      )}
+        ) : null}
+      </AppDialog>
 
       {/* 删除用户确认弹窗 */}
-      {showDeleteUserModal && deletingUser && createPortal(
-        <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4' onClick={() => {
-          setShowDeleteUserModal(false);
-          setDeletingUser(null);
-        }}>
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full' onClick={(e) => e.stopPropagation()}>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-6'>
-                <h3 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>
-                  确认删除用户
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowDeleteUserModal(false);
-                    setDeletingUser(null);
-                  }}
-                  className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'
-                >
-                  <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                  </svg>
-                </button>
-              </div>
-
-              <div className='mb-6'>
-                <div className='bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4'>
-                  <div className='flex items-center space-x-2 mb-2'>
-                    <svg className='w-5 h-5 text-red-600 dark:text-red-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z' />
-                    </svg>
-                    <span className='text-sm font-medium text-red-800 dark:text-red-300'>
-                      危险操作警告
-                    </span>
-                  </div>
-                  <p className='text-sm text-red-700 dark:text-red-400'>
-                    删除用户 <strong>{deletingUser}</strong> 将同时删除其搜索历史、播放记录和收藏夹，此操作不可恢复！
-                  </p>
-                </div>
-
-                {/* 操作按钮 */}
-                <div className='flex justify-end space-x-3'>
-                  <button
-                    onClick={() => {
-                      setShowDeleteUserModal(false);
-                      setDeletingUser(null);
-                    }}
-                    className={`px-6 py-2.5 text-sm font-medium ${buttonStyles.secondary}`}
-                  >
-                    取消
-                  </button>
-                  <button
-                    onClick={handleConfirmDeleteUser}
-                    className={`px-6 py-2.5 text-sm font-medium ${buttonStyles.danger}`}
-                  >
-                    确认删除
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      <AppDialog
+        isOpen={showDeleteUserModal && Boolean(deletingUser)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowDeleteUserModal(false);
+            setDeletingUser(null);
+          }
+        }}
+        title='确认删除用户'
+        footer={
+          <>
+            <Button
+              variant='secondary'
+              onPress={() => {
+                setShowDeleteUserModal(false);
+                setDeletingUser(null);
+              }}
+            >
+              取消
+            </Button>
+            <Button variant='primary' onPress={handleConfirmDeleteUser}>
+              确认删除
+            </Button>
+          </>
+        }
+      >
+        <Alert status='danger'>
+          <Alert.Content>
+            <Alert.Title>危险操作警告</Alert.Title>
+            <Alert.Description>
+              删除用户 <strong>{deletingUser}</strong> 将同时删除其搜索历史、播放记录和收藏夹，此操作不可恢复！
+            </Alert.Description>
+          </Alert.Content>
+        </Alert>
+      </AppDialog>
 
       {/* 批量设置用户组弹窗 */}
-      {showBatchUserGroupModal && createPortal(
-        <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4' onClick={() => {
-          setShowBatchUserGroupModal(false);
-          setSelectedUserGroup('');
-        }}>
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full' onClick={(e) => e.stopPropagation()}>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-6'>
-                <h3 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>
-                  批量设置用户组
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowBatchUserGroupModal(false);
-                    setSelectedUserGroup('');
-                  }}
-                  className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'
-                >
-                  <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                  </svg>
-                </button>
-              </div>
-
-              <div className='mb-6'>
-                <div className='bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4'>
-                  <div className='flex items-center space-x-2 mb-2'>
-                    <svg className='w-5 h-5 text-blue-600 dark:text-blue-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                    <span className='text-sm font-medium text-blue-800 dark:text-blue-300'>
-                      批量操作说明
-                    </span>
-                  </div>
-                  <p className='text-sm text-blue-700 dark:text-blue-400'>
-                    将为选中的 <strong>{selectedUsers.size} 个用户</strong> 设置用户组，选择"无用户组"为无限制
-                  </p>
-                </div>
-
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                    选择用户组：
-                  </label>
-                  <select
-                    onChange={(e) => setSelectedUserGroup(e.target.value)}
-                    className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors'
-                    value={selectedUserGroup}
-                  >
-                    <option value=''>无用户组（无限制）</option>
-                    {userGroups.map((group) => (
-                      <option key={group.name} value={group.name}>
-                        {group.name} {group.enabledApis && group.enabledApis.length > 0 ? `(${group.enabledApis.length} 个源)` : ''}
-                      </option>
-                    ))}
-                  </select>
-                  <p className='mt-2 text-xs text-gray-500 dark:text-gray-400'>
-                    选择"无用户组"为无限制，选择特定用户组将限制用户只能访问该用户组允许的采集源
-                  </p>
-                </div>
-              </div>
-
-              {/* 操作按钮 */}
-              <div className='flex justify-end space-x-3'>
-                <button
-                  onClick={() => {
-                    setShowBatchUserGroupModal(false);
-                    setSelectedUserGroup('');
-                  }}
-                  className={`px-6 py-2.5 text-sm font-medium ${buttonStyles.secondary}`}
-                >
-                  取消
-                </button>
-                <button
-                  onClick={() => handleBatchSetUserGroup(selectedUserGroup)}
-                  disabled={isLoading('batchSetUserGroup')}
-                  className={`px-6 py-2.5 text-sm font-medium ${isLoading('batchSetUserGroup') ? buttonStyles.disabled : buttonStyles.primary}`}
-                >
-                  {isLoading('batchSetUserGroup') ? '设置中...' : '确认设置'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      <AppDialog
+        isOpen={showBatchUserGroupModal}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowBatchUserGroupModal(false);
+            setSelectedUserGroup('');
+          }
+        }}
+        title='批量设置用户组'
+        footer={
+          <>
+            <Button
+              variant='secondary'
+              onPress={() => {
+                setShowBatchUserGroupModal(false);
+                setSelectedUserGroup('');
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              variant='primary'
+              onPress={() => handleBatchSetUserGroup(selectedUserGroup)}
+              isDisabled={isLoading('batchSetUserGroup')}
+            >
+              {isLoading('batchSetUserGroup') ? '设置中...' : '确认设置'}
+            </Button>
+          </>
+        }
+      >
+        <div className='space-y-6'>
+          <Alert status='accent'>
+            <Alert.Content>
+              <Alert.Title>批量操作说明</Alert.Title>
+              <Alert.Description>
+                将为选中的 <strong>{selectedUsers.size} 个用户</strong> 设置用户组，选择"无用户组"为无限制
+              </Alert.Description>
+            </Alert.Content>
+          </Alert>
+          <AppFilterSelect
+            label='选择用户组'
+            value={selectedUserGroup}
+            options={[
+              { value: '', label: '无用户组（无限制）' },
+              ...userGroups.map((group) => ({
+                value: group.name,
+                label: `${group.name} ${group.enabledApis && group.enabledApis.length > 0 ? `(${group.enabledApis.length} 个源)` : ''}`,
+              })),
+            ]}
+            onChange={setSelectedUserGroup}
+          />
+          <p className='text-xs text-muted'>
+            选择"无用户组"为无限制，选择特定用户组将限制用户只能访问该用户组允许的采集源
+          </p>
+        </div>
+      </AppDialog>
 
       {/* 通用弹窗组件 */}
       <AlertModal
@@ -2756,14 +2554,14 @@ const VideoSourceConfig = ({
       case 'validating':
         return {
           text: '检测中',
-          className: 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300',
+          className: 'bg-accent/10 text-accent',
           icon: '⟳',
           message: result.message
         };
       case 'valid':
         return {
           text: '有效',
-          className: 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300',
+          className: 'bg-accent/10 text-accent',
           icon: '✓',
           message: result.message
         };
@@ -2797,106 +2595,97 @@ const VideoSourceConfig = ({
     } as React.CSSProperties;
 
     return (
-      <tr
+      <Table.Row
         ref={setNodeRef}
         style={style}
-        className='hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors select-none'
+        id={source.key}
+        className='select-none'
       >
-        <td
-          className='px-2 py-4 cursor-grab text-gray-400'
+        <Table.Cell
+          className='cursor-grab text-muted'
           style={{ touchAction: 'none' }}
           {...attributes}
           {...listeners}
         >
           <GripVertical size={16} />
-        </td>
-        <td className='px-2 py-4 text-center'>
-          <input
-            type='checkbox'
-            checked={selectedSources.has(source.key)}
-            onChange={(e) => handleSelectSource(source.key, e.target.checked)}
-            className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600'
+        </Table.Cell>
+        <Table.Cell className='text-center'>
+          <AdminCheckbox
+            ariaLabel={`选择视频源 ${source.name}`}
+            isSelected={selectedSources.has(source.key)}
+            onChange={(selected) => handleSelectSource(source.key, selected)}
           />
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100'>
+        </Table.Cell>
+        <Table.Cell>
           {source.name}
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100'>
+        </Table.Cell>
+        <Table.Cell>
           {source.key}
-        </td>
-        <td
-          className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 max-w-[12rem] truncate'
-          title={source.api}
-        >
-          {source.api}
-        </td>
-        <td
-          className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 max-w-[8rem] truncate'
-          title={source.detail || '-'}
-        >
-          {source.detail || '-'}
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap max-w-[1rem]'>
-          <span
-            className={`px-2 py-1 text-xs rounded-full ${!source.disabled
-              ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'
-              : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300'
-              }`}
-          >
-            {!source.disabled ? '启用中' : '已禁用'}
+        </Table.Cell>
+        <Table.Cell className='max-w-[12rem]'>
+          <span className='block truncate' title={source.api}>
+            {source.api}
           </span>
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap max-w-[1rem]'>
+        </Table.Cell>
+        <Table.Cell className='max-w-[8rem]'>
+          <span className='block truncate' title={source.detail || '-'}>
+            {source.detail || '-'}
+          </span>
+        </Table.Cell>
+        <Table.Cell>
+          <AdminChip color={!source.disabled ? 'success' : 'danger'}>
+            {!source.disabled ? '启用中' : '已禁用'}
+          </AdminChip>
+        </Table.Cell>
+        <Table.Cell>
           {(() => {
             const status = getValidationStatus(source.key);
             if (!status) {
               return (
-                <span className='px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-900/20 text-gray-600 dark:text-gray-400'>
-                  未检测
-                </span>
+                <AdminChip>未检测</AdminChip>
               );
             }
             return (
-              <span className={`px-2 py-1 text-xs rounded-full ${status.className}`} title={status.message}>
+              <AdminChip color={status.text === '无效' ? 'danger' : status.text === '无法搜索' ? 'warning' : 'success'}>
                 {status.icon} {status.text}
-              </span>
+              </AdminChip>
             );
           })()}
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2'>
-          <button
-            onClick={() => handleToggleEnable(source.key)}
-            disabled={isLoading(`toggleSource_${source.key}`)}
-            className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${!source.disabled
-              ? buttonStyles.roundedDanger
-              : buttonStyles.roundedSuccess
-              } transition-colors ${isLoading(`toggleSource_${source.key}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
+        </Table.Cell>
+        <Table.Cell>
+          <div className='flex justify-end gap-2'>
+          <Button
+            size='sm'
+            variant={!source.disabled ? 'danger-soft' : 'secondary'}
+            onPress={() => handleToggleEnable(source.key)}
+            isDisabled={isLoading(`toggleSource_${source.key}`)}
           >
             {!source.disabled ? '禁用' : '启用'}
-          </button>
-          <button
-            onClick={() => {
+          </Button>
+          <Button
+            size='sm'
+            variant='secondary'
+            onPress={() => {
               setEditingSource(source);
               // 清除之前的检测结果
               setSingleValidationResult({ status: null, message: '' });
               setIsSingleValidating(false);
             }}
-            disabled={isLoading(`editSource_${source.key}`)}
-            className={`${buttonStyles.roundedPrimary} ${isLoading(`editSource_${source.key}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
-            title='编辑此视频源'
+            isDisabled={isLoading(`editSource_${source.key}`)}
           >
             编辑
-          </button>
-          <button
-            onClick={() => handleDelete(source.key)}
-            disabled={isLoading(`deleteSource_${source.key}`)}
-            className={`${buttonStyles.roundedSecondary} ${isLoading(`deleteSource_${source.key}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
-            title='删除此视频源'
+          </Button>
+          <Button
+            size='sm'
+            variant='danger-soft'
+            onPress={() => handleDelete(source.key)}
+            isDisabled={isLoading(`deleteSource_${source.key}`)}
           >
             删除
-          </button>
-        </td>
-      </tr>
+          </Button>
+          </div>
+        </Table.Cell>
+      </Table.Row>
     );
   };
 
@@ -2995,61 +2784,62 @@ const VideoSourceConfig = ({
                   <span className='sm:hidden'>已选 {selectedSources.size}</span>
                   <span className='hidden sm:inline'>已选择 {selectedSources.size} 个视频源</span>
                 </span>
-                <button
-                  onClick={() => handleBatchOperation('batch_enable')}
-                  disabled={isLoading('batchSource_batch_enable')}
-                  className={`px-3 py-1 text-sm ${isLoading('batchSource_batch_enable') ? buttonStyles.disabled : buttonStyles.success}`}
+                <Button
+                  size='sm'
+                  variant='primary'
+                  onPress={() => handleBatchOperation('batch_enable')}
+                  isDisabled={isLoading('batchSource_batch_enable')}
                 >
                   {isLoading('batchSource_batch_enable') ? '启用中...' : '批量启用'}
-                </button>
-                <button
-                  onClick={() => handleBatchOperation('batch_disable')}
-                  disabled={isLoading('batchSource_batch_disable')}
-                  className={`px-3 py-1 text-sm ${isLoading('batchSource_batch_disable') ? buttonStyles.disabled : buttonStyles.warning}`}
+                </Button>
+                <Button
+                  size='sm'
+                  variant='secondary'
+                  onPress={() => handleBatchOperation('batch_disable')}
+                  isDisabled={isLoading('batchSource_batch_disable')}
                 >
                   {isLoading('batchSource_batch_disable') ? '禁用中...' : '批量禁用'}
-                </button>
-                <button
-                  onClick={() => handleBatchOperation('batch_delete')}
-                  disabled={isLoading('batchSource_batch_delete')}
-                  className={`px-3 py-1 text-sm ${isLoading('batchSource_batch_delete') ? buttonStyles.disabled : buttonStyles.danger}`}
+                </Button>
+                <Button
+                  size='sm'
+                  variant='danger-soft'
+                  onPress={() => handleBatchOperation('batch_delete')}
+                  isDisabled={isLoading('batchSource_batch_delete')}
                 >
                   {isLoading('batchSource_batch_delete') ? '删除中...' : '批量删除'}
-                </button>
+                </Button>
               </div>
               <div className='hidden sm:block w-px h-6 bg-gray-300 dark:bg-gray-600 order-2'></div>
             </>
           )}
           <div className='flex items-center gap-2 order-1 sm:order-2'>
-            <button
-              onClick={() => setShowValidationModal(true)}
-              disabled={isValidating}
-              className={`px-3 py-1 text-sm rounded-lg transition-colors flex items-center space-x-1 ${isValidating
-                ? buttonStyles.disabled
-                : buttonStyles.primary
-                }`}
+            <Button
+              size='sm'
+              variant='primary'
+              onPress={() => setShowValidationModal(true)}
+              isDisabled={isValidating}
             >
               {isValidating ? (
                 <>
-                  <div className='w-3 h-3 border border-white border-t-transparent rounded-full animate-spin'></div>
                   <span>检测中...</span>
                 </>
               ) : (
                 '有效性检测'
               )}
-            </button>
-            <button
-              onClick={() => {
+            </Button>
+            <Button
+              size='sm'
+              variant={showAddForm ? 'secondary' : 'primary'}
+              onPress={() => {
                 setShowAddForm(!showAddForm);
                 // 切换表单时清除检测结果
                 if (!showAddForm) {
                   clearNewSourceValidation();
                 }
               }}
-              className={showAddForm ? buttonStyles.secondary : buttonStyles.success}
             >
               {showAddForm ? '取消' : '添加视频源'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -3105,7 +2895,7 @@ const VideoSourceConfig = ({
                     className={`px-2 py-1 text-xs rounded-full ${newSourceValidationResult.status === 'valid'
                       ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300'
                       : newSourceValidationResult.status === 'validating'
-                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'
+                        ? 'bg-accent/10 text-accent'
                         : newSourceValidationResult.status === 'no_results'
                           ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300'
                           : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300'
@@ -3233,7 +3023,7 @@ const VideoSourceConfig = ({
                       className={`px-2 py-1 text-xs rounded-full ${singleValidationResult.status === 'valid'
                         ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300'
                         : singleValidationResult.status === 'validating'
-                          ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'
+                          ? 'bg-accent/10 text-accent'
                           : singleValidationResult.status === 'no_results'
                             ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300'
                             : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300'
@@ -3294,42 +3084,38 @@ const VideoSourceConfig = ({
 
 
       {/* 视频源表格 */}
-      <div className='border border-gray-200 dark:border-gray-700 rounded-lg max-h-[28rem] overflow-y-auto overflow-x-auto relative' data-table="source-list">
-        <table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
-          <thead className='bg-gray-50 dark:bg-gray-900 sticky top-0 z-10'>
-            <tr>
-              <th className='w-8' />
-              <th className='w-12 px-2 py-3 text-center'>
-                <input
-                  type='checkbox'
-                  checked={selectAll}
-                  onChange={(e) => handleSelectAll(e.target.checked)}
-                  className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600'
+      <AdminTable ariaLabel='视频源列表' minWidth='min-w-[1100px]'>
+          <Table.Header>
+              <Table.Column className='w-8' />
+              <Table.Column className='w-12 text-center'>
+                <AdminCheckbox
+                  ariaLabel='选择全部视频源'
+                  isSelected={selectAll}
+                  onChange={handleSelectAll}
                 />
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column isRowHeader>
                 名称
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column>
                 Key
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column>
                 API 地址
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column>
                 Detail 地址
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column>
                 状态
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column>
                 有效性
-              </th>
-              <th className='px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column className='text-right'>
                 操作
-              </th>
-            </tr>
-          </thead>
+              </Table.Column>
+          </Table.Header>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -3341,68 +3127,61 @@ const VideoSourceConfig = ({
               items={sources.map((s) => s.key)}
               strategy={verticalListSortingStrategy}
             >
-              <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
+              <Table.Body>
                 {sources.map((source) => (
                   <DraggableRow key={source.key} source={source} />
                 ))}
-              </tbody>
+              </Table.Body>
             </SortableContext>
           </DndContext>
-        </table>
-      </div>
+      </AdminTable>
 
       {/* 保存排序按钮 */}
       {orderChanged && (
         <div className='flex justify-end'>
-          <button
-            onClick={handleSaveOrder}
-            disabled={isLoading('saveSourceOrder')}
-            className={`px-3 py-1.5 text-sm ${isLoading('saveSourceOrder') ? buttonStyles.disabled : buttonStyles.primary}`}
+          <Button
+            size='sm'
+            variant='primary'
+            onPress={handleSaveOrder}
+            isDisabled={isLoading('saveSourceOrder')}
           >
             {isLoading('saveSourceOrder') ? '保存中...' : '保存排序'}
-          </button>
+          </Button>
         </div>
       )}
 
       {/* 有效性检测弹窗 */}
-      {showValidationModal && createPortal(
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50' onClick={() => setShowValidationModal(false)}>
-          <div className='bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4' onClick={(e) => e.stopPropagation()}>
-            <h3 className='text-lg font-medium text-gray-900 dark:text-gray-100 mb-4'>
-              视频源有效性检测
-            </h3>
-            <p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>
-              请输入检测用的搜索关键词
-            </p>
-            <div className='space-y-4'>
-              <input
-                type='text'
-                placeholder='请输入搜索关键词'
-                value={searchKeyword}
-                onChange={(e) => setSearchKeyword(e.target.value)}
-                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                onKeyPress={(e) => e.key === 'Enter' && handleValidateSources()}
-              />
-              <div className='flex justify-end space-x-3'>
-                <button
-                  onClick={() => setShowValidationModal(false)}
-                  className='px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors'
-                >
-                  取消
-                </button>
-                <button
-                  onClick={handleValidateSources}
-                  disabled={!searchKeyword.trim()}
-                  className={`px-4 py-2 ${!searchKeyword.trim() ? buttonStyles.disabled : buttonStyles.primary}`}
-                >
-                  开始检测
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      <AppDialog
+        isOpen={showValidationModal}
+        onOpenChange={setShowValidationModal}
+        title='视频源有效性检测'
+        description='请输入检测用的搜索关键词'
+        footer={
+          <>
+            <Button variant='secondary' onPress={() => setShowValidationModal(false)}>
+              取消
+            </Button>
+            <Button
+              variant='primary'
+              onPress={handleValidateSources}
+              isDisabled={!searchKeyword.trim()}
+            >
+              开始检测
+            </Button>
+          </>
+        }
+      >
+        <TextField>
+          <Label>搜索关键词</Label>
+          <Input
+            type='text'
+            placeholder='请输入搜索关键词'
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleValidateSources()}
+          />
+        </TextField>
+      </AppDialog>
 
       {/* 通用弹窗组件 */}
       <AlertModal
@@ -3416,51 +3195,28 @@ const VideoSourceConfig = ({
       />
 
       {/* 批量操作确认弹窗 */}
-      {confirmModal.isOpen && createPortal(
-        <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4' onClick={confirmModal.onCancel}>
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full' onClick={(e) => e.stopPropagation()}>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100'>
-                  {confirmModal.title}
-                </h3>
-                <button
-                  onClick={confirmModal.onCancel}
-                  className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'
-                >
-                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                  </svg>
-                </button>
-              </div>
-
-              <div className='mb-6'>
-                <p className='text-sm text-gray-600 dark:text-gray-400'>
-                  {confirmModal.message}
-                </p>
-              </div>
-
-              {/* 操作按钮 */}
-              <div className='flex justify-end space-x-3'>
-                <button
-                  onClick={confirmModal.onCancel}
-                  className={`px-4 py-2 text-sm font-medium ${buttonStyles.secondary}`}
-                >
-                  取消
-                </button>
-                <button
-                  onClick={confirmModal.onConfirm}
-                  disabled={isLoading('batchSource_batch_enable') || isLoading('batchSource_batch_disable') || isLoading('batchSource_batch_delete')}
-                  className={`px-4 py-2 text-sm font-medium ${isLoading('batchSource_batch_enable') || isLoading('batchSource_batch_disable') || isLoading('batchSource_batch_delete') ? buttonStyles.disabled : buttonStyles.primary}`}
-                >
-                  {isLoading('batchSource_batch_enable') || isLoading('batchSource_batch_disable') || isLoading('batchSource_batch_delete') ? '操作中...' : '确认'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      <AppDialog
+        isOpen={confirmModal.isOpen}
+        onOpenChange={(open) => {
+          if (!open) confirmModal.onCancel();
+        }}
+        title={confirmModal.title}
+        description={confirmModal.message}
+        footer={
+          <>
+            <Button variant='secondary' onPress={confirmModal.onCancel}>
+              取消
+            </Button>
+            <Button
+              variant='primary'
+              onPress={confirmModal.onConfirm}
+              isDisabled={isLoading('batchSource_batch_enable') || isLoading('batchSource_batch_disable') || isLoading('batchSource_batch_delete')}
+            >
+              {isLoading('batchSource_batch_enable') || isLoading('batchSource_batch_disable') || isLoading('batchSource_batch_delete') ? '操作中...' : '确认'}
+            </Button>
+          </>
+        }
+      />
     </div>
   );
 };
@@ -3604,71 +3360,62 @@ const CategoryConfig = ({
     } as React.CSSProperties;
 
     return (
-      <tr
+      <Table.Row
         ref={setNodeRef}
         style={style}
-        className='hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors select-none'
+        id={`${category.query}:${category.type}`}
+        className='select-none'
       >
-        <td
-          className="px-2 py-4 cursor-grab text-gray-400"
+        <Table.Cell
+          className="cursor-grab text-muted"
           style={{ touchAction: 'none' }}
           {...{ ...attributes, ...listeners }}
         >
           <GripVertical size={16} />
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100'>
+        </Table.Cell>
+        <Table.Cell>
           {category.name || '-'}
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100'>
-          <span
-            className={`px-2 py-1 text-xs rounded-full ${category.type === 'movie'
-              ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'
-              : 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300'
-              }`}
-          >
+        </Table.Cell>
+        <Table.Cell>
+          <AdminChip color={category.type === 'movie' ? 'accent' : 'default'}>
             {category.type === 'movie' ? '电影' : '电视剧'}
+          </AdminChip>
+        </Table.Cell>
+        <Table.Cell className='max-w-[12rem]'>
+          <span className='block truncate' title={category.query}>
+            {category.query}
           </span>
-        </td>
-        <td
-          className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 max-w-[12rem] truncate'
-          title={category.query}
-        >
-          {category.query}
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap max-w-[1rem]'>
-          <span
-            className={`px-2 py-1 text-xs rounded-full ${!category.disabled
-              ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'
-              : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300'
-              }`}
-          >
+        </Table.Cell>
+        <Table.Cell>
+          <AdminChip color={!category.disabled ? 'success' : 'danger'}>
             {!category.disabled ? '启用中' : '已禁用'}
-          </span>
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2'>
-          <button
-            onClick={() =>
+          </AdminChip>
+        </Table.Cell>
+        <Table.Cell>
+          <div className='flex justify-end gap-2'>
+          <Button
+            size='sm'
+            variant={!category.disabled ? 'danger-soft' : 'secondary'}
+            onPress={() =>
               handleToggleEnable(category.query, category.type)
             }
-            disabled={isLoading(`toggleCategory_${category.query}_${category.type}`)}
-            className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${!category.disabled
-              ? buttonStyles.roundedDanger
-              : buttonStyles.roundedSuccess
-              } transition-colors ${isLoading(`toggleCategory_${category.query}_${category.type}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            isDisabled={isLoading(`toggleCategory_${category.query}_${category.type}`)}
           >
             {!category.disabled ? '禁用' : '启用'}
-          </button>
+          </Button>
           {category.from !== 'config' && (
-            <button
-              onClick={() => handleDelete(category.query, category.type)}
-              disabled={isLoading(`deleteCategory_${category.query}_${category.type}`)}
-              className={`${buttonStyles.roundedSecondary} ${isLoading(`deleteCategory_${category.query}_${category.type}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            <Button
+              size='sm'
+              variant='danger-soft'
+              onPress={() => handleDelete(category.query, category.type)}
+              isDisabled={isLoading(`deleteCategory_${category.query}_${category.type}`)}
             >
               删除
-            </button>
+            </Button>
           )}
-        </td>
-      </tr>
+          </div>
+        </Table.Cell>
+      </Table.Row>
     );
   };
 
@@ -3687,84 +3434,90 @@ const CategoryConfig = ({
         <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
           自定义分类列表
         </h4>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className={`px-3 py-1 text-sm rounded-lg transition-colors ${showAddForm ? buttonStyles.secondary : buttonStyles.success}`}
+        <Button
+          size='sm'
+          variant={showAddForm ? 'secondary' : 'primary'}
+          onPress={() => setShowAddForm(!showAddForm)}
         >
           {showAddForm ? '取消' : '添加分类'}
-        </button>
+        </Button>
       </div>
 
       {showAddForm && (
-        <div className='p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 space-y-4'>
+        <Card variant='secondary' className='p-4'>
+        <div className='space-y-4'>
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-            <input
-              type='text'
-              placeholder='分类名称'
-              value={newCategory.name}
-              onChange={(e) =>
-                setNewCategory((prev) => ({ ...prev, name: e.target.value }))
-              }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-            />
-            <select
+            <TextField fullWidth>
+              <Label>分类名称</Label>
+              <Input
+                type='text'
+                placeholder='分类名称'
+                value={newCategory.name}
+                onChange={(e) =>
+                  setNewCategory((prev) => ({ ...prev, name: e.target.value }))
+                }
+              />
+            </TextField>
+            <AppFilterSelect
+              label='类型'
               value={newCategory.type}
-              onChange={(e) =>
+              options={[
+                { label: '电影', value: 'movie' },
+                { label: '电视剧', value: 'tv' },
+              ]}
+              onChange={(value) =>
                 setNewCategory((prev) => ({
                   ...prev,
-                  type: e.target.value as 'movie' | 'tv',
+                  type: value as 'movie' | 'tv',
                 }))
               }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-            >
-              <option value='movie'>电影</option>
-              <option value='tv'>电视剧</option>
-            </select>
-            <input
-              type='text'
-              placeholder='搜索关键词'
-              value={newCategory.query}
-              onChange={(e) =>
-                setNewCategory((prev) => ({ ...prev, query: e.target.value }))
-              }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
             />
+            <TextField fullWidth>
+              <Label>搜索关键词</Label>
+              <Input
+                type='text'
+                placeholder='搜索关键词'
+                value={newCategory.query}
+                onChange={(e) =>
+                  setNewCategory((prev) => ({ ...prev, query: e.target.value }))
+                }
+              />
+            </TextField>
           </div>
           <div className='flex justify-end'>
-            <button
-              onClick={handleAddCategory}
-              disabled={!newCategory.name || !newCategory.query || isLoading('addCategory')}
-              className={`w-full sm:w-auto px-4 py-2 ${!newCategory.name || !newCategory.query || isLoading('addCategory') ? buttonStyles.disabled : buttonStyles.success}`}
+            <Button
+              className='w-full sm:w-auto'
+              variant='primary'
+              onPress={handleAddCategory}
+              isDisabled={!newCategory.name || !newCategory.query || isLoading('addCategory')}
             >
               {isLoading('addCategory') ? '添加中...' : '添加'}
-            </button>
+            </Button>
           </div>
         </div>
+        </Card>
       )}
 
       {/* 分类表格 */}
-      <div className='border border-gray-200 dark:border-gray-700 rounded-lg max-h-[28rem] overflow-y-auto overflow-x-auto relative'>
-        <table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
-          <thead className='bg-gray-50 dark:bg-gray-900 sticky top-0 z-10'>
-            <tr>
-              <th className='w-8' />
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+      <AdminTable ariaLabel='分类列表'>
+          <Table.Header>
+              <Table.Column className='w-8' />
+              <Table.Column isRowHeader>
                 分类名称
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column>
                 类型
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column>
                 搜索关键词
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column>
                 状态
-              </th>
-              <th className='px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column className='text-right'>
                 操作
-              </th>
-            </tr>
-          </thead>
+              </Table.Column>
+          </Table.Header>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -3776,29 +3529,29 @@ const CategoryConfig = ({
               items={categories.map((c) => `${c.query}:${c.type}`)}
               strategy={verticalListSortingStrategy}
             >
-              <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
+              <Table.Body>
                 {categories.map((category) => (
                   <DraggableRow
                     key={`${category.query}:${category.type}`}
                     category={category}
                   />
                 ))}
-              </tbody>
+              </Table.Body>
             </SortableContext>
           </DndContext>
-        </table>
-      </div>
+      </AdminTable>
 
       {/* 保存排序按钮 */}
       {orderChanged && (
         <div className='flex justify-end'>
-          <button
-            onClick={handleSaveOrder}
-            disabled={isLoading('saveCategoryOrder')}
-            className={`px-3 py-1.5 text-sm ${isLoading('saveCategoryOrder') ? buttonStyles.disabled : buttonStyles.primary}`}
+          <Button
+            size='sm'
+            variant='primary'
+            onPress={handleSaveOrder}
+            isDisabled={isLoading('saveCategoryOrder')}
           >
             {isLoading('saveCategoryOrder') ? '保存中...' : '保存排序'}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -3919,120 +3672,81 @@ const ConfigFileComponent = ({ config, refreshConfig }: { config: AdminConfig | 
   return (
     <div className='space-y-4'>
       {/* 配置订阅区域 */}
-      <div className='bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 shadow-sm'>
-        <div className='flex items-center justify-between mb-6'>
-          <h3 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>
-            配置订阅
-          </h3>
-          <div className='text-sm text-gray-500 dark:text-gray-400 px-3 py-1.5 rounded-full'>
+      <Card variant='default'>
+        <Card.Header className='flex items-center justify-between gap-4'>
+          <Card.Title>配置订阅</Card.Title>
+          <Card.Description className='text-right'>
             最后更新: {lastCheckTime ? new Date(lastCheckTime).toLocaleString('zh-CN') : '从未更新'}
-          </div>
-        </div>
-
-        <div className='space-y-6'>
-          {/* 订阅URL输入 */}
-          <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
-              订阅URL
-            </label>
-            <input
-              type='url'
+          </Card.Description>
+        </Card.Header>
+        <Card.Content className='space-y-6'>
+          <TextField fullWidth type='url'>
+            <Label>订阅URL</Label>
+            <Input
               value={subscriptionUrl}
               onChange={(e) => setSubscriptionUrl(e.target.value)}
               placeholder='https://example.com/config.json'
-              disabled={false}
-              className='w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm hover:border-gray-400 dark:hover:border-gray-500'
+              variant='secondary'
             />
-            <p className='mt-2 text-xs text-gray-500 dark:text-gray-400'>
+            <p className='text-xs text-muted'>
               输入配置文件的订阅地址，要求 JSON 格式，且使用 Base58 编码
             </p>
-          </div>
+          </TextField>
 
-          {/* 拉取配置按钮 */}
-          <div className='pt-2'>
-            <button
-              onClick={handleFetchConfig}
-              disabled={isLoading('fetchConfig') || !subscriptionUrl.trim()}
-              className={`w-full px-6 py-3 rounded-lg font-medium transition-all duration-200 ${isLoading('fetchConfig') || !subscriptionUrl.trim()
-                ? buttonStyles.disabled
-                : buttonStyles.success
-                }`}
-            >
-              {isLoading('fetchConfig') ? (
-                <div className='flex items-center justify-center gap-2'>
-                  <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
-                  拉取中…
-                </div>
-              ) : (
-                '拉取配置'
-              )}
-            </button>
-          </div>
+          <Button
+            fullWidth
+            isDisabled={isLoading('fetchConfig') || !subscriptionUrl.trim()}
+            isPending={isLoading('fetchConfig')}
+            onPress={() => void handleFetchConfig()}
+          >
+            {isLoading('fetchConfig') ? '拉取中…' : '拉取配置'}
+          </Button>
 
-          {/* 自动更新开关 */}
-          <div className='flex items-center justify-between'>
-            <div>
-              <label className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-                自动更新
-              </label>
-              <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
-                启用后系统将定期自动拉取最新配置
-              </p>
-            </div>
-            <button
-              type='button'
-              onClick={() => setAutoUpdate(!autoUpdate)}
-              disabled={false}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${autoUpdate
-                ? buttonStyles.toggleOn
-                : buttonStyles.toggleOff
-                }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full ${buttonStyles.toggleThumb} transition-transform ${autoUpdate
-                  ? buttonStyles.toggleThumbOn
-                  : buttonStyles.toggleThumbOff
-                  }`}
-              />
-            </button>
-          </div>
-        </div>
-      </div>
+          <AdminSettingSwitch
+            label='自动更新'
+            description='启用后系统将定期自动拉取最新配置'
+            isSelected={autoUpdate}
+            onChange={setAutoUpdate}
+          />
+        </Card.Content>
+      </Card>
 
       {/* 配置文件编辑区域 */}
-      <div className='space-y-4'>
-        <div className='relative'>
-          <textarea
-            value={configContent}
-            onChange={(e) => setConfigContent(e.target.value)}
-            rows={20}
-            placeholder='请输入配置文件内容（JSON 格式）...'
-            disabled={false}
-            className='w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm leading-relaxed resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500'
-            style={{
-              fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace'
-            }}
-            spellCheck={false}
-            data-gramm={false}
-          />
-        </div>
-
-        <div className='flex items-center justify-between'>
-          <div className='text-xs text-gray-500 dark:text-gray-400'>
-            支持 JSON 格式，用于配置视频源和自定义分类
+      <Card variant='default'>
+        <Card.Content className='space-y-4'>
+          <div className='space-y-2'>
+            <Label htmlFor='admin-config-file-content'>配置文件内容</Label>
+            <TextArea
+              id='admin-config-file-content'
+              aria-label='配置文件内容'
+              value={configContent}
+              onChange={(e) => setConfigContent(e.target.value)}
+              rows={20}
+              placeholder='请输入配置文件内容（JSON 格式）...'
+              className='font-mono text-sm leading-relaxed'
+              fullWidth
+              variant='secondary'
+              style={{
+                fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace'
+              }}
+              spellCheck={false}
+              data-gramm={false}
+            />
           </div>
-          <button
-            onClick={handleSave}
-            disabled={isLoading('saveConfig')}
-            className={`px-4 py-2 rounded-lg transition-colors ${isLoading('saveConfig')
-              ? buttonStyles.disabled
-              : buttonStyles.success
-              }`}
-          >
-            {isLoading('saveConfig') ? '保存中…' : '保存'}
-          </button>
-        </div>
-      </div>
+
+          <div className='flex items-center justify-between gap-4'>
+            <Card.Description>
+              支持 JSON 格式，用于配置视频源和自定义分类
+            </Card.Description>
+            <Button
+              isPending={isLoading('saveConfig')}
+              onPress={() => void handleSave()}
+            >
+              {isLoading('saveConfig') ? '保存中…' : '保存'}
+            </Button>
+          </div>
+        </Card.Content>
+      </Card>
 
       {/* 通用弹窗组件 */}
       <AlertModal
@@ -4065,11 +3779,6 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
     FluidSearch: true,
     RequireDeviceCode: true,
   });
-
-  // 豆瓣数据源相关状态
-  const [isDoubanDropdownOpen, setIsDoubanDropdownOpen] = useState(false);
-  const [isDoubanImageProxyDropdownOpen, setIsDoubanImageProxyDropdownOpen] =
-    useState(false);
 
   // 豆瓣数据源选项
   const doubanDataSourceOptions = [
@@ -4131,41 +3840,6 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
     }
   }, [config]);
 
-  // 点击外部区域关闭下拉框
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isDoubanDropdownOpen) {
-        const target = event.target as Element;
-        if (!target.closest('[data-dropdown="douban-datasource"]')) {
-          setIsDoubanDropdownOpen(false);
-        }
-      }
-    };
-
-    if (isDoubanDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () =>
-        document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isDoubanDropdownOpen]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isDoubanImageProxyDropdownOpen) {
-        const target = event.target as Element;
-        if (!target.closest('[data-dropdown="douban-image-proxy"]')) {
-          setIsDoubanImageProxyDropdownOpen(false);
-        }
-      }
-    };
-
-    if (isDoubanImageProxyDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () =>
-        document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isDoubanImageProxyDropdownOpen]);
-
   // 处理豆瓣数据源变化
   const handleDoubanDataSourceChange = (value: string) => {
     setSiteSettings((prev) => ({
@@ -4216,31 +3890,22 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
 
   return (
     <div className='space-y-6'>
-      {/* 站点名称 */}
-      <div>
-        <label
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-        >
-          站点名称
-        </label>
-        <input
-          type='text'
+      <TextField fullWidth>
+        <Label>站点名称</Label>
+        <Input
           value={siteSettings.SiteName}
           onChange={(e) =>
             setSiteSettings((prev) => ({ ...prev, SiteName: e.target.value }))
           }
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          variant='secondary'
         />
-      </div>
+      </TextField>
 
-      {/* 站点公告 */}
-      <div>
-        <label
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-        >
-          站点公告
-        </label>
-        <textarea
+      <div className='space-y-2'>
+        <Label htmlFor='site-announcement'>站点公告</Label>
+        <TextArea
+          id='site-announcement'
+          aria-label='站点公告'
           value={siteSettings.Announcement}
           onChange={(e) =>
             setSiteSettings((prev) => ({
@@ -4249,101 +3914,40 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
             }))
           }
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          fullWidth
+          variant='secondary'
         />
       </div>
 
-      {/* 豆瓣数据源设置 */}
       <div className='space-y-3'>
-        <div>
-          <label
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        <AppFilterSelect
+          label='豆瓣数据代理'
+          value={siteSettings.DoubanProxyType}
+          options={doubanDataSourceOptions}
+          onChange={handleDoubanDataSourceChange}
+        />
+        <p className='text-xs text-muted'>选择获取豆瓣数据的方式</p>
+
+        {getThanksInfo(siteSettings.DoubanProxyType) && (
+          <Button
+            fullWidth
+            variant='ghost'
+            onPress={() =>
+              window.open(
+                getThanksInfo(siteSettings.DoubanProxyType)!.url,
+                '_blank'
+              )
+            }
           >
-            豆瓣数据代理
-          </label>
-          <div className='relative' data-dropdown='douban-datasource'>
-            {/* 自定义下拉选择框 */}
-            <button
-              type='button'
-              onClick={() => setIsDoubanDropdownOpen(!isDoubanDropdownOpen)}
-              className="w-full px-3 py-2.5 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm hover:border-gray-400 dark:hover:border-gray-500 text-left"
-            >
-              {
-                doubanDataSourceOptions.find(
-                  (option) => option.value === siteSettings.DoubanProxyType
-                )?.label
-              }
-            </button>
+            {getThanksInfo(siteSettings.DoubanProxyType)!.text}
+            <ExternalLink className='w-3.5' />
+          </Button>
+        )}
 
-            {/* 下拉箭头 */}
-            <div className='absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none'>
-              <ChevronDown
-                className={`w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform duration-200 ${isDoubanDropdownOpen ? 'rotate-180' : ''
-                  }`}
-              />
-            </div>
-
-            {/* 下拉选项列表 */}
-            {isDoubanDropdownOpen && (
-              <div className='absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto'>
-                {doubanDataSourceOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type='button'
-                    onClick={() => {
-                      handleDoubanDataSourceChange(option.value);
-                      setIsDoubanDropdownOpen(false);
-                    }}
-                    className={`w-full px-3 py-2.5 text-left text-sm transition-colors duration-150 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 ${siteSettings.DoubanProxyType === option.value
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                      : 'text-gray-900 dark:text-gray-100'
-                      }`}
-                  >
-                    <span className='truncate'>{option.label}</span>
-                    {siteSettings.DoubanProxyType === option.value && (
-                      <Check className='w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 ml-2' />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-            选择获取豆瓣数据的方式
-          </p>
-
-          {/* 感谢信息 */}
-          {getThanksInfo(siteSettings.DoubanProxyType) && (
-            <div className='mt-3'>
-              <button
-                type='button'
-                onClick={() =>
-                  window.open(
-                    getThanksInfo(siteSettings.DoubanProxyType)!.url,
-                    '_blank'
-                  )
-                }
-                className='flex items-center justify-center gap-1.5 w-full px-3 text-xs text-gray-500 dark:text-gray-400 cursor-pointer'
-              >
-                <span className='font-medium'>
-                  {getThanksInfo(siteSettings.DoubanProxyType)!.text}
-                </span>
-                <ExternalLink className='w-3.5 opacity-70' />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* 豆瓣代理地址设置 - 仅在选择自定义代理时显示 */}
         {siteSettings.DoubanProxyType === 'custom' && (
-          <div>
-            <label
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              豆瓣代理地址
-            </label>
-            <input
-              type='text'
+          <TextField fullWidth>
+            <Label>豆瓣代理地址</Label>
+            <Input
               placeholder='例如: https://proxy.example.com/fetch?url='
               value={siteSettings.DoubanProxy}
               onChange={(e) =>
@@ -4352,110 +3956,42 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
                   DoubanProxy: e.target.value,
                 }))
               }
-              className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 shadow-sm hover:border-gray-400 dark:hover:border-gray-500"
+              variant='secondary'
             />
-            <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-              自定义代理服务器地址
-            </p>
-          </div>
+            <p className='text-xs text-muted'>自定义代理服务器地址</p>
+          </TextField>
         )}
       </div>
 
-      {/* 豆瓣图片代理设置 */}
       <div className='space-y-3'>
-        <div>
-          <label
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        <AppFilterSelect
+          label='豆瓣图片代理'
+          value={siteSettings.DoubanImageProxyType}
+          options={doubanImageProxyTypeOptions}
+          onChange={handleDoubanImageProxyChange}
+        />
+        <p className='text-xs text-muted'>选择获取豆瓣图片的方式</p>
+
+        {getThanksInfo(siteSettings.DoubanImageProxyType) && (
+          <Button
+            fullWidth
+            variant='ghost'
+            onPress={() =>
+              window.open(
+                getThanksInfo(siteSettings.DoubanImageProxyType)!.url,
+                '_blank'
+              )
+            }
           >
-            豆瓣图片代理
-          </label>
-          <div className='relative' data-dropdown='douban-image-proxy'>
-            {/* 自定义下拉选择框 */}
-            <button
-              type='button'
-              onClick={() =>
-                setIsDoubanImageProxyDropdownOpen(
-                  !isDoubanImageProxyDropdownOpen
-                )
-              }
-              className="w-full px-3 py-2.5 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm hover:border-gray-400 dark:hover:border-gray-500 text-left"
-            >
-              {
-                doubanImageProxyTypeOptions.find(
-                  (option) => option.value === siteSettings.DoubanImageProxyType
-                )?.label
-              }
-            </button>
+            {getThanksInfo(siteSettings.DoubanImageProxyType)!.text}
+            <ExternalLink className='w-3.5' />
+          </Button>
+        )}
 
-            {/* 下拉箭头 */}
-            <div className='absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none'>
-              <ChevronDown
-                className={`w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform duration-200 ${isDoubanImageProxyDropdownOpen ? 'rotate-180' : ''
-                  }`}
-              />
-            </div>
-
-            {/* 下拉选项列表 */}
-            {isDoubanImageProxyDropdownOpen && (
-              <div className='absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto'>
-                {doubanImageProxyTypeOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type='button'
-                    onClick={() => {
-                      handleDoubanImageProxyChange(option.value);
-                      setIsDoubanImageProxyDropdownOpen(false);
-                    }}
-                    className={`w-full px-3 py-2.5 text-left text-sm transition-colors duration-150 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 ${siteSettings.DoubanImageProxyType === option.value
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                      : 'text-gray-900 dark:text-gray-100'
-                      }`}
-                  >
-                    <span className='truncate'>{option.label}</span>
-                    {siteSettings.DoubanImageProxyType === option.value && (
-                      <Check className='w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 ml-2' />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-            选择获取豆瓣图片的方式
-          </p>
-
-          {/* 感谢信息 */}
-          {getThanksInfo(siteSettings.DoubanImageProxyType) && (
-            <div className='mt-3'>
-              <button
-                type='button'
-                onClick={() =>
-                  window.open(
-                    getThanksInfo(siteSettings.DoubanImageProxyType)!.url,
-                    '_blank'
-                  )
-                }
-                className='flex items-center justify-center gap-1.5 w-full px-3 text-xs text-gray-500 dark:text-gray-400 cursor-pointer'
-              >
-                <span className='font-medium'>
-                  {getThanksInfo(siteSettings.DoubanImageProxyType)!.text}
-                </span>
-                <ExternalLink className='w-3.5 opacity-70' />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* 豆瓣代理地址设置 - 仅在选择自定义代理时显示 */}
         {siteSettings.DoubanImageProxyType === 'custom' && (
-          <div>
-            <label
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              豆瓣图片代理地址
-            </label>
-            <input
-              type='text'
+          <TextField fullWidth>
+            <Label>豆瓣图片代理地址</Label>
+            <Input
               placeholder='例如: https://proxy.example.com/fetch?url='
               value={siteSettings.DoubanImageProxy}
               onChange={(e) =>
@@ -4464,22 +4000,16 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
                   DoubanImageProxy: e.target.value,
                 }))
               }
-              className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 shadow-sm hover:border-gray-400 dark:hover:border-gray-500"
+              variant='secondary'
             />
-            <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-              自定义图片代理服务器地址
-            </p>
-          </div>
+            <p className='text-xs text-muted'>自定义图片代理服务器地址</p>
+          </TextField>
         )}
       </div>
 
-      {/* 搜索接口可拉取最大页数 */}
-      <div>
-        <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-          搜索接口可拉取最大页数
-        </label>
-        <input
-          type='number'
+      <TextField fullWidth type='number'>
+        <Label>搜索接口可拉取最大页数</Label>
+        <Input
           min={1}
           value={siteSettings.SearchDownstreamMaxPage}
           onChange={(e) =>
@@ -4488,17 +4018,13 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
               SearchDownstreamMaxPage: Number(e.target.value),
             }))
           }
-          className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+          variant='secondary'
         />
-      </div>
+      </TextField>
 
-      {/* 站点接口缓存时间 */}
-      <div>
-        <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-          站点接口缓存时间（秒）
-        </label>
-        <input
-          type='number'
+      <TextField fullWidth type='number'>
+        <Label>站点接口缓存时间（秒）</Label>
+        <Input
           min={1}
           value={siteSettings.SiteInterfaceCacheTime}
           onChange={(e) =>
@@ -4507,125 +4033,53 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
               SiteInterfaceCacheTime: Number(e.target.value),
             }))
           }
-          className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+          variant='secondary'
         />
-      </div>
+      </TextField>
 
-      {/* 启用设备码验证 */}
-      <div>
-        <div className='flex items-center justify-between'>
-          <label
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            启用设备码验证
-          </label>
-          <button
-            type='button'
-            onClick={() =>
-              setSiteSettings((prev) => ({
-                ...prev,
-                RequireDeviceCode: !prev.RequireDeviceCode,
-              }))
-            }
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${siteSettings.RequireDeviceCode
-              ? buttonStyles.toggleOn
-              : buttonStyles.toggleOff
-              }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full ${buttonStyles.toggleThumb} transition-transform ${siteSettings.RequireDeviceCode
-                ? buttonStyles.toggleThumbOn
-                : buttonStyles.toggleThumbOff
-                }`}
-            />
-          </button>
-        </div>
-        <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-          启用后用户登录时需要绑定设备码，提升账户安全性。禁用后用户可以直接登录而无需绑定设备码。
-        </p>
-      </div>
+      <AdminSettingSwitch
+        label='启用设备码验证'
+        description='启用后用户登录时需要绑定设备码，提升账户安全性。禁用后用户可以直接登录而无需绑定设备码。'
+        isSelected={siteSettings.RequireDeviceCode}
+        onChange={(isSelected) =>
+          setSiteSettings((prev) => ({
+            ...prev,
+            RequireDeviceCode: isSelected,
+          }))
+        }
+      />
 
-      {/* 禁用黄色过滤器 */}
-      <div>
-        <div className='flex items-center justify-between'>
-          <label
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            禁用黄色过滤器
-          </label>
-          <button
-            type='button'
-            onClick={() =>
-              setSiteSettings((prev) => ({
-                ...prev,
-                DisableYellowFilter: !prev.DisableYellowFilter,
-              }))
-            }
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${siteSettings.DisableYellowFilter
-              ? buttonStyles.toggleOn
-              : buttonStyles.toggleOff
-              }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full ${buttonStyles.toggleThumb} transition-transform ${siteSettings.DisableYellowFilter
-                ? buttonStyles.toggleThumbOn
-                : buttonStyles.toggleThumbOff
-                }`}
-            />
-          </button>
-        </div>
-        <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-          禁用黄色内容的过滤功能，允许显示所有内容。
-        </p>
-      </div>
+      <AdminSettingSwitch
+        label='禁用黄色过滤器'
+        description='禁用黄色内容的过滤功能，允许显示所有内容。'
+        isSelected={siteSettings.DisableYellowFilter}
+        onChange={(isSelected) =>
+          setSiteSettings((prev) => ({
+            ...prev,
+            DisableYellowFilter: isSelected,
+          }))
+        }
+      />
 
-      {/* 流式搜索 */}
-      <div>
-        <div className='flex items-center justify-between'>
-          <label
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            启用流式搜索
-          </label>
-          <button
-            type='button'
-            onClick={() =>
-              setSiteSettings((prev) => ({
-                ...prev,
-                FluidSearch: !prev.FluidSearch,
-              }))
-            }
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${siteSettings.FluidSearch
-              ? buttonStyles.toggleOn
-              : buttonStyles.toggleOff
-              }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full ${buttonStyles.toggleThumb} transition-transform ${siteSettings.FluidSearch
-                ? buttonStyles.toggleThumbOn
-                : buttonStyles.toggleThumbOff
-                }`}
-            />
-          </button>
-        </div>
-        <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-          启用后搜索结果将实时流式返回，提升用户体验。
-        </p>
-      </div>
+      <AdminSettingSwitch
+        label='启用流式搜索'
+        description='启用后搜索结果将实时流式返回，提升用户体验。'
+        isSelected={siteSettings.FluidSearch}
+        onChange={(isSelected) =>
+          setSiteSettings((prev) => ({
+            ...prev,
+            FluidSearch: isSelected,
+          }))
+        }
+      />
 
-
-      {/* 操作按钮 */}
       <div className='flex justify-end'>
-        <button
-          onClick={handleSave}
-          disabled={isLoading('saveSiteConfig')}
-          className={`px-4 py-2 ${isLoading('saveSiteConfig')
-            ? buttonStyles.disabled
-            : buttonStyles.success
-            } rounded-lg transition-colors`}
+        <Button
+          isPending={isLoading('saveSiteConfig')}
+          onPress={() => void handleSave()}
         >
           {isLoading('saveSiteConfig') ? '保存中…' : '保存'}
-        </button>
+        </Button>
       </div>
 
       {/* 通用弹窗组件 */}
@@ -4835,87 +4289,82 @@ const LiveSourceConfig = ({
     } as React.CSSProperties;
 
     return (
-      <tr
+      <Table.Row
         ref={setNodeRef}
         style={style}
-        className='hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors select-none'
+        id={liveSource.key}
+        className='select-none'
       >
-        <td
-          className='px-2 py-4 cursor-grab text-gray-400'
+        <Table.Cell
+          className='cursor-grab text-muted'
           style={{ touchAction: 'none' }}
           {...attributes}
           {...listeners}
         >
           <GripVertical size={16} />
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100'>
+        </Table.Cell>
+        <Table.Cell>
           {liveSource.name}
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100'>
+        </Table.Cell>
+        <Table.Cell>
           {liveSource.key}
-        </td>
-        <td
-          className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 max-w-[12rem] truncate'
-          title={liveSource.url}
-        >
-          {liveSource.url}
-        </td>
-        <td
-          className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 max-w-[8rem] truncate'
-          title={liveSource.epg || '-'}
-        >
-          {liveSource.epg || '-'}
-        </td>
-        <td
-          className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 max-w-[8rem] truncate'
-          title={liveSource.ua || '-'}
-        >
-          {liveSource.ua || '-'}
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-center'>
-          {liveSource.channelNumber && liveSource.channelNumber > 0 ? liveSource.channelNumber : '-'}
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap max-w-[1rem]'>
-          <span
-            className={`px-2 py-1 text-xs rounded-full ${!liveSource.disabled
-              ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'
-              : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300'
-              }`}
-          >
-            {!liveSource.disabled ? '启用中' : '已禁用'}
+        </Table.Cell>
+        <Table.Cell className='max-w-[12rem]'>
+          <span className='block truncate' title={liveSource.url}>
+            {liveSource.url}
           </span>
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2'>
-          <button
-            onClick={() => handleToggleEnable(liveSource.key)}
-            disabled={isLoading(`toggleLiveSource_${liveSource.key}`)}
-            className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${!liveSource.disabled
-              ? buttonStyles.roundedDanger
-              : buttonStyles.roundedSuccess
-              } transition-colors ${isLoading(`toggleLiveSource_${liveSource.key}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
+        </Table.Cell>
+        <Table.Cell className='max-w-[8rem]'>
+          <span className='block truncate' title={liveSource.epg || '-'}>
+            {liveSource.epg || '-'}
+          </span>
+        </Table.Cell>
+        <Table.Cell className='max-w-[8rem]'>
+          <span className='block truncate' title={liveSource.ua || '-'}>
+            {liveSource.ua || '-'}
+          </span>
+        </Table.Cell>
+        <Table.Cell className='text-center'>
+          {liveSource.channelNumber && liveSource.channelNumber > 0 ? liveSource.channelNumber : '-'}
+        </Table.Cell>
+        <Table.Cell>
+          <AdminChip color={!liveSource.disabled ? 'success' : 'danger'}>
+            {!liveSource.disabled ? '启用中' : '已禁用'}
+          </AdminChip>
+        </Table.Cell>
+        <Table.Cell>
+          <div className='flex justify-end gap-2'>
+          <Button
+            size='sm'
+            variant={!liveSource.disabled ? 'danger-soft' : 'secondary'}
+            onPress={() => handleToggleEnable(liveSource.key)}
+            isDisabled={isLoading(`toggleLiveSource_${liveSource.key}`)}
           >
             {!liveSource.disabled ? '禁用' : '启用'}
-          </button>
+          </Button>
           {liveSource.from !== 'config' && (
             <>
-              <button
-                onClick={() => setEditingLiveSource(liveSource)}
-                disabled={isLoading(`editLiveSource_${liveSource.key}`)}
-                className={`${buttonStyles.roundedPrimary} ${isLoading(`editLiveSource_${liveSource.key}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              <Button
+                size='sm'
+                variant='secondary'
+                onPress={() => setEditingLiveSource(liveSource)}
+                isDisabled={isLoading(`editLiveSource_${liveSource.key}`)}
               >
                 编辑
-              </button>
-              <button
-                onClick={() => handleDelete(liveSource.key)}
-                disabled={isLoading(`deleteLiveSource_${liveSource.key}`)}
-                className={`${buttonStyles.roundedSecondary} ${isLoading(`deleteLiveSource_${liveSource.key}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              </Button>
+              <Button
+                size='sm'
+                variant='danger-soft'
+                onPress={() => handleDelete(liveSource.key)}
+                isDisabled={isLoading(`deleteLiveSource_${liveSource.key}`)}
               >
                 删除
-              </button>
+              </Button>
             </>
           )}
-        </td>
-      </tr>
+          </div>
+        </Table.Cell>
+      </Table.Row>
     );
   };
 
@@ -4935,22 +4384,21 @@ const LiveSourceConfig = ({
           直播源列表
         </h4>
         <div className='flex items-center space-x-2'>
-          <button
-            onClick={handleRefreshLiveSources}
-            disabled={isRefreshing || isLoading('refreshLiveSources')}
-            className={`px-3 py-1.5 text-sm font-medium flex items-center space-x-2 ${isRefreshing || isLoading('refreshLiveSources')
-              ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed text-white rounded-lg'
-              : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg transition-colors'
-              }`}
+          <Button
+            size='sm'
+            variant='primary'
+            onPress={handleRefreshLiveSources}
+            isDisabled={isRefreshing || isLoading('refreshLiveSources')}
           >
             <span>{isRefreshing || isLoading('refreshLiveSources') ? '刷新中...' : '刷新直播源'}</span>
-          </button>
-          <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className={showAddForm ? buttonStyles.secondary : buttonStyles.success}
+          </Button>
+          <Button
+            size='sm'
+            variant={showAddForm ? 'secondary' : 'primary'}
+            onPress={() => setShowAddForm(!showAddForm)}
           >
             {showAddForm ? '取消' : '添加直播源'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -5114,37 +4562,34 @@ const LiveSourceConfig = ({
       )}
 
       {/* 直播源表格 */}
-      <div className='border border-gray-200 dark:border-gray-700 rounded-lg max-h-[28rem] overflow-y-auto overflow-x-auto relative' data-table="live-source-list">
-        <table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
-          <thead className='bg-gray-50 dark:bg-gray-900 sticky top-0 z-10'>
-            <tr>
-              <th className='w-8' />
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+      <AdminTable ariaLabel='直播源列表' minWidth='min-w-[1100px]'>
+          <Table.Header>
+              <Table.Column className='w-8' />
+              <Table.Column isRowHeader>
                 名称
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column>
                 Key
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column>
                 M3U 地址
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column>
                 节目单地址
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column>
                 自定义 UA
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column>
                 频道数
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column>
                 状态
-              </th>
-              <th className='px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+              </Table.Column>
+              <Table.Column className='text-right'>
                 操作
-              </th>
-            </tr>
-          </thead>
+              </Table.Column>
+          </Table.Header>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -5156,26 +4601,26 @@ const LiveSourceConfig = ({
               items={liveSources.map((s) => s.key)}
               strategy={verticalListSortingStrategy}
             >
-              <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
+              <Table.Body>
                 {liveSources.map((liveSource) => (
                   <DraggableRow key={liveSource.key} liveSource={liveSource} />
                 ))}
-              </tbody>
+              </Table.Body>
             </SortableContext>
           </DndContext>
-        </table>
-      </div>
+      </AdminTable>
 
       {/* 保存排序按钮 */}
       {orderChanged && (
         <div className='flex justify-end'>
-          <button
-            onClick={handleSaveOrder}
-            disabled={isLoading('saveLiveSourceOrder')}
-            className={`px-3 py-1.5 text-sm ${isLoading('saveLiveSourceOrder') ? buttonStyles.disabled : buttonStyles.primary}`}
+          <Button
+            size='sm'
+            variant='primary'
+            onPress={handleSaveOrder}
+            isDisabled={isLoading('saveLiveSourceOrder')}
           >
             {isLoading('saveLiveSourceOrder') ? '保存中...' : '保存排序'}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -5334,12 +4779,13 @@ function AdminPageClient() {
               管理员设置
             </h1>
             {config && role === 'owner' && (
-              <button
-                onClick={handleResetConfig}
-                className={`px-3 py-1 text-xs rounded-md transition-colors ${buttonStyles.dangerSmall}`}
+              <Button
+                size='sm'
+                variant='danger-soft'
+                onPress={handleResetConfig}
               >
                 重置配置
-              </button>
+              </Button>
             )}
           </div>
 
@@ -5480,61 +4926,34 @@ function AdminPageClient() {
       />
 
       {/* 重置配置确认弹窗 */}
-      {showResetConfigModal && createPortal(
-        <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4' onClick={() => setShowResetConfigModal(false)}>
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full' onClick={(e) => e.stopPropagation()}>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-6'>
-                <h3 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>
-                  确认重置配置
-                </h3>
-                <button
-                  onClick={() => setShowResetConfigModal(false)}
-                  className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'
-                >
-                  <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                  </svg>
-                </button>
-              </div>
-
-              <div className='mb-6'>
-                <div className='bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4'>
-                  <div className='flex items-center space-x-2 mb-2'>
-                    <svg className='w-5 h-5 text-yellow-600 dark:text-yellow-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                    <span className='text-sm font-medium text-yellow-800 dark:text-yellow-300'>
-                      ⚠️ 危险操作警告
-                    </span>
-                  </div>
-                  <p className='text-sm text-yellow-700 dark:text-yellow-400'>
-                    此操作将重置用户封禁和管理员设置、自定义视频源，站点配置将重置为默认值，是否继续？
-                  </p>
-                </div>
-              </div>
-
-              {/* 操作按钮 */}
-              <div className='flex justify-end space-x-3'>
-                <button
-                  onClick={() => setShowResetConfigModal(false)}
-                  className={`px-6 py-2.5 text-sm font-medium ${buttonStyles.secondary}`}
-                >
-                  取消
-                </button>
-                <button
-                  onClick={handleConfirmResetConfig}
-                  disabled={isLoading('resetConfig')}
-                  className={`px-6 py-2.5 text-sm font-medium ${isLoading('resetConfig') ? buttonStyles.disabled : buttonStyles.danger}`}
-                >
-                  {isLoading('resetConfig') ? '重置中...' : '确认重置'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      <AppDialog
+        isOpen={showResetConfigModal}
+        onOpenChange={setShowResetConfigModal}
+        title='确认重置配置'
+        footer={
+          <>
+            <Button variant='secondary' onPress={() => setShowResetConfigModal(false)}>
+              取消
+            </Button>
+            <Button
+              variant='primary'
+              onPress={handleConfirmResetConfig}
+              isDisabled={isLoading('resetConfig')}
+            >
+              {isLoading('resetConfig') ? '重置中...' : '确认重置'}
+            </Button>
+          </>
+        }
+      >
+        <Alert status='warning'>
+          <Alert.Content>
+            <Alert.Title>危险操作警告</Alert.Title>
+            <Alert.Description>
+              此操作将重置用户封禁和管理员设置、自定义视频源，站点配置将重置为默认值，是否继续？
+            </Alert.Description>
+          </Alert.Content>
+        </Alert>
+      </AppDialog>
     </PageLayout>
   );
 }

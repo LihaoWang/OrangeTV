@@ -4,6 +4,7 @@
 
 // Artplayer 和 Hls 以及弹幕插件将动态加载
 import { Heart } from 'lucide-react';
+import { Alert, Button, Card, Chip, ProgressBar, Spinner } from '@heroui/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
@@ -705,38 +706,6 @@ function PlayPageClient() {
   const parseVodTags = (vodTagString: string): string[] => {
     if (!vodTagString) return [];
     return vodTagString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-  };
-
-  // 为标签生成颜色的函数
-  const getTagColor = (tag: string, isClass: boolean = false) => {
-    if (isClass) {
-      // vod_class 使用更显眼的颜色
-      const classColors = [
-        'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-        'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-        'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-        'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200',
-        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200'
-      ];
-      const hash = tag.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-      return classColors[hash % classColors.length];
-    } else {
-      // vod_tag 使用较为柔和的颜色
-      const tagColors = [
-        'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-        'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-        'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
-        'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300',
-        'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300',
-        'bg-amber-100 text-amber-700 dark:bg-amber-800 dark:text-amber-300',
-        'bg-orange-100 text-orange-700 dark:bg-orange-800 dark:text-orange-300',
-        'bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-300',
-        'bg-pink-100 text-pink-700 dark:bg-pink-800 dark:text-pink-300',
-        'bg-rose-100 text-rose-700 dark:bg-rose-800 dark:text-rose-300'
-      ];
-      const hash = tag.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-      return tagColors[hash % tagColors.length];
-    }
   };
 
   // 短剧播放地址处理函数 - 参考utils.ts中的代理逻辑
@@ -2482,89 +2451,30 @@ function PlayPageClient() {
   }, []);
 
   if (loading) {
+    const progressValue =
+      loadingStage === 'searching' || loadingStage === 'fetching'
+        ? 33
+        : loadingStage === 'preferring'
+          ? 66
+          : 100;
+
     return (
       <PageLayout activePath='/play'>
         <div className='flex items-center justify-center min-h-screen bg-transparent'>
-          <div className='text-center max-w-md mx-auto px-6'>
-            {/* 动画影院图标 */}
-            <div className='relative mb-8'>
-              <div className='relative mx-auto w-24 h-24 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-2xl flex items-center justify-center transform hover:scale-105 transition-transform duration-300'>
-                <div className='text-white text-4xl'>
-                  {loadingStage === 'searching' && '🔍'}
-                  {loadingStage === 'preferring' && '⚡'}
-                  {loadingStage === 'fetching' && '🎬'}
-                  {loadingStage === 'ready' && '✨'}
-                </div>
-                {/* 旋转光环 */}
-                <div className='absolute -inset-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl opacity-20 animate-spin'></div>
-              </div>
-
-              {/* 浮动粒子效果 */}
-              <div className='absolute top-0 left-0 w-full h-full pointer-events-none'>
-                <div className='absolute top-2 left-2 w-2 h-2 bg-blue-400 rounded-full animate-bounce'></div>
-                <div
-                  className='absolute top-4 right-4 w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce'
-                  style={{ animationDelay: '0.5s' }}
-                ></div>
-                <div
-                  className='absolute bottom-3 left-6 w-1 h-1 bg-blue-300 rounded-full animate-bounce'
-                  style={{ animationDelay: '1s' }}
-                ></div>
-              </div>
-            </div>
-
-            {/* 进度指示器 */}
-            <div className='mb-6 w-80 mx-auto'>
-              <div className='flex justify-center space-x-2 mb-4'>
-                <div
-                  className={`w-3 h-3 rounded-full transition-all duration-500 ${loadingStage === 'searching' || loadingStage === 'fetching'
-                    ? 'bg-blue-500 scale-125'
-                    : loadingStage === 'preferring' ||
-                      loadingStage === 'ready'
-                      ? 'bg-blue-500'
-                      : 'bg-gray-300'
-                    }`}
-                ></div>
-                <div
-                  className={`w-3 h-3 rounded-full transition-all duration-500 ${loadingStage === 'preferring'
-                    ? 'bg-blue-500 scale-125'
-                    : loadingStage === 'ready'
-                      ? 'bg-blue-500'
-                      : 'bg-gray-300'
-                    }`}
-                ></div>
-                <div
-                  className={`w-3 h-3 rounded-full transition-all duration-500 ${loadingStage === 'ready'
-                    ? 'bg-blue-500 scale-125'
-                    : 'bg-gray-300'
-                    }`}
-                ></div>
-              </div>
-
-              {/* 进度条 */}
-              <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden'>
-                <div
-                  className='h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-1000 ease-out'
-                  style={{
-                    width:
-                      loadingStage === 'searching' ||
-                        loadingStage === 'fetching'
-                        ? '33%'
-                        : loadingStage === 'preferring'
-                          ? '66%'
-                          : '100%',
-                  }}
-                ></div>
-              </div>
-            </div>
-
-            {/* 加载消息 */}
-            <div className='space-y-2'>
-              <p className='text-xl font-semibold text-gray-800 dark:text-gray-200 animate-pulse'>
-                {loadingMessage}
-              </p>
-            </div>
-          </div>
+          <Card className='w-full max-w-md text-center'>
+            <Card.Header className='items-center'>
+              <Spinner />
+              <Card.Title>{loadingMessage}</Card.Title>
+              <Card.Description>正在准备播放器</Card.Description>
+            </Card.Header>
+            <Card.Content>
+              <ProgressBar aria-label='加载进度' value={progressValue} color='accent'>
+                <ProgressBar.Track>
+                  <ProgressBar.Fill />
+                </ProgressBar.Track>
+              </ProgressBar>
+            </Card.Content>
+          </Card>
         </div>
       </PageLayout>
     );
@@ -2574,65 +2484,39 @@ function PlayPageClient() {
     return (
       <PageLayout activePath='/play'>
         <div className='flex items-center justify-center min-h-screen bg-transparent'>
-          <div className='text-center max-w-md mx-auto px-6'>
-            {/* 错误图标 */}
-            <div className='relative mb-8'>
-              <div className='relative mx-auto w-24 h-24 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl shadow-2xl flex items-center justify-center transform hover:scale-105 transition-transform duration-300'>
-                <div className='text-white text-4xl'>😵</div>
-                {/* 脉冲效果 */}
-                <div className='absolute -inset-2 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl opacity-20 animate-pulse'></div>
-              </div>
-
-              {/* 浮动错误粒子 */}
-              <div className='absolute top-0 left-0 w-full h-full pointer-events-none'>
-                <div className='absolute top-2 left-2 w-2 h-2 bg-red-400 rounded-full animate-bounce'></div>
-                <div
-                  className='absolute top-4 right-4 w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce'
-                  style={{ animationDelay: '0.5s' }}
-                ></div>
-                <div
-                  className='absolute bottom-3 left-6 w-1 h-1 bg-yellow-400 rounded-full animate-bounce'
-                  style={{ animationDelay: '1s' }}
-                ></div>
-              </div>
-            </div>
-
-            {/* 错误信息 */}
-            <div className='space-y-4 mb-8'>
-              <h2 className='text-2xl font-bold text-gray-800 dark:text-gray-200'>
-                哎呀，出现了一些问题
-              </h2>
-              <div className='bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4'>
-                <p className='text-red-600 dark:text-red-400 font-medium'>
-                  {error}
-                </p>
-              </div>
-              <p className='text-sm text-gray-500 dark:text-gray-400'>
-                请检查网络连接或尝试刷新页面
-              </p>
-            </div>
-
-            {/* 操作按钮 */}
-            <div className='space-y-3'>
-              <button
-                onClick={() =>
+          <Card className='w-full max-w-md'>
+            <Card.Header>
+              <Card.Title>哎呀，出现了一些问题</Card.Title>
+              <Card.Description>请检查网络连接或尝试刷新页面</Card.Description>
+            </Card.Header>
+            <Card.Content>
+              <Alert status='danger'>
+                <Alert.Content>
+                  <Alert.Description>{error}</Alert.Description>
+                </Alert.Content>
+              </Alert>
+            </Card.Content>
+            <Card.Footer className='gap-3'>
+              <Button
+                fullWidth
+                onPress={() =>
                   videoTitle
                     ? router.push(`/search?q=${encodeURIComponent(videoTitle)}`)
                     : router.back()
                 }
-                className='w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl'
               >
                 {videoTitle ? '🔍 返回搜索' : '← 返回上页'}
-              </button>
+              </Button>
 
-              <button
-                onClick={() => window.location.reload()}
-                className='w-full px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200'
+              <Button
+                fullWidth
+                variant='tertiary'
+                onPress={() => window.location.reload()}
               >
                 🔄 重新尝试
-              </button>
-            </div>
-          </div>
+              </Button>
+            </Card.Footer>
+          </Card>
         </div>
       </PageLayout>
     );
@@ -2656,17 +2540,16 @@ function PlayPageClient() {
         <div className='space-y-2'>
           {/* 折叠控制 - 仅在 lg 及以上屏幕显示 */}
           <div className='hidden lg:flex justify-end'>
-            <button
-              onClick={() =>
+            <Button
+              variant='secondary'
+              size='sm'
+              aria-label={isEpisodeSelectorCollapsed ? '显示选集面板' : '隐藏选集面板'}
+              onPress={() =>
                 setIsEpisodeSelectorCollapsed(!isEpisodeSelectorCollapsed)
-              }
-              className='group relative flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/80 hover:bg-white dark:bg-gray-800/80 dark:hover:bg-gray-800 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all duration-200'
-              title={
-                isEpisodeSelectorCollapsed ? '显示选集面板' : '隐藏选集面板'
               }
             >
               <svg
-                className={`w-3.5 h-3.5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${isEpisodeSelectorCollapsed ? 'rotate-180' : 'rotate-0'
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${isEpisodeSelectorCollapsed ? 'rotate-180' : 'rotate-0'
                   }`}
                 fill='none'
                 stroke='currentColor'
@@ -2679,18 +2562,8 @@ function PlayPageClient() {
                   d='M9 5l7 7-7 7'
                 />
               </svg>
-              <span className='text-xs font-medium text-gray-600 dark:text-gray-300'>
-                {isEpisodeSelectorCollapsed ? '显示' : '隐藏'}
-              </span>
-
-              {/* 精致的状态指示点 */}
-              <div
-                className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full transition-all duration-200 ${isEpisodeSelectorCollapsed
-                  ? 'bg-orange-400 animate-pulse'
-                  : 'bg-blue-400'
-                  }`}
-              ></div>
-            </button>
+              {isEpisodeSelectorCollapsed ? '显示' : '隐藏'}
+            </Button>
           </div>
 
           <div
@@ -2712,39 +2585,15 @@ function PlayPageClient() {
 
                 {/* 换源加载蒙层 */}
                 {isVideoLoading && (
-                  <div className='absolute inset-0 bg-black/85 backdrop-blur-sm rounded-xl flex items-center justify-center z-[500] transition-all duration-300'>
-                    <div className='text-center max-w-md mx-auto px-6'>
-                      {/* 动画影院图标 */}
-                      <div className='relative mb-8'>
-                        <div className='relative mx-auto w-24 h-24 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-2xl flex items-center justify-center transform hover:scale-105 transition-transform duration-300'>
-                          <div className='text-white text-4xl'>🎬</div>
-                          {/* 旋转光环 */}
-                          <div className='absolute -inset-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl opacity-20 animate-spin'></div>
-                        </div>
-
-                        {/* 浮动粒子效果 */}
-                        <div className='absolute top-0 left-0 w-full h-full pointer-events-none'>
-                          <div className='absolute top-2 left-2 w-2 h-2 bg-blue-400 rounded-full animate-bounce'></div>
-                          <div
-                            className='absolute top-4 right-4 w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce'
-                            style={{ animationDelay: '0.5s' }}
-                          ></div>
-                          <div
-                            className='absolute bottom-3 left-6 w-1 h-1 bg-blue-300 rounded-full animate-bounce'
-                            style={{ animationDelay: '1s' }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      {/* 换源消息 */}
-                      <div className='space-y-2'>
-                        <p className='text-xl font-semibold text-white animate-pulse'>
-                          {videoLoadingStage === 'sourceChanging'
-                            ? '🔄 切换播放源...'
-                            : '🔄 视频加载中...'}
-                        </p>
-                      </div>
-                    </div>
+                  <div className='absolute inset-0 z-[500] flex items-center justify-center bg-black/85'>
+                    <Card variant='default' className='max-w-md p-6 text-center'>
+                      <Spinner />
+                      <p className='mt-4 text-lg font-semibold'>
+                        {videoLoadingStage === 'sourceChanging'
+                          ? '切换播放源...'
+                          : '视频加载中...'}
+                      </p>
+                    </Card>
                   </div>
                 )}
               </div>
@@ -2783,33 +2632,35 @@ function PlayPageClient() {
               {/* 标题 */}
               <h1 className='text-3xl font-bold mb-2 tracking-wide flex items-center flex-shrink-0 text-center md:text-left w-full'>
                 {videoTitle || '影片标题'}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
+                <Button
+                  isIconOnly
+                  variant='tertiary'
+                  aria-label={favorited ? '取消收藏' : '收藏'}
+                  onPress={() => {
                     handleToggleFavorite();
                   }}
-                  className='ml-3 flex-shrink-0 hover:opacity-80 transition-opacity'
+                  className='ml-3 flex-shrink-0'
                 >
                   <FavoriteIcon filled={favorited} />
-                </button>
+                </Button>
               </h1>
 
               {/* 关键信息行 */}
               <div className='flex flex-wrap items-center gap-3 text-base mb-4 opacity-80 flex-shrink-0'>
                 {detail?.class && (
-                  <span className='text-blue-600 font-semibold'>
+                  <Chip color='accent' variant='secondary'>
                     {detail.class}
-                  </span>
+                  </Chip>
                 )}
                 {(detail?.year || videoYear) && (
-                  <span>{detail?.year || videoYear}</span>
+                  <Chip variant='secondary'>{detail?.year || videoYear}</Chip>
                 )}
                 {detail?.source_name && (
-                  <span className='border border-gray-500/60 px-2 py-[1px] rounded'>
+                  <Chip variant='secondary'>
                     {detail.source_name}
-                  </span>
+                  </Chip>
                 )}
-                {detail?.type_name && <span>{detail.type_name}</span>}
+                {detail?.type_name && <Chip variant='secondary'>{detail.type_name}</Chip>}
               </div>
 
               {/* 短剧专用标签展示 */}
@@ -2822,11 +2673,9 @@ function PlayPageClient() {
                         <span className='text-xs text-gray-500 dark:text-gray-400 font-medium'>
                           分类:
                         </span>
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getTagColor(vodClass, true)}`}
-                        >
+                        <Chip color='accent' variant='secondary' size='sm'>
                           📂 {vodClass}
-                        </span>
+                        </Chip>
                       </div>
                     )}
 
@@ -2837,12 +2686,13 @@ function PlayPageClient() {
                           标签:
                         </span>
                         {parseVodTags(vodTag).map((tag, index) => (
-                          <span
+                          <Chip
                             key={index}
-                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getTagColor(tag, false)}`}
+                            variant='secondary'
+                            size='sm'
                           >
                             🏷️ {tag}
-                          </span>
+                          </Chip>
                         ))}
                       </div>
                     )}
@@ -2881,7 +2731,7 @@ function PlayPageClient() {
                         rel='noopener noreferrer'
                         className='absolute top-3 left-3'
                       >
-                        <div className='bg-blue-500 text-white text-xs font-bold w-8 h-8 rounded-full flex items-center justify-center shadow-md hover:bg-blue-600 hover:scale-[1.1] transition-all duration-300 ease-out'>
+                        <Button isIconOnly size='sm' variant='primary' aria-label='打开豆瓣页面'>
                           <svg
                             width='16'
                             height='16'
@@ -2895,7 +2745,7 @@ function PlayPageClient() {
                             <path d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'></path>
                             <path d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'></path>
                           </svg>
-                        </div>
+                        </Button>
                       </a>
                     )}
                   </>

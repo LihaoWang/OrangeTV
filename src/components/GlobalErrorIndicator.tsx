@@ -1,5 +1,7 @@
 'use client';
 
+import { Alert, Button } from '@heroui/react';
+import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface ErrorInfo {
@@ -60,35 +62,25 @@ export function GlobalErrorIndicator() {
 
   return (
     <div className='fixed top-4 right-4 z-[2000]'>
-      {/* 错误卡片 */}
-      <div
-        className={`bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center justify-between min-w-[300px] max-w-[400px] transition-all duration-300 ${
-          isReplacing ? 'scale-105 bg-red-400' : 'scale-100 bg-red-500'
-        } animate-fade-in`}
+      <Alert
+        status='danger'
+        className={`min-w-[300px] max-w-[400px] transition-transform duration-300 ${
+          isReplacing ? 'scale-105' : 'scale-100'
+        }`}
       >
-        <span className='text-sm font-medium flex-1 mr-3'>
-          {currentError.message}
-        </span>
-        <button
-          onClick={handleClose}
-          className='text-white hover:text-red-100 transition-colors flex-shrink-0'
+        <Alert.Content>
+          <Alert.Description>{currentError.message}</Alert.Description>
+        </Alert.Content>
+        <Button
+          isIconOnly
+          size='sm'
+          variant='ghost'
+          onPress={handleClose}
           aria-label='关闭错误提示'
         >
-          <svg
-            className='w-5 h-5'
-            fill='none'
-            stroke='currentColor'
-            viewBox='0 0 24 24'
-          >
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              strokeWidth={2}
-              d='M6 18L18 6M6 6l12 12'
-            />
-          </svg>
-        </button>
-      </div>
+          <X className='h-4 w-4' />
+        </Button>
+      </Alert>
     </div>
   );
 }

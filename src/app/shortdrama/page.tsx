@@ -3,6 +3,7 @@
 'use client';
 
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Card, EmptyState, Spinner } from '@heroui/react';
 
 import {
   getShortDramaList,
@@ -250,12 +251,12 @@ function ShortDramaPageClient() {
           </div>
 
           {/* 选择器组件 */}
-          <div className='app-filter-panel'>
+          <Card>
             <ShortDramaSelector
               selectedCategory={selectedCategory}
               onCategoryChange={handleCategoryChange}
             />
-          </div>
+          </Card>
         </div>
 
         {/* 内容展示区域 */}
@@ -305,8 +306,8 @@ function ShortDramaPageClient() {
             >
               {isLoadingMore && (
                 <div className='flex items-center gap-2'>
-                  <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500'></div>
-                  <span className='text-gray-600 dark:text-gray-400'>加载中...</span>
+                  <Spinner size='sm' />
+                  <span className='text-muted'>加载中...</span>
                 </div>
               )}
             </div>
@@ -314,9 +315,9 @@ function ShortDramaPageClient() {
 
           {/* 没有更多数据提示 */}
           {!hasMore && shortDramaData.length > 0 && (
-            <div className='text-center text-gray-500 dark:text-gray-400 py-8'>
+            <EmptyState className='py-8'>
               已加载全部内容
-            </div>
+            </EmptyState>
           )}
 
           {/* 空状态 */}

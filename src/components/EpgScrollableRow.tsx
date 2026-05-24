@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import { Clock, Target, Tv } from 'lucide-react';
+import { Button, Card, Chip, EmptyState, Spinner } from '@heroui/react';
 import { useEffect, useRef, useState } from 'react';
 
 import { formatTimeToHHMM, parseCustomTimeFormat } from '@/lib/time';
@@ -147,19 +148,16 @@ export default function EpgScrollableRow({
   // 加载中状态
   if (isLoading) {
     return (
-      <div className="pt-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-            <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+      <div className='pt-4'>
+        <div className='mb-3 flex items-center justify-between'>
+          <h4 className='flex items-center gap-2 text-xs font-medium text-muted sm:text-sm'>
+            <Clock className='h-3 w-3 sm:h-4 sm:w-4' />
             今日节目单
           </h4>
-          <div className="w-16 sm:w-20"></div>
         </div>
-        <div className="min-h-[100px] sm:min-h-[120px] flex items-center justify-center">
-          <div className="flex items-center gap-3 sm:gap-4 text-gray-500 dark:text-gray-400">
-            <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-            <span className="text-sm sm:text-base">加载节目单...</span>
-          </div>
+        <div className='flex min-h-[100px] items-center justify-center sm:min-h-[120px]'>
+          <Spinner />
+          <span className='ml-3 text-sm text-muted sm:text-base'>加载节目单...</span>
         </div>
       </div>
     );
@@ -168,41 +166,40 @@ export default function EpgScrollableRow({
   // 无节目单状态
   if (!programs || programs.length === 0) {
     return (
-      <div className="pt-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-            <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+      <div className='pt-4'>
+        <div className='mb-3 flex items-center justify-between'>
+          <h4 className='flex items-center gap-2 text-xs font-medium text-muted sm:text-sm'>
+            <Clock className='h-3 w-3 sm:h-4 sm:w-4' />
             今日节目单
           </h4>
-          <div className="w-16 sm:w-20"></div>
         </div>
-        <div className="min-h-[100px] sm:min-h-[120px] flex items-center justify-center">
-          <div className="flex items-center gap-2 sm:gap-3 text-gray-400 dark:text-gray-500">
-            <Tv className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="text-sm sm:text-base">暂无节目单数据</span>
-          </div>
-        </div>
+        <EmptyState>
+          <Tv className='mx-auto mb-2 h-5 w-5' />
+          暂无节目单数据
+          <p className='mt-1 text-sm text-muted'>当前频道没有可显示的 EPG 信息</p>
+        </EmptyState>
       </div>
     );
   }
 
   return (
-    <div className="pt-4 mt-2">
-      <div className="mb-3 flex items-center justify-between">
-        <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-          <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+    <div className='mt-2 pt-4'>
+      <div className='mb-3 flex items-center justify-between'>
+        <h4 className='flex items-center gap-2 text-xs font-medium text-muted sm:text-sm'>
+          <Clock className='h-3 w-3 sm:h-4 sm:w-4' />
           今日节目单
         </h4>
         {currentPlayingIndex !== -1 && (
-          <button
-            onClick={scrollToCurrentProgram}
-            className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 sm:py-2 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 bg-gray-300/50 dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700 transition-all duration-200"
-            title="滚动到当前播放位置"
+          <Button
+            size='sm'
+            variant='secondary'
+            onPress={scrollToCurrentProgram}
+            aria-label='滚动到当前播放位置'
           >
-            <Target className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-            <span className="hidden sm:inline">当前播放</span>
-            <span className="sm:hidden">当前</span>
-          </button>
+            <Target className='h-3 w-3' />
+            <span className='hidden sm:inline'>当前播放</span>
+            <span className='sm:hidden'>当前</span>
+          </Button>
         )}
       </div>
 
@@ -213,53 +210,29 @@ export default function EpgScrollableRow({
       >
         <div
           ref={containerRef}
-          className='flex overflow-x-auto scrollbar-hide py-2 pb-4 px-2 sm:px-4 min-h-[100px] sm:min-h-[120px]'
+          className='scrollbar-hide flex min-h-[100px] gap-3 overflow-x-auto px-2 py-2 pb-4 sm:min-h-[120px] sm:px-4'
         >
           {programs.map((program, index) => {
             // 使用 currentPlayingIndex 来判断播放状态，确保样式能正确更新
             const isPlaying = index === currentPlayingIndex;
-            const isFinishedProgram = index < currentPlayingIndex;
-            const isUpcomingProgram = index > currentPlayingIndex;
-
             return (
-              <div
+              <Card
                 key={index}
-                className={`flex-shrink-0 w-36 sm:w-48 p-2 sm:p-3 rounded-lg border transition-all duration-200 flex flex-col min-h-[100px] sm:min-h-[120px] ${isPlaying
-                  ? 'bg-green-500/10 dark:bg-green-500/20 border-green-500/30'
-                  : isFinishedProgram
-                    ? 'bg-gray-300/50 dark:bg-gray-800 border-gray-300 dark:border-gray-700'
-                    : isUpcomingProgram
-                      ? 'bg-blue-500/10 dark:bg-blue-500/20 border-blue-500/30'
-                      : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  }`}
+                className='flex min-h-[100px] w-36 flex-shrink-0 flex-col p-2 sm:min-h-[120px] sm:w-48 sm:p-3'
               >
                 {/* 时间显示在顶部 */}
-                <div className="flex items-center justify-between mb-2 sm:mb-3 flex-shrink-0">
-                  <span className={`text-xs font-medium ${isPlaying
-                    ? 'text-green-600 dark:text-green-400'
-                    : isFinishedProgram
-                      ? 'text-gray-500 dark:text-gray-400'
-                      : isUpcomingProgram
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-gray-600 dark:text-gray-300'
-                    }`}>
+                <div className='mb-2 flex flex-shrink-0 items-center justify-between sm:mb-3'>
+                  <Chip size='sm' variant={isPlaying ? 'primary' : 'secondary'}>
                     {formatTime(program.start)}
-                  </span>
-                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                  </Chip>
+                  <span className='text-xs text-muted'>
                     {formatTime(program.end)}
                   </span>
                 </div>
 
                 {/* 标题在中间，占据剩余空间 */}
                 <div
-                  className={`text-xs sm:text-sm font-medium flex-1 ${isPlaying
-                    ? 'text-green-900 dark:text-green-100'
-                    : isFinishedProgram
-                      ? 'text-gray-600 dark:text-gray-400'
-                      : isUpcomingProgram
-                        ? 'text-blue-900 dark:text-blue-100'
-                        : 'text-gray-900 dark:text-gray-100'
-                    }`}
+                  className='flex-1 text-xs font-medium text-foreground sm:text-sm'
                   style={{
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
@@ -276,14 +249,11 @@ export default function EpgScrollableRow({
 
                 {/* 正在播放状态在底部 */}
                 {isPlaying && (
-                  <div className="mt-auto pt-1 sm:pt-2 flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
-                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-green-600 dark:text-green-400 font-medium">
-                      正在播放
-                    </span>
-                  </div>
+                  <Chip size='sm' variant='primary' className='mt-auto'>
+                    正在播放
+                  </Chip>
                 )}
-              </div>
+              </Card>
             );
           })}
         </div>

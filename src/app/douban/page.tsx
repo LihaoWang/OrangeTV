@@ -3,6 +3,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
+import { Card, EmptyState, Spinner } from '@heroui/react';
 import { Suspense } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -728,7 +729,7 @@ function DoubanPageClient() {
 
           {/* 选择器组件 */}
           {type !== 'custom' ? (
-            <div className='app-filter-panel'>
+            <Card>
               <DoubanSelector
                 type={type as 'movie' | 'tv' | 'show' | 'anime'}
                 primarySelection={primarySelection}
@@ -738,9 +739,9 @@ function DoubanPageClient() {
                 onMultiLevelChange={handleMultiLevelChange}
                 onWeekdayChange={handleWeekdayChange}
               />
-            </div>
+            </Card>
           ) : (
-            <div className='app-filter-panel'>
+            <Card>
               <DoubanCustomSelector
                 customCategories={customCategories}
                 primarySelection={primarySelection}
@@ -748,7 +749,7 @@ function DoubanPageClient() {
                 onPrimaryChange={handlePrimaryChange}
                 onSecondaryChange={handleSecondaryChange}
               />
-            </div>
+            </Card>
           )}
         </div>
 
@@ -792,8 +793,8 @@ function DoubanPageClient() {
             >
               {isLoadingMore && (
                 <div className='flex items-center gap-2'>
-                  <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500'></div>
-                  <span className='text-gray-600'>加载中...</span>
+                  <Spinner size='sm' />
+                  <span className='text-muted'>加载中...</span>
                 </div>
               )}
             </div>
@@ -801,12 +802,12 @@ function DoubanPageClient() {
 
           {/* 没有更多数据提示 */}
           {!hasMore && doubanData.length > 0 && (
-            <div className='text-center text-gray-500 py-8'>已加载全部内容</div>
+            <EmptyState className='py-8'>已加载全部内容</EmptyState>
           )}
 
           {/* 空状态 */}
           {!loading && doubanData.length === 0 && (
-            <div className='text-center text-gray-500 py-8'>暂无相关内容</div>
+            <EmptyState className='py-8'>暂无相关内容</EmptyState>
           )}
         </div>
       </div>

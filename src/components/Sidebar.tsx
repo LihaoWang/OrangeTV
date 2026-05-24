@@ -16,8 +16,8 @@ import {
   Tv,
 } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Button, Card, Link as HeroLink, Separator, Tooltip } from '@heroui/react';
 import {
   createContext,
   useCallback,
@@ -26,6 +26,7 @@ import {
   useLayoutEffect,
   useState,
 } from 'react';
+import type { ComponentType } from 'react';
 
 import { useSite } from './SiteProvider';
 
@@ -50,10 +51,11 @@ const Logo = ({ isCollapsed, onClick }: LogoProps) => {
 
   if (isCollapsed) {
     return (
-      <button
-        onClick={onClick}
-        className='theme-transition flex h-12 w-12 cursor-pointer items-center justify-center hover:opacity-80'
-        title='点击展开侧边栏'
+      <Button
+        onPress={onClick}
+        isIconOnly
+        variant='ghost'
+        aria-label='点击展开侧边栏'
       >
         <Image
           src='/logo.png'
@@ -62,28 +64,26 @@ const Logo = ({ isCollapsed, onClick }: LogoProps) => {
           height={32}
           className='rounded-lg'
         />
-      </button>
+      </Button>
     );
   }
 
   return (
-    <Link
+    <HeroLink
       href='/'
-      className='theme-transition flex h-16 items-center justify-center select-none hover:opacity-80'
+      className='flex h-16 items-center justify-center gap-2'
     >
-      <div className='flex items-center gap'>
-        <Image
-          src='/logo.png'
-          alt={siteName}
-          width={40}
-          height={40}
-          className='rounded-lg'
-        />
-        <span className='text-xl font-semibold tracking-normal text-foreground'>
-          {siteName}
-        </span>
-      </div>
-    </Link>
+      <Image
+        src='/logo.png'
+        alt={siteName}
+        width={40}
+        height={40}
+        className='rounded-lg'
+      />
+      <span className='text-xl font-semibold'>
+        {siteName}
+      </span>
+    </HeroLink>
   );
 };
 
@@ -217,25 +217,60 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
     }
   }, []);
 
-  const getNavClasses = (isActive: boolean) =>
-    `group flex min-h-[42px] items-center gap-3 rounded-xl border px-3 py-2 text-sm font-medium tracking-normal transition-all duration-200 ${
-      isActive
-        ? 'border-accent/25 bg-accent/10 text-accent shadow-sm'
-        : 'border-transparent text-muted hover:border-border hover:bg-surface-secondary hover:text-foreground'
-    }`;
+  const renderNavButton = ({
+    href,
+    label,
+    icon: Icon,
+    isActive,
+    onPress,
+  }: {
+    href: string;
+    label: string;
+    icon: ComponentType<{ className?: string }>;
+    isActive: boolean;
+    onPress?: () => void;
+  }) => {
+    const button = (
+      <Button
+        aria-label={label}
+        variant={isActive ? 'primary' : 'ghost'}
+        fullWidth={!isCollapsed}
+        isIconOnly={isCollapsed}
+        className={isCollapsed ? '' : 'justify-start'}
+        onPress={() => {
+          setActive(href);
+          if (onPress) {
+            onPress();
+          } else {
+            router.push(href);
+          }
+        }}
+      >
+        <Icon className='h-4 w-4' />
+        {!isCollapsed ? <span>{label}</span> : null}
+      </Button>
+    );
+
+    return isCollapsed ? (
+      <Tooltip>
+        <Tooltip.Trigger>{button}</Tooltip.Trigger>
+        <Tooltip.Content placement='right'>{label}</Tooltip.Content>
+      </Tooltip>
+    ) : button;
+  };
 
   return (
     <SidebarContext.Provider value={contextValue}>
       {/* 在移动端隐藏侧边栏 */}
       <div className='hidden md:flex'>
-        <aside
+        <Card
           data-sidebar
-          className={`fixed left-0 top-0 z-10 h-screen border-r border-border/70 bg-surface/90 shadow-sm backdrop-blur-xl transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'
+          className={`fixed left-0 top-0 z-10 h-screen rounded-none p-0 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'
             }`}
         >
           <div className='flex h-full flex-col'>
             {/* 顶部 Logo 区域 */}
-            <div className='relative h-16 border-b border-border/70'>
+            <div className='relative h-16'>
               <div className='absolute inset-0 flex items-center justify-center transition-all duration-200'>
                 {isCollapsed ? (
                   <Logo isCollapsed={true} onClick={handleToggle} />
@@ -246,57 +281,41 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                 )}
               </div>
               {!isCollapsed && (
-                <button
-                  onClick={handleToggle}
-                  className='a2-icon-button absolute right-3 top-1/2 z-10 -translate-y-1/2'
-                  title='收起侧边栏'
+                <Button
+                  onPress={handleToggle}
+                  isIconOnly
+                  size='sm'
+                  variant='ghost'
+                  className='absolute right-3 top-1/2 z-10 -translate-y-1/2'
+                  aria-label='收起侧边栏'
                 >
                   <Menu className='h-4 w-4' />
-                </button>
+                </Button>
               )}
             </div>
+            <Separator />
 
             {/* 首页和搜索导航 */}
             <nav className='mt-6 space-y-1 px-3'>
-              <Link
-                href='/'
-                onClick={() => setActive('/')}
-                data-active={active === '/'}
-                className={getNavClasses(active === '/')}
-              >
-                <div className='w-4 h-4 flex items-center justify-center'>
-                  <Home className='h-4 w-4' />
-                </div>
-                {!isCollapsed && (
-                  <span className='opacity-100 transition-opacity duration-200 whitespace-nowrap'>
-                    首页
-                  </span>
-                )}
-              </Link>
-              <Link
-                href='/search'
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleSearchClick();
-                  setActive('/search');
-                }}
-                data-active={active === '/search'}
-                className={getNavClasses(active === '/search')}
-              >
-                <div className='w-4 h-4 flex items-center justify-center'>
-                  <Search className='h-4 w-4' />
-                </div>
-                {!isCollapsed && (
-                  <span className='opacity-100 transition-opacity duration-200 whitespace-nowrap'>
-                    搜索
-                  </span>
-                )}
-              </Link>
+              {renderNavButton({
+                href: '/',
+                label: '首页',
+                icon: Home,
+                isActive: active === '/',
+              })}
+              {renderNavButton({
+                href: '/search',
+                label: '搜索',
+                icon: Search,
+                isActive: active === '/search',
+                onPress: handleSearchClick,
+              })}
             </nav>
 
             {/* 菜单项 */}
             <div className='flex-1 overflow-y-auto px-3 pt-6'>
-              <div className='space-y-1 border-t border-border/70 pt-4'>
+              <Separator className='mb-4' />
+              <div className='space-y-1'>
                 {menuItems.map((item) => {
                   // 检查当前路径是否匹配这个菜单项
                   const typeMatch = item.href.match(/type=([^&]+)/)?.[1];
@@ -312,22 +331,14 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                     (item.href === '/shortdrama' && decodedActive.startsWith('/shortdrama'));
                   const Icon = item.icon;
                   return (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      onClick={() => setActive(item.href)}
-                      data-active={isActive}
-                      className={getNavClasses(isActive)}
-                    >
-                      <div className='w-4 h-4 flex items-center justify-center'>
-                        <Icon className='h-4 w-4' />
-                      </div>
-                      {!isCollapsed && (
-                        <span className='opacity-100 transition-opacity duration-200 whitespace-nowrap'>
-                          {item.label}
-                        </span>
-                      )}
-                    </Link>
+                    <div key={item.label}>
+                      {renderNavButton({
+                        href: item.href,
+                        label: item.label,
+                        icon: Icon,
+                        isActive,
+                      })}
+                    </div>
                   );
                 })}
               </div>
@@ -335,40 +346,49 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
 
             {/* 致谢信息 */}
             <div className='px-3 pb-5'>
-              <div className='border-t border-border/70 pt-4'>
+              <Separator className='mb-4' />
+              <div>
                 {!isCollapsed ? (
                   <div className='px-2 text-center text-xs leading-relaxed text-muted'>
                     <span>本项目基于 </span>
-                    <button
-                      onClick={() => window.open('https://github.com/MoonTechLab/LunaTV', '_blank')}
-                      className='theme-transition font-medium text-accent hover:text-accent-strong'
+                    <HeroLink
+                      href='https://github.com/MoonTechLab/LunaTV'
+                      target='_blank'
                     >
                       MoonTV
-                    </button>
-                    <button
-                      onClick={() => window.open('https://github.com/MoonTechLab/LunaTV', '_blank')}
-                      className='theme-transition ml-1 text-accent hover:text-accent-strong'
-                      title='访问 MoonTV 项目'
+                    </HeroLink>
+                    <HeroLink
+                      href='https://github.com/MoonTechLab/LunaTV'
+                      target='_blank'
+                      aria-label='访问 MoonTV 项目'
+                      className='ml-1'
                     >
                       <ExternalLink className='h-3 w-3 inline' />
-                    </button>
+                    </HeroLink>
                     <span> 的二次开发</span>
                   </div>
                 ) : (
                   <div className='flex justify-center'>
-                    <button
-                      onClick={() => window.open('https://github.com/MoonTechLab/LunaTV', '_blank')}
-                      className='theme-transition p-1 text-accent hover:text-accent-strong'
-                      title='基于 MoonTV 的二次开发'
-                    >
-                      <ExternalLink className='h-4 w-4' />
-                    </button>
+                    <Tooltip>
+                      <Tooltip.Trigger>
+                      <HeroLink
+                        href='https://github.com/MoonTechLab/LunaTV'
+                        target='_blank'
+                        aria-label='基于 MoonTV 的二次开发'
+                      >
+                        <ExternalLink className='h-4 w-4' />
+                      </HeroLink>
+                      </Tooltip.Trigger>
+                      <Tooltip.Content placement='right'>
+                        基于 MoonTV 的二次开发
+                      </Tooltip.Content>
+                    </Tooltip>
                   </div>
                 )}
               </div>
             </div>
           </div>
-        </aside>
+        </Card>
         <div
           className={`transition-all duration-300 sidebar-offset ${isCollapsed ? 'w-16' : 'w-64'
             }`}

@@ -4,7 +4,7 @@
 
 import React, { useMemo } from 'react';
 
-import { AppFilterTabs } from './ui/HeroPrimitives';
+import { AppFilterSelect } from './ui/HeroPrimitives';
 
 interface CustomCategory {
   name: string;
@@ -22,18 +22,17 @@ interface DoubanCustomSelectorProps {
 
 const renderSelector = (
   label: string,
+  ariaLabel: string,
   options: { label: string; value: string }[],
   activeValue: string | undefined,
   onChange: (value: string) => void
 ) => (
-  <AppFilterTabs
-    ariaLabel={label}
-    selectedKey={activeValue}
-    onSelectionChange={onChange}
-    items={options.map((option) => ({
-      key: option.value,
-      label: option.label,
-    }))}
+  <AppFilterSelect
+    ariaLabel={ariaLabel}
+    label={label}
+    options={options}
+    value={activeValue}
+    onChange={onChange}
   />
 );
 
@@ -76,31 +75,23 @@ const DoubanCustomSelector: React.FC<DoubanCustomSelectorProps> = ({
 
   return (
     <div className='space-y-4 sm:space-y-6'>
-      <div className='space-y-3 sm:space-y-4'>
-        <div className='app-filter-row'>
-          <span className='app-filter-label'>类型</span>
-          <div className='min-w-0'>
-            {renderSelector(
-              '自定义类型',
-              primaryOptions,
-              primarySelection || primaryOptions[0]?.value,
-              onPrimaryChange
-            )}
-          </div>
-        </div>
+      <div className='grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5'>
+        {renderSelector(
+          '类型',
+          '自定义类型选项',
+          primaryOptions,
+          primarySelection || primaryOptions[0]?.value,
+          onPrimaryChange
+        )}
 
         {secondaryOptions.length > 0 && (
-          <div className='app-filter-row'>
-            <span className='app-filter-label'>片单</span>
-            <div className='min-w-0'>
-              {renderSelector(
-                '自定义片单',
-                secondaryOptions,
-                secondarySelection || secondaryOptions[0]?.value,
-                onSecondaryChange
-              )}
-            </div>
-          </div>
+          renderSelector(
+            '片单',
+            '自定义片单选项',
+            secondaryOptions,
+            secondarySelection || secondaryOptions[0]?.value,
+            onSecondaryChange
+          )
         )}
       </div>
     </div>

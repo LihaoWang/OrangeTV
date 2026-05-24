@@ -5,6 +5,7 @@
 import Artplayer from 'artplayer';
 import Hls from 'hls.js';
 import { Heart, Radio, Tv } from 'lucide-react';
+import { Alert, Button, Card, Chip, EmptyState, ProgressBar, ScrollShadow, Spinner, Tabs } from '@heroui/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
@@ -1058,68 +1059,26 @@ function LivePageClient() {
   }, []);
 
   if (loading) {
+    const progressValue =
+      loadingStage === 'loading' ? 33 : loadingStage === 'fetching' ? 66 : 100;
+
     return (
       <PageLayout activePath='/live'>
         <div className='flex items-center justify-center min-h-screen bg-transparent'>
-          <div className='text-center max-w-md mx-auto px-6'>
-            {/* 动画直播图标 */}
-            <div className='relative mb-8'>
-              <div className='relative mx-auto w-24 h-24 bg-gradient-to-r from-blue-300 to-blue-700 rounded-2xl shadow-2xl flex items-center justify-center transform hover:scale-105 transition-transform duration-300'>
-                <div className='text-white text-4xl'>📺</div>
-                {/* 旋转光环 */}
-                <div className='absolute -inset-2 bg-gradient-to-r from-blue-300 to-blue-700 rounded-2xl opacity-20 animate-spin'></div>
-              </div>
-
-              {/* 浮动粒子效果 */}
-              <div className='absolute top-0 left-0 w-full h-full pointer-events-none'>
-                <div className='absolute top-2 left-2 w-2 h-2 bg-blue-400 rounded-full animate-bounce'></div>
-                <div
-                  className='absolute top-4 right-4 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce'
-                  style={{ animationDelay: '0.5s' }}
-                ></div>
-                <div
-                  className='absolute bottom-3 left-6 w-1 h-1 bg-lime-400 rounded-full animate-bounce'
-                  style={{ animationDelay: '1s' }}
-                ></div>
-              </div>
-            </div>
-
-            {/* 进度指示器 */}
-            <div className='mb-6 w-80 mx-auto'>
-              <div className='flex justify-center space-x-2 mb-4'>
-                <div
-                  className={`w-3 h-3 rounded-full transition-all duration-500 ${loadingStage === 'loading' ? 'bg-blue-500 scale-125' : 'bg-blue-500'
-                    }`}
-                ></div>
-                <div
-                  className={`w-3 h-3 rounded-full transition-all duration-500 ${loadingStage === 'fetching' ? 'bg-blue-500 scale-125' : 'bg-blue-500'
-                    }`}
-                ></div>
-                <div
-                  className={`w-3 h-3 rounded-full transition-all duration-500 ${loadingStage === 'ready' ? 'bg-blue-500 scale-125' : 'bg-gray-300'
-                    }`}
-                ></div>
-              </div>
-
-              {/* 进度条 */}
-              <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden'>
-                <div
-                  className='h-full bg-gradient-to-r from-blue-300 to-blue-700 rounded-full transition-all duration-1000 ease-out'
-                  style={{
-                    width:
-                      loadingStage === 'loading' ? '33%' : loadingStage === 'fetching' ? '66%' : '100%',
-                  }}
-                ></div>
-              </div>
-            </div>
-
-            {/* 加载消息 */}
-            <div className='space-y-2'>
-              <p className='text-xl font-semibold text-gray-800 dark:text-gray-200 animate-pulse'>
-                {loadingMessage}
-              </p>
-            </div>
-          </div>
+          <Card className='w-full max-w-md text-center'>
+            <Card.Header className='items-center'>
+              <Spinner />
+              <Card.Title>{loadingMessage}</Card.Title>
+              <Card.Description>正在准备直播播放器</Card.Description>
+            </Card.Header>
+            <Card.Content>
+              <ProgressBar aria-label='加载进度' value={progressValue} color='accent'>
+                <ProgressBar.Track>
+                  <ProgressBar.Fill />
+                </ProgressBar.Track>
+              </ProgressBar>
+            </Card.Content>
+          </Card>
         </div>
       </PageLayout>
     );
@@ -1129,41 +1088,24 @@ function LivePageClient() {
     return (
       <PageLayout activePath='/live'>
         <div className='flex items-center justify-center min-h-screen bg-transparent'>
-          <div className='text-center max-w-md mx-auto px-6'>
-            {/* 错误图标 */}
-            <div className='relative mb-8'>
-              <div className='relative mx-auto w-24 h-24 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl shadow-2xl flex items-center justify-center transform hover:scale-105 transition-transform duration-300'>
-                <div className='text-white text-4xl'>😵</div>
-                {/* 脉冲效果 */}
-                <div className='absolute -inset-2 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl opacity-20 animate-pulse'></div>
-              </div>
-            </div>
-
-            {/* 错误信息 */}
-            <div className='space-y-4 mb-8'>
-              <h2 className='text-2xl font-bold text-gray-800 dark:text-gray-200'>
-                哎呀，出现了一些问题
-              </h2>
-              <div className='bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4'>
-                <p className='text-red-600 dark:text-red-400 font-medium'>
-                  {error}
-                </p>
-              </div>
-              <p className='text-sm text-gray-500 dark:text-gray-400'>
-                请检查网络连接或尝试刷新页面
-              </p>
-            </div>
-
-            {/* 操作按钮 */}
-            <div className='space-y-3'>
-              <button
-                onClick={() => window.location.reload()}
-                className='w-full px-6 py-3 bg-gradient-to-r from-blue-300 to-blue-700 text-white rounded-xl font-medium hover:from-blue-400 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl'
-              >
+          <Card className='w-full max-w-md'>
+            <Card.Header>
+              <Card.Title>哎呀，出现了一些问题</Card.Title>
+              <Card.Description>请检查网络连接或尝试刷新页面</Card.Description>
+            </Card.Header>
+            <Card.Content>
+              <Alert status='danger'>
+                <Alert.Content>
+                  <Alert.Description>{error}</Alert.Description>
+                </Alert.Content>
+              </Alert>
+            </Card.Content>
+            <Card.Footer>
+              <Button fullWidth onPress={() => window.location.reload()}>
                 🔄 重新尝试
-              </button>
-            </div>
-          </div>
+              </Button>
+            </Card.Footer>
+          </Card>
         </div>
       </PageLayout>
     );
@@ -1175,7 +1117,7 @@ function LivePageClient() {
         {/* 第一行：页面标题 */}
         <div className='py-1'>
           <h1 className='text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 max-w-[80%]'>
-            <Radio className='w-5 h-5 text-blue-500 flex-shrink-0' />
+            <Radio className='w-5 h-5 text-accent flex-shrink-0' />
             <div className='min-w-0 flex-1'>
               <div className='truncate'>
                 {currentSource?.name}
@@ -1198,17 +1140,16 @@ function LivePageClient() {
         <div className='space-y-2'>
           {/* 折叠控制 - 仅在 lg 及以上屏幕显示 */}
           <div className='hidden lg:flex justify-end'>
-            <button
-              onClick={() =>
+            <Button
+              variant='secondary'
+              size='sm'
+              aria-label={isChannelListCollapsed ? '显示频道列表' : '隐藏频道列表'}
+              onPress={() =>
                 setIsChannelListCollapsed(!isChannelListCollapsed)
-              }
-              className='group relative flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/80 hover:bg-white dark:bg-gray-800/80 dark:hover:bg-gray-800 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all duration-200'
-              title={
-                isChannelListCollapsed ? '显示频道列表' : '隐藏频道列表'
               }
             >
               <svg
-                className={`w-3.5 h-3.5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${isChannelListCollapsed ? 'rotate-180' : 'rotate-0'
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${isChannelListCollapsed ? 'rotate-180' : 'rotate-0'
                   }`}
                 fill='none'
                 stroke='currentColor'
@@ -1221,18 +1162,8 @@ function LivePageClient() {
                   d='M9 5l7 7-7 7'
                 />
               </svg>
-              <span className='text-xs font-medium text-gray-600 dark:text-gray-300'>
-                {isChannelListCollapsed ? '显示' : '隐藏'}
-              </span>
-
-              {/* 精致的状态指示点 */}
-              <div
-                className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full transition-all duration-200 ${isChannelListCollapsed
-                  ? 'bg-orange-400 animate-pulse'
-                  : 'bg-blue-400'
-                  }`}
-              ></div>
-            </button>
+              {isChannelListCollapsed ? '显示' : '隐藏'}
+            </Button>
           </div>
 
           <div className={`grid gap-4 lg:h-[500px] xl:h-[650px] 2xl:h-[750px] transition-all duration-300 ease-in-out ${isChannelListCollapsed
@@ -1249,50 +1180,27 @@ function LivePageClient() {
 
                 {/* 不支持的直播类型提示 */}
                 {unsupportedType && (
-                  <div className='absolute inset-0 bg-black/90 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg border border-white/0 dark:border-white/30 flex items-center justify-center z-[600] transition-all duration-300'>
-                    <div className='text-center max-w-md mx-auto px-6'>
-                      <div className='relative mb-8'>
-                        <div className='relative mx-auto w-24 h-24 bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl shadow-2xl flex items-center justify-center transform hover:scale-105 transition-transform duration-300'>
-                          <div className='text-white text-4xl'>⚠️</div>
-                          <div className='absolute -inset-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl opacity-20 animate-pulse'></div>
-                        </div>
-                      </div>
-                      <div className='space-y-4'>
-                        <h3 className='text-xl font-semibold text-white'>
-                          暂不支持的直播流类型
-                        </h3>
-                        <div className='bg-orange-500/20 border border-orange-500/30 rounded-lg p-4'>
-                          <p className='text-orange-300 font-medium'>
-                            当前频道直播流类型：<span className='text-white font-bold'>{unsupportedType.toUpperCase()}</span>
-                          </p>
-                          <p className='text-sm text-orange-200 mt-2'>
-                            目前仅支持 M3U8 格式的直播流
-                          </p>
-                        </div>
-                        <p className='text-sm text-gray-300'>
-                          请尝试其他频道
-                        </p>
-                      </div>
-                    </div>
+                  <div className='absolute inset-0 z-[600] flex items-center justify-center bg-black/90'>
+                    <Card variant='default' className='max-w-md p-6 text-center'>
+                      <Alert status='warning'>
+                        <Alert.Content>
+                          <Alert.Title>暂不支持的直播流类型</Alert.Title>
+                          <Alert.Description>
+                            当前频道直播流类型：{unsupportedType.toUpperCase()}。目前仅支持 M3U8 格式的直播流，请尝试其他频道。
+                          </Alert.Description>
+                        </Alert.Content>
+                      </Alert>
+                    </Card>
                   </div>
                 )}
 
                 {/* 视频加载蒙层 */}
                 {isVideoLoading && (
-                  <div className='absolute inset-0 bg-black/85 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg border border-white/0 dark:border-white/30 flex items-center justify-center z-[500] transition-all duration-300'>
-                    <div className='text-center max-w-md mx-auto px-6'>
-                      <div className='relative mb-8'>
-                        <div className='relative mx-auto w-24 h-24 bg-gradient-to-r from-blue-300 to-blue-700 rounded-2xl shadow-2xl flex items-center justify-center transform hover:scale-105 transition-transform duration-300'>
-                          <div className='text-white text-4xl'>📺</div>
-                          <div className='absolute -inset-2 bg-gradient-to-r from-blue-300 to-blue-700 rounded-2xl opacity-20 animate-spin'></div>
-                        </div>
-                      </div>
-                      <div className='space-y-2'>
-                        <p className='text-xl font-semibold text-white animate-pulse'>
-                          🔄 IPTV 加载中...
-                        </p>
-                      </div>
-                    </div>
+                  <div className='absolute inset-0 z-[500] flex items-center justify-center bg-black/85'>
+                    <Card variant='default' className='max-w-md p-6 text-center'>
+                      <Spinner />
+                      <p className='mt-4 text-lg font-semibold'>IPTV 加载中...</p>
+                    </Card>
                   </div>
                 )}
               </div>
@@ -1303,42 +1211,28 @@ function LivePageClient() {
               ? 'md:col-span-1 lg:hidden lg:opacity-0 lg:scale-95'
               : 'md:col-span-1 lg:opacity-100 lg:scale-100'
               }`}>
-              <div className='md:ml-2 px-4 py-0 h-full rounded-xl bg-black/10 dark:bg-white/5 flex flex-col border border-white/0 dark:border-white/30 overflow-hidden'>
+              <Card variant='default' className='md:ml-2 h-full p-4 flex flex-col overflow-hidden'>
                 {/* 主要的 Tab 切换 */}
-                <div className='flex mb-1 -mx-6 flex-shrink-0'>
-                  <div
-                    onClick={() => setActiveTab('channels')}
-                    className={`flex-1 py-3 px-6 text-center cursor-pointer transition-all duration-200 font-medium
-                      ${activeTab === 'channels'
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-gray-700 hover:text-blue-600 bg-black/5 dark:bg-white/5 dark:text-gray-300 dark:hover:text-blue-400 hover:bg-black/3 dark:hover:bg-white/3'
-                      }
-                    `.trim()}
-                  >
-                    频道
-                  </div>
-                  <div
-                    onClick={() => setActiveTab('sources')}
-                    className={`flex-1 py-3 px-6 text-center cursor-pointer transition-all duration-200 font-medium
-                      ${activeTab === 'sources'
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-gray-700 hover:text-blue-600 bg-black/5 dark:bg-white/5 dark:text-gray-300 dark:hover:text-blue-400 hover:bg-black/3 dark:hover:bg-white/3'
-                      }
-                    `.trim()}
-                  >
-                    直播源
-                  </div>
-                </div>
+                <Tabs
+                  selectedKey={activeTab}
+                  variant='secondary'
+                  onSelectionChange={(key) => setActiveTab(String(key) as 'channels' | 'sources')}
+                >
+                  <Tabs.List aria-label='直播列表类型'>
+                    <Tabs.Tab id='channels'>频道</Tabs.Tab>
+                    <Tabs.Tab id='sources'>直播源</Tabs.Tab>
+                  </Tabs.List>
+                </Tabs>
 
                 {/* 频道 Tab 内容 */}
                 {activeTab === 'channels' && (
                   <>
                     {/* 分组标签 */}
-                    <div className='flex items-center gap-4 mb-4 border-b border-gray-300 dark:border-gray-700 -mx-6 px-6 flex-shrink-0'>
+                    <div className='flex items-center gap-4 my-4 flex-shrink-0'>
                       {/* 切换状态提示 */}
                       {isSwitchingSource && (
                         <div className='flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400'>
-                          <div className='w-2 h-2 bg-amber-500 rounded-full animate-pulse'></div>
+                          <Spinner size='sm' />
                           切换直播源中...
                         </div>
                       )}
@@ -1370,57 +1264,46 @@ function LivePageClient() {
                           }
                         }}
                       >
-                        <div className='flex gap-4 min-w-max'>
+                        <div className='flex gap-2 min-w-max'>
                           {Object.keys(groupedChannels).map((group, index) => (
-                            <button
+                            <Button
                               key={group}
                               data-group={group}
                               ref={(el) => {
                                 groupButtonRefs.current[index] = el;
                               }}
-                              onClick={() => handleGroupChange(group)}
-                              disabled={isSwitchingSource}
-                              className={`w-20 relative py-2 text-sm font-medium transition-colors flex-shrink-0 text-center overflow-hidden
-                                 ${isSwitchingSource
-                                  ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
-                                  : selectedGroup === group
-                                    ? 'text-blue-500 dark:text-blue-400'
-                                    : 'text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400'
-                                }
-                               `.trim()}
+                              size='sm'
+                              variant={selectedGroup === group ? 'secondary' : 'tertiary'}
+                              isDisabled={isSwitchingSource}
+                              className='w-20 flex-shrink-0 overflow-hidden'
+                              onPress={() => handleGroupChange(group)}
                             >
                               <div className='px-1 overflow-hidden whitespace-nowrap' title={group}>
                                 {group}
                               </div>
-                              {selectedGroup === group && !isSwitchingSource && (
-                                <div className='absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 dark:bg-blue-400' />
-                              )}
-                            </button>
+                            </Button>
                           ))}
                         </div>
                       </div>
                     </div>
 
                     {/* 频道列表 */}
-                    <div ref={channelListRef} className='flex-1 overflow-y-auto space-y-2 pb-4'>
+                    <ScrollShadow hideScrollBar ref={channelListRef} className='flex-1 space-y-2 pb-4'>
                       {filteredChannels.length > 0 ? (
                         filteredChannels.map(channel => {
                           const isActive = channel.id === currentChannel?.id;
                           return (
-                            <button
+                            <Button
                               key={channel.id}
                               data-channel-id={channel.id}
-                              onClick={() => handleChannelChange(channel)}
-                              disabled={isSwitchingSource}
-                              className={`w-full p-3 rounded-lg text-left transition-all duration-200 ${isSwitchingSource
-                                ? 'opacity-50 cursor-not-allowed'
-                                : isActive
-                                  ? 'bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700'
-                                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                                }`}
+                              fullWidth
+                              variant={isActive ? 'secondary' : 'tertiary'}
+                              isDisabled={isSwitchingSource}
+                              className='h-auto justify-start p-3'
+                              onPress={() => handleChannelChange(channel)}
                             >
                               <div className='flex items-center gap-3'>
-                                <div className='w-10 h-10 bg-gray-300 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden'>
+                                <div className='w-10 h-10 flex items-center justify-center flex-shrink-0 overflow-hidden'>
                                   {channel.logo ? (
                                     <img
                                       src={`/api/proxy/logo?url=${encodeURIComponent(channel.logo)}&source=${currentSource?.key || ''}`}
@@ -1433,90 +1316,77 @@ function LivePageClient() {
                                   )}
                                 </div>
                                 <div className='flex-1 min-w-0'>
-                                  <div className='text-sm font-medium text-gray-900 dark:text-gray-100 truncate' title={channel.name}>
+                                  <div className='text-sm font-medium truncate' title={channel.name}>
                                     {channel.name}
                                   </div>
-                                  <div className='text-xs text-gray-500 dark:text-gray-400 mt-1' title={channel.group}>
+                                  <div className='text-xs text-muted mt-1' title={channel.group}>
                                     {channel.group}
                                   </div>
                                 </div>
                               </div>
-                            </button>
+                            </Button>
                           );
                         })
                       ) : (
-                        <div className='flex flex-col items-center justify-center py-12 text-center'>
-                          <div className='w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4'>
-                            <Tv className='w-8 h-8 text-gray-400 dark:text-gray-600' />
-                          </div>
-                          <p className='text-gray-500 dark:text-gray-400 font-medium'>
-                            暂无可用频道
-                          </p>
-                          <p className='text-sm text-gray-400 dark:text-gray-500 mt-1'>
-                            请选择其他直播源或稍后再试
-                          </p>
-                        </div>
+                        <EmptyState>
+                          <Tv className='w-8 h-8' />
+                          <p className='font-medium'>暂无可用频道</p>
+                          <p className='text-sm text-muted'>请选择其他直播源或稍后再试</p>
+                        </EmptyState>
                       )}
-                    </div>
+                    </ScrollShadow>
                   </>
                 )}
 
                 {/* 直播源 Tab 内容 */}
                 {activeTab === 'sources' && (
                   <div className='flex flex-col h-full mt-4'>
-                    <div className='flex-1 overflow-y-auto space-y-2 pb-20'>
+                    <ScrollShadow hideScrollBar className='flex-1 space-y-2 pb-20'>
                       {liveSources.length > 0 ? (
                         liveSources.map((source) => {
                           const isCurrentSource = source.key === currentSource?.key;
                           return (
-                            <div
+                            <Button
                               key={source.key}
-                              onClick={() => !isCurrentSource && handleSourceChange(source)}
-                              className={`flex items-start gap-3 px-2 py-3 rounded-lg transition-all select-none duration-200 relative
-                                ${isCurrentSource
-                                  ? 'bg-blue-500/10 dark:bg-blue-500/20 border-blue-500/30 border'
-                                  : 'hover:bg-gray-200/50 dark:hover:bg-white/10 hover:scale-[1.02] cursor-pointer'
-                                }`.trim()}
+                              fullWidth
+                              variant={isCurrentSource ? 'secondary' : 'tertiary'}
+                              className='h-auto justify-start p-3'
+                              isDisabled={isCurrentSource}
+                              onPress={() => handleSourceChange(source)}
                             >
                               {/* 图标 */}
-                              <div className='w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center flex-shrink-0'>
+                              <div className='w-12 h-12 flex items-center justify-center flex-shrink-0'>
                                 <Radio className='w-6 h-6 text-gray-500' />
                               </div>
 
                               {/* 信息 */}
                               <div className='flex-1 min-w-0'>
-                                <div className='text-sm font-medium text-gray-900 dark:text-gray-100 truncate'>
+                                <div className='text-sm font-medium truncate'>
                                   {source.name}
                                 </div>
-                                <div className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                                <div className='text-xs text-muted mt-1'>
                                   {!source.channelNumber || source.channelNumber === 0 ? '-' : `${source.channelNumber} 个频道`}
                                 </div>
                               </div>
 
                               {/* 当前标识 */}
                               {isCurrentSource && (
-                                <div className='absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full'></div>
+                                <Chip color='accent' size='sm'>当前</Chip>
                               )}
-                            </div>
+                            </Button>
                           );
                         })
                       ) : (
-                        <div className='flex flex-col items-center justify-center py-12 text-center'>
-                          <div className='w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4'>
-                            <Radio className='w-8 h-8 text-gray-400 dark:text-gray-600' />
-                          </div>
-                          <p className='text-gray-500 dark:text-gray-400 font-medium'>
-                            暂无可用直播源
-                          </p>
-                          <p className='text-sm text-gray-400 dark:text-gray-500 mt-1'>
-                            请检查网络连接或联系管理员添加直播源
-                          </p>
-                        </div>
+                        <EmptyState>
+                          <Radio className='w-8 h-8' />
+                          <p className='font-medium'>暂无可用直播源</p>
+                          <p className='text-sm text-muted'>请检查网络连接或联系管理员添加直播源</p>
+                        </EmptyState>
                       )}
-                    </div>
+                    </ScrollShadow>
                   </div>
                 )}
-              </div>
+              </Card>
             </div>
           </div>
         </div>
@@ -1545,16 +1415,17 @@ function LivePageClient() {
                       <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 truncate'>
                         {currentChannel.name}
                       </h3>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
+                      <Button
+                        isIconOnly
+                        variant='tertiary'
+                        aria-label={favorited ? '取消收藏' : '收藏'}
+                        onPress={() => {
                           handleToggleFavorite();
                         }}
                         className='flex-shrink-0 hover:opacity-80 transition-opacity'
-                        title={favorited ? '取消收藏' : '收藏'}
                       >
                         <FavoriteIcon filled={favorited} />
-                      </button>
+                      </Button>
                     </div>
                     <p className='text-sm text-gray-500 dark:text-gray-400 truncate'>
                       {currentSource?.name} {' > '} {currentChannel.group}

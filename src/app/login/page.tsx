@@ -3,7 +3,7 @@
 'use client';
 
 import { AlertCircle, CheckCircle, Shield } from 'lucide-react';
-import { Form, Input, Label, TextField } from '@heroui/react';
+import { Alert, Checkbox, Form, Input, Label, Link, TextField } from '@heroui/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
@@ -37,11 +37,10 @@ function VersionDisplay() {
   }, []);
 
   return (
-    <button
-      onClick={() =>
-        window.open('https://github.com/djteang/OrangeTV', '_blank')
-      }
-      className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 transition-colors cursor-pointer'
+    <Link
+      href='https://github.com/djteang/OrangeTV'
+      target='_blank'
+      className='absolute bottom-4 left-1/2 -translate-x-1/2 text-xs'
     >
       <span className='font-mono'>v{CURRENT_VERSION}</span>
       {!isChecking && updateStatus !== UpdateStatus.FETCH_FAILED && (
@@ -49,7 +48,7 @@ function VersionDisplay() {
           className={`flex items-center gap-1.5 ${updateStatus === UpdateStatus.HAS_UPDATE
             ? 'text-yellow-600 dark:text-yellow-400'
             : updateStatus === UpdateStatus.NO_UPDATE
-              ? 'text-blue-600 dark:text-blue-400'
+              ? 'text-success'
               : ''
             }`}
         >
@@ -67,7 +66,7 @@ function VersionDisplay() {
           )}
         </div>
       )}
-    </button>
+    </Link>
   );
 }
 
@@ -203,7 +202,7 @@ function LoginPageClient() {
         <ThemeToggle />
       </div>
       <AppSurface className='relative z-10 w-full max-w-md p-8 sm:p-10'>
-        <h1 className='text-blue-600 tracking-tight text-center text-3xl font-extrabold mb-8 bg-clip-text drop-shadow-sm'>
+        <h1 className='mb-8 text-center text-3xl font-semibold'>
           {siteName}
         </h1>
         <Form onSubmit={handleSubmit} className='space-y-6'>
@@ -236,36 +235,35 @@ function LoginPageClient() {
           {/* 机器码信息显示 - 只有在启用设备码功能时才显示 */}
           {deviceCodeEnabled && machineCodeGenerated && shouldAskUsername && (
             <div className='space-y-4'>
-              <div className='bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4'>
-                <div className='flex items-center space-x-2 mb-2'>
-                  <Shield className='w-4 h-4 text-blue-600 dark:text-blue-400' />
-                  <span className='text-sm font-medium text-blue-800 dark:text-blue-300'>设备识别码</span>
-                </div>
-                <div className='space-y-2'>
-                  <div className='text-xs font-mono text-gray-700 dark:text-gray-300 break-all'>
+              <Alert status='accent'>
+                <Alert.Indicator>
+                  <Shield className='w-4 h-4' />
+                </Alert.Indicator>
+                <Alert.Content>
+                  <Alert.Title>设备识别码</Alert.Title>
+                  <Alert.Description>
                     {MachineCode.formatMachineCode(machineCode)}
-                  </div>
-                  <div className='text-xs text-gray-600 dark:text-gray-400'>
+                    <br />
                     设备信息: {deviceInfo}
-                  </div>
-                </div>
-              </div>
+                  </Alert.Description>
+                </Alert.Content>
+              </Alert>
 
               {/* 绑定选项 */}
               {!requireMachineCode && (
                 <div className='space-y-2'>
-                  <div className='flex items-center space-x-3'>
-                    <input
-                      id='bindMachineCode'
-                      type='checkbox'
-                      checked={bindMachineCode}
-                      onChange={(e) => setBindMachineCode(e.target.checked)}
-                      className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600'
-                    />
-                    <label htmlFor='bindMachineCode' className='text-sm text-gray-700 dark:text-gray-300'>
+                  <Checkbox
+                    id='bindMachineCode'
+                    isSelected={bindMachineCode}
+                    onChange={setBindMachineCode}
+                  >
+                    <Checkbox.Control>
+                      <Checkbox.Indicator />
+                    </Checkbox.Control>
+                    <Checkbox.Content>
                       绑定此设备（提升账户安全性）
-                    </label>
-                  </div>
+                    </Checkbox.Content>
+                  </Checkbox>
                   {/* <p className='text-xs text-gray-500 dark:text-gray-400 ml-7'>
                     // 管理员可选择不绑定机器码直接登录
                   </p> */}

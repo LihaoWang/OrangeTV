@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@heroui/react';
 import { useEffect, useRef, useState } from 'react';
 
 interface ScrollableRowProps {
@@ -126,12 +127,14 @@ export default function ScrollableRow({
               pointerEvents: 'auto',
             }}
           >
-            <button
-              onClick={handleScrollLeftClick}
-              className='theme-transition flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-overlay/95 text-muted shadow-xl backdrop-blur hover:border-accent/40 hover:text-accent'
+            <Button
+              isIconOnly
+              variant='secondary'
+              onPress={handleScrollLeftClick}
+              aria-label='向左滚动'
             >
               <ChevronLeft className='h-5 w-5' />
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -155,12 +158,14 @@ export default function ScrollableRow({
               pointerEvents: 'auto',
             }}
           >
-            <button
-              onClick={handleScrollRightClick}
-              className='theme-transition flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-overlay/95 text-muted shadow-xl backdrop-blur hover:border-accent/40 hover:text-accent'
+            <Button
+              isIconOnly
+              variant='secondary'
+              onPress={handleScrollRightClick}
+              aria-label='向右滚动'
             >
               <ChevronRight className='h-5 w-5' />
-            </button>
+            </Button>
           </div>
         </div>
       )}

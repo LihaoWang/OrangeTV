@@ -1,6 +1,7 @@
 import { Radio } from 'lucide-react';
 import Image from 'next/image';
 import React from 'react';
+import { Card, Chip } from '@heroui/react';
 
 import { AppButton, AppDrawer, AppScrollShadow } from './ui/HeroPrimitives';
 
@@ -59,7 +60,7 @@ const MobileActionSheet: React.FC<MobileActionSheetProps> = ({
     >
       <div className='space-y-4'>
         {(poster || sourceName) && (
-          <div className='flex items-center gap-3 rounded-lg border border-border/70 bg-surface-secondary/60 p-3'>
+          <Card variant='secondary' className='flex-row items-center gap-3'>
             {poster && (
               <div className='relative h-16 w-12 flex-shrink-0 overflow-hidden rounded-md border border-border/70 bg-surface-secondary/60'>
                 <Image
@@ -74,25 +75,25 @@ const MobileActionSheet: React.FC<MobileActionSheetProps> = ({
             <div className='min-w-0 flex-1'>
               <p className='truncate text-base font-semibold text-foreground'>{title}</p>
               {sourceName ? (
-                <span className='a2-data mt-1 inline-flex max-w-full items-center border border-border/70 px-2 py-1 text-[10px] text-muted'>
+                <Chip size='sm' variant='soft' color='accent' className='mt-1 max-w-full'>
                   {origin === 'live' ? (
                     <Radio size={12} className='mr-1.5 text-accent' />
                   ) : null}
-                  <span className='truncate'>{sourceName}</span>
-                </span>
+                  <Chip.Label>{sourceName}</Chip.Label>
+                </Chip>
               ) : null}
             </div>
-          </div>
+          </Card>
         )}
 
-        <div className='divide-y divide-border/10 overflow-hidden rounded-lg border border-border/70'>
+        <Card variant='default' className='gap-1 p-1'>
           {actions.map((action) => (
             <AppButton
               key={action.id}
               variant='tertiary'
               fullWidth
               isDisabled={action.disabled}
-              className='h-auto justify-start rounded-none px-3 py-4'
+              className='h-auto justify-start'
               onPress={() => {
                 action.onClick();
                 onClose();
@@ -115,36 +116,30 @@ const MobileActionSheet: React.FC<MobileActionSheetProps> = ({
                 {action.label}
               </span>
               {action.id === 'play' && currentEpisode && totalEpisodes ? (
-                <span className='a2-data text-xs text-muted'>
-                  {currentEpisode}/{totalEpisodes}
-                </span>
+                <Chip size='sm' variant='secondary'>
+                  <Chip.Label>{currentEpisode}/{totalEpisodes}</Chip.Label>
+                </Chip>
               ) : null}
             </AppButton>
           ))}
-        </div>
+        </Card>
 
         {isAggregate && sources && sources.length > 0 ? (
-          <div className='rounded-lg border border-border/70 p-3'>
+          <Card variant='secondary'>
             <div className='mb-3'>
               <h4 className='mb-1 text-sm font-medium text-foreground'>可用播放源</h4>
-              <p className='a2-kicker'>共 {sources.length} 个播放源</p>
+              <p className='text-sm text-muted'>共 {sources.length} 个播放源</p>
             </div>
             <AppScrollShadow className='max-h-32'>
               <div className='grid grid-cols-2 gap-2'>
                 {sources.map((source) => (
-                  <div
-                    key={source}
-                    className='flex min-w-0 items-center gap-2 border-l border-border/70 px-3 py-2'
-                  >
-                    <div className='h-1.5 w-1.5 flex-shrink-0 bg-accent/80' />
-                    <span className='truncate text-xs text-muted'>
-                      {source}
-                    </span>
-                  </div>
+                  <Chip key={source} size='sm' variant='secondary'>
+                    <Chip.Label>{source}</Chip.Label>
+                  </Chip>
                 ))}
               </div>
             </AppScrollShadow>
-          </div>
+          </Card>
         ) : null}
       </div>
     </AppDrawer>

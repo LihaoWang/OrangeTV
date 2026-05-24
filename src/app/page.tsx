@@ -2,8 +2,7 @@
 
 'use client';
 
-import { X } from 'lucide-react';
-import Link from 'next/link';
+import { Button, Card, EmptyState, Link as HeroLink, Skeleton } from '@heroui/react';
 import { Suspense, useEffect, useState } from 'react';
 
 import {
@@ -26,6 +25,7 @@ import PageLayout from '@/components/PageLayout';
 import ScrollableRow from '@/components/ScrollableRow';
 import { useSite } from '@/components/SiteProvider';
 import VideoCard from '@/components/VideoCard';
+import { AppDialog } from '@/components/ui/HeroPrimitives';
 
 function HomeClient() {
   const [activeTab, setActiveTab] = useState<'home' | 'favorites'>('home');
@@ -185,26 +185,24 @@ function HomeClient() {
         <div className='mx-auto max-w-[1380px] space-y-10'>
           {activeTab === 'favorites' ? (
             // 收藏夹视图
-            <section className='rounded-3xl border border-border/70 bg-surface/70 p-5 shadow-sm backdrop-blur sm:p-6'>
-              <div className='mb-5 flex items-end justify-between gap-4'>
-                <div className='space-y-1'>
-                  <p className='a2-kicker'>Saved</p>
-                  <h2 className='text-2xl font-semibold tracking-normal text-foreground'>
-                    我的收藏
-                  </h2>
+            <Card>
+              <Card.Header className='flex-row items-end justify-between gap-4'>
+                <div>
+                  <Card.Description>Saved</Card.Description>
+                  <Card.Title>我的收藏</Card.Title>
                 </div>
                 {favoriteItems.length > 0 && (
-                  <button
-                    className='a2-link-action'
-                    onClick={async () => {
+                  <Button
+                    variant='danger'
+                    onPress={async () => {
                       await clearAllFavorites();
                       setFavoriteItems([]);
                     }}
                   >
                     清空
-                  </button>
+                  </Button>
                 )}
-              </div>
+              </Card.Header>
               <div className='grid justify-start grid-cols-3 gap-x-3 gap-y-14 px-0 sm:grid-cols-[repeat(auto-fill,_minmax(11rem,_1fr))] sm:gap-x-8 sm:gap-y-20'>
                 {favoriteItems.map((item) => (
                   <div key={item.id + item.source} className='w-full'>
@@ -217,12 +215,12 @@ function HomeClient() {
                   </div>
                 ))}
                 {favoriteItems.length === 0 && (
-                  <div className='col-span-full rounded-2xl border border-dashed border-border bg-surface-secondary/60 py-10 text-center text-sm font-medium tracking-normal text-muted'>
+                  <EmptyState className='col-span-full'>
                     暂无收藏内容
-                  </div>
+                  </EmptyState>
                 )}
               </div>
-            </section>
+            </Card>
           ) : (
             // 首页视图
             <>
@@ -230,21 +228,18 @@ function HomeClient() {
               <ContinueWatching />
 
               {/* 热门电影 */}
-              <section className='rounded-3xl border border-border/70 bg-surface/70 p-5 shadow-sm backdrop-blur sm:p-6'>
-                <div className='mb-5 flex items-end justify-between gap-4'>
-                  <div className='space-y-1'>
-                    <p className='a2-kicker'>精选推荐</p>
-                    <h2 className='text-2xl font-semibold tracking-normal text-foreground'>
-                      热门电影
-                    </h2>
+              <Card>
+                <Card.Header className='flex-row items-end justify-between gap-4'>
+                  <div>
+                    <Card.Description>精选推荐</Card.Description>
+                    <Card.Title>热门电影</Card.Title>
                   </div>
-                  <Link
+                  <HeroLink
                     href='/douban?type=movie'
-                    className='a2-link-action'
                   >
                     查看更多
-                  </Link>
-                </div>
+                  </HeroLink>
+                </Card.Header>
                 <ScrollableRow>
                   {loading
                     ? // 加载状态显示灰色占位数据
@@ -253,10 +248,8 @@ function HomeClient() {
                         key={index}
                         className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
                       >
-                        <div className='relative aspect-[2/3] w-full overflow-hidden rounded-2xl border border-border bg-surface-secondary animate-pulse'>
-                          <div className='absolute inset-0 bg-surface-tertiary'></div>
-                        </div>
-                        <div className='mt-3 h-4 rounded-lg bg-surface-secondary animate-pulse'></div>
+                        <Skeleton className='aspect-[2/3] w-full' />
+                        <Skeleton className='mt-3 h-4' />
                       </div>
                     ))
                     : // 显示真实数据
@@ -277,21 +270,19 @@ function HomeClient() {
                       </div>
                     ))}
                 </ScrollableRow>
-              </section>
+              </Card>
 
               {/* 热门剧集 */}
-              <section className='rounded-3xl border border-border/70 bg-surface/70 p-5 shadow-sm backdrop-blur sm:p-6'>
-                <div className='mb-5 flex items-end justify-between gap-4'>
-                  <div className='space-y-1'>
-                    <p className='a2-kicker'>Series</p>
-                    <h2 className='text-2xl font-semibold tracking-normal text-foreground'>
-                      热门剧集
-                    </h2>
+              <Card>
+                <Card.Header className='flex-row items-end justify-between gap-4'>
+                  <div>
+                    <Card.Description>Series</Card.Description>
+                    <Card.Title>热门剧集</Card.Title>
                   </div>
-                  <Link href='/douban?type=tv' className='a2-link-action'>
+                  <HeroLink href='/douban?type=tv'>
                     查看更多
-                  </Link>
-                </div>
+                  </HeroLink>
+                </Card.Header>
                 <ScrollableRow>
                   {loading
                     ? // 加载状态显示灰色占位数据
@@ -300,10 +291,8 @@ function HomeClient() {
                         key={index}
                         className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
                       >
-                        <div className='relative aspect-[2/3] w-full overflow-hidden rounded-2xl border border-border bg-surface-secondary animate-pulse'>
-                          <div className='absolute inset-0 bg-surface-tertiary'></div>
-                        </div>
-                        <div className='mt-3 h-4 rounded-lg bg-surface-secondary animate-pulse'></div>
+                        <Skeleton className='aspect-[2/3] w-full' />
+                        <Skeleton className='mt-3 h-4' />
                       </div>
                     ))
                     : // 显示真实数据
@@ -323,24 +312,21 @@ function HomeClient() {
                       </div>
                     ))}
                 </ScrollableRow>
-              </section>
+              </Card>
 
               {/* 每日新番放送 */}
-              <section className='rounded-3xl border border-border/70 bg-surface/70 p-5 shadow-sm backdrop-blur sm:p-6'>
-                <div className='mb-5 flex items-end justify-between gap-4'>
-                  <div className='space-y-1'>
-                    <p className='a2-kicker'>Bangumi</p>
-                    <h2 className='text-2xl font-semibold tracking-normal text-foreground'>
-                      新番放送
-                    </h2>
+              <Card>
+                <Card.Header className='flex-row items-end justify-between gap-4'>
+                  <div>
+                    <Card.Description>Bangumi</Card.Description>
+                    <Card.Title>新番放送</Card.Title>
                   </div>
-                  <Link
+                  <HeroLink
                     href='/douban?type=anime'
-                    className='a2-link-action'
                   >
                     查看更多
-                  </Link>
-                </div>
+                  </HeroLink>
+                </Card.Header>
                 <ScrollableRow>
                   {loading
                     ? // 加载状态显示灰色占位数据
@@ -349,10 +335,8 @@ function HomeClient() {
                         key={index}
                         className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
                       >
-                        <div className='relative aspect-[2/3] w-full overflow-hidden rounded-2xl border border-border bg-surface-secondary animate-pulse'>
-                          <div className='absolute inset-0 bg-surface-tertiary'></div>
-                        </div>
-                        <div className='mt-3 h-4 rounded-lg bg-surface-secondary animate-pulse'></div>
+                        <Skeleton className='aspect-[2/3] w-full' />
+                        <Skeleton className='mt-3 h-4' />
                       </div>
                     ))
                     : // 展示当前日期的番剧
@@ -401,24 +385,21 @@ function HomeClient() {
                       ));
                     })()}
                 </ScrollableRow>
-              </section>
+              </Card>
 
               {/* 热门综艺 */}
-              <section className='rounded-3xl border border-border/70 bg-surface/70 p-5 shadow-sm backdrop-blur sm:p-6'>
-                <div className='mb-5 flex items-end justify-between gap-4'>
-                  <div className='space-y-1'>
-                    <p className='a2-kicker'>Shows</p>
-                    <h2 className='text-2xl font-semibold tracking-normal text-foreground'>
-                      热门综艺
-                    </h2>
+              <Card>
+                <Card.Header className='flex-row items-end justify-between gap-4'>
+                  <div>
+                    <Card.Description>Shows</Card.Description>
+                    <Card.Title>热门综艺</Card.Title>
                   </div>
-                  <Link
+                  <HeroLink
                     href='/douban?type=show'
-                    className='a2-link-action'
                   >
                     查看更多
-                  </Link>
-                </div>
+                  </HeroLink>
+                </Card.Header>
                 <ScrollableRow>
                   {loading
                     ? // 加载状态显示灰色占位数据
@@ -427,10 +408,8 @@ function HomeClient() {
                         key={index}
                         className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
                       >
-                        <div className='relative aspect-[2/3] w-full overflow-hidden rounded-2xl border border-border bg-surface-secondary animate-pulse'>
-                          <div className='absolute inset-0 bg-surface-tertiary'></div>
-                        </div>
-                        <div className='mt-3 h-4 rounded-lg bg-surface-secondary animate-pulse'></div>
+                        <Skeleton className='aspect-[2/3] w-full' />
+                        <Skeleton className='mt-3 h-4' />
                       </div>
                     ))
                     : // 显示真实数据
@@ -450,75 +429,29 @@ function HomeClient() {
                       </div>
                     ))}
                 </ScrollableRow>
-              </section>
+              </Card>
             </>
           )}
         </div>
       </div>
-      {announcement && showAnnouncement && (
-        <div
-          className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm dark:bg-black/70 p-4 transition-opacity duration-300 ${showAnnouncement ? '' : 'opacity-0 pointer-events-none'
-            }`}
-          onTouchStart={(e) => {
-            // 如果点击的是背景区域，阻止触摸事件冒泡，防止背景滚动
-            if (e.target === e.currentTarget) {
-              e.preventDefault();
-            }
+      {announcement && (
+        <AppDialog
+          isOpen={showAnnouncement}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) handleCloseAnnouncement(announcement);
           }}
-          onTouchMove={(e) => {
-            // 如果触摸的是背景区域，阻止触摸移动，防止背景滚动
-            if (e.target === e.currentTarget) {
-              e.preventDefault();
-              e.stopPropagation();
-            }
-          }}
-          onTouchEnd={(e) => {
-            // 如果触摸的是背景区域，阻止触摸结束事件，防止背景滚动
-            if (e.target === e.currentTarget) {
-              e.preventDefault();
-            }
-          }}
-          style={{
-            touchAction: 'none', // 禁用所有触摸操作
-          }}
-        >
-          <div
-            className='a2-panel w-full max-w-md p-6 transform transition-all duration-300'
-            onTouchMove={(e) => {
-              // 允许公告内容区域正常滚动，阻止事件冒泡到外层
-              e.stopPropagation();
-            }}
-            style={{
-              touchAction: 'auto', // 允许内容区域的正常触摸操作
-            }}
-          >
-            <div className='flex justify-between items-start mb-4'>
-              <h3 className='a2-title border-b border-border/70 pb-3 text-[1.75rem]'>
-                提示
-              </h3>
-              <button
-                onClick={() => handleCloseAnnouncement(announcement)}
-                className='a2-icon-button h-8 w-8 p-1.5'
-                aria-label='关闭'
-              >
-                <X className='h-4 w-4' />
-              </button>
-            </div>
-            <div className='mb-6'>
-              <div className='border-l-4 border-accent pl-4'>
-                <p className='a2-muted-copy'>
-                  {announcement}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => handleCloseAnnouncement(announcement)}
-              className='a2-link-action w-full justify-center border-b-0 border-t border-border/70 px-4 pt-3'
+          title='提示'
+          footer={
+            <Button
+              fullWidth
+              onPress={() => handleCloseAnnouncement(announcement)}
             >
               我知道了
-            </button>
-          </div>
-        </div>
+            </Button>
+          }
+        >
+          <p className='text-sm leading-6 text-muted'>{announcement}</p>
+        </AppDialog>
       )}
     </PageLayout>
   );

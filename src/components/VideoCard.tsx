@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any,react-hooks/exhaustive-deps,@typescript-eslint/no-empty-function */
 
-import { ExternalLink, Heart, Link, PlayCircleIcon, Radio, Trash2 } from 'lucide-react';
+import { ExternalLink, Heart, Link as LinkIcon, PlayCircleIcon, Radio, Trash2 } from 'lucide-react';
+import { Badge, Button, Card, Chip, Link as HeroLink, ProgressBar, Tooltip } from '@heroui/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, {
@@ -500,7 +501,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       actions.push({
         id: 'douban',
         label: isBangumi ? 'Bangumi 详情' : '豆瓣详情',
-        icon: <Link size={20} />,
+        icon: <LinkIcon size={20} />,
         onClick: () => {
           const url = isBangumi
             ? `https://bgm.tv/subject/${actualDoubanId.toString()}`
@@ -530,8 +531,9 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
 
   return (
     <>
-      <div
-        className='group relative z-0 w-full cursor-pointer rounded-2xl bg-transparent p-1 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:z-[500]'
+      <Card
+        variant='transparent'
+        className='group relative z-0 w-full cursor-pointer overflow-visible rounded-none p-0'
         onClick={handleClick}
         {...longPressProps}
         style={{
@@ -567,8 +569,9 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
         }}
       >
         {/* 海报容器 */}
-        <div
-          className={`relative aspect-[2/3] overflow-hidden rounded-2xl border border-border/70 bg-surface shadow-sm transition-all duration-300 group-hover:border-accent/30 group-hover:shadow-xl ${origin === 'live' ? 'ring-1 ring-accent/20' : ''}`}
+        <Card
+          variant='default'
+          className='relative aspect-[2/3] overflow-hidden rounded-lg p-0'
           style={{
             WebkitUserSelect: 'none',
             userSelect: 'none',
@@ -615,7 +618,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
 
           {/* 悬浮遮罩 */}
           <div
-            className='absolute inset-0 bg-gradient-to-t from-slate-950/82 via-slate-950/20 to-transparent opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100'
+            className='absolute inset-0 bg-black/35 opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100'
             style={{
               WebkitUserSelect: 'none',
               userSelect: 'none',
@@ -645,7 +648,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
               <PlayCircleIcon
                 size={50}
                 strokeWidth={0.8}
-                className='fill-surface/80 text-accent drop-shadow-lg transition-all duration-300 ease-out hover:fill-accent hover:text-accent-foreground hover:scale-[1.06]'
+                className='fill-background text-accent'
                 style={{
                   WebkitUserSelect: 'none',
                   userSelect: 'none',
@@ -675,47 +678,44 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
               }}
             >
               {config.showCheckCircle && (
-                <Trash2
-                  onClick={handleDeleteRecord}
-                  size={20}
-                  className='text-white transition-all duration-300 ease-out hover:stroke-red-500 hover:scale-[1.1]'
-                  style={{
-                    WebkitUserSelect: 'none',
-                    userSelect: 'none',
-                    WebkitTouchCallout: 'none',
-                  } as React.CSSProperties}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    return false;
-                  }}
-                />
+                <Button
+                  isIconOnly
+                  size='sm'
+                  variant='danger'
+                  onPress={() =>
+                    handleDeleteRecord({
+                      preventDefault: () => undefined,
+                      stopPropagation: () => undefined,
+                    } as React.MouseEvent)
+                  }
+                >
+                  <Trash2 size={16} />
+                </Button>
               )}
               {config.showHeart && from !== 'search' && from !== 'shortdrama' && (
-                <Heart
-                  onClick={handleToggleFavorite}
-                  size={20}
-                  className={`transition-all duration-300 ease-out ${favorited
-                    ? 'fill-danger stroke-danger'
-                    : 'fill-transparent stroke-white hover:stroke-accent'
-                    } hover:scale-[1.1]`}
-                  style={{
-                    WebkitUserSelect: 'none',
-                    userSelect: 'none',
-                    WebkitTouchCallout: 'none',
-                  } as React.CSSProperties}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    return false;
-                  }}
-                />
+                <Button
+                  isIconOnly
+                  size='sm'
+                  variant={favorited ? 'danger' : 'secondary'}
+                  onPress={() =>
+                    handleToggleFavorite({
+                      preventDefault: () => undefined,
+                      stopPropagation: () => undefined,
+                    } as React.MouseEvent)
+                  }
+                >
+                  <Heart size={16} className={favorited ? 'fill-current' : ''} />
+                </Button>
               )}
             </div>
           )}
 
           {/* 年份徽章 */}
           {config.showYear && actualYear && actualYear !== 'unknown' && actualYear.trim() !== '' && (
-            <div
-              className="absolute left-2 top-2 rounded-lg border border-border/70 bg-overlay/85 px-2 py-1 text-[10px] font-medium tracking-normal text-foreground shadow-sm backdrop-blur transition-all duration-300 ease-out group-hover:opacity-90"
+            <Badge
+              size='sm'
+              variant='secondary'
+              className='absolute left-2 top-2'
               style={{
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
@@ -726,14 +726,17 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
                 return false;
               }}
             >
-              {actualYear}
-            </div>
+              <Badge.Label>{actualYear}</Badge.Label>
+            </Badge>
           )}
 
           {/* 徽章 */}
           {config.showRating && rate && (
-            <div
-              className='absolute right-2 top-2 flex min-w-[2rem] items-center justify-center rounded-lg border border-accent/30 bg-accent px-2 py-1 text-[10px] font-semibold text-accent-foreground shadow-sm transition-all duration-300 ease-out group-hover:scale-105'
+            <Chip
+              size='md'
+              color='accent'
+              variant='primary'
+              className='absolute right-2 top-2'
               style={{
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
@@ -744,13 +747,15 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
                 return false;
               }}
             >
-              {rate}
-            </div>
+              <Chip.Label>{rate}</Chip.Label>
+            </Chip>
           )}
 
           {actualEpisodes && actualEpisodes > 1 && (
-            <div
-              className='absolute right-2 top-2 rounded-lg border border-border/70 bg-overlay/85 px-2 py-1 text-[10px] font-semibold text-foreground shadow-sm backdrop-blur transition-all duration-300 ease-out group-hover:scale-105'
+            <Badge
+              size='sm'
+              variant='secondary'
+              className='absolute right-2 top-2'
               style={{
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
@@ -761,15 +766,15 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
                 return false;
               }}
             >
-              {currentEpisode
+              <Badge.Label>{currentEpisode
                 ? `${currentEpisode}/${actualEpisodes}`
-                : actualEpisodes}
-            </div>
+                : actualEpisodes}</Badge.Label>
+            </Badge>
           )}
 
           {/* 豆瓣链接 */}
           {config.showDoubanLink && actualDoubanId && actualDoubanId !== 0 && (
-            <a
+            <HeroLink
               href={
                 isBangumi
                   ? `https://bgm.tv/subject/${actualDoubanId.toString()}`
@@ -789,20 +794,8 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
                 return false;
               }}
             >
-              <div
-                className='theme-transition flex h-7 w-7 items-center justify-center rounded-lg border border-border/70 bg-overlay/90 text-accent shadow-sm backdrop-blur hover:border-accent/40 hover:text-foreground'
-                style={{
-                  WebkitUserSelect: 'none',
-                  userSelect: 'none',
-                  WebkitTouchCallout: 'none',
-                } as React.CSSProperties}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  return false;
-                }}
-              >
-                <Link
-                  size={16}
+                <LinkIcon
+                  size={18}
                   style={{
                     WebkitUserSelect: 'none',
                     userSelect: 'none',
@@ -810,8 +803,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
                     pointerEvents: 'none',
                   } as React.CSSProperties}
                 />
-              </div>
-            </a>
+            </HeroLink>
           )}
 
           {/* 聚合播放源指示器 */}
@@ -840,8 +832,10 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
                     WebkitTouchCallout: 'none',
                   } as React.CSSProperties}
                 >
-                  <div
-                    className='theme-transition flex h-6 w-6 cursor-pointer items-center justify-center rounded-lg border border-border/70 bg-overlay/90 text-[10px] font-semibold text-foreground shadow-sm backdrop-blur hover:border-accent/40 hover:text-accent sm:h-7 sm:w-7'
+                  <Badge
+                    size='sm'
+                    color='accent'
+                    variant='secondary'
                     style={{
                       WebkitUserSelect: 'none',
                       userSelect: 'none',
@@ -852,8 +846,8 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
                       return false;
                     }}
                   >
-                    {sourceCount}
-                  </div>
+                    <Badge.Label>{sourceCount}</Badge.Label>
+                  </Badge>
 
                   {/* 播放源详情悬浮框 */}
                   {(() => {
@@ -931,12 +925,16 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
               </div>
             );
           })()}
-        </div>
+        </Card>
 
         {/* 进度条 */}
         {config.showProgress && progress !== undefined && (
-          <div
-            className='mt-2 h-1 w-full overflow-hidden rounded-full bg-surface-secondary'
+          <ProgressBar
+            aria-label='观看进度'
+            value={progress}
+            className='mt-2'
+            size='sm'
+            color='accent'
             style={{
               WebkitUserSelect: 'none',
               userSelect: 'none',
@@ -947,20 +945,10 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
               return false;
             }}
           >
-            <div
-              className='h-full rounded-full bg-accent transition-all duration-500 ease-out'
-              style={{
-                width: `${progress}%`,
-                WebkitUserSelect: 'none',
-                userSelect: 'none',
-                WebkitTouchCallout: 'none',
-              } as React.CSSProperties}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                return false;
-              }}
-            />
-          </div>
+            <ProgressBar.Track>
+              <ProgressBar.Fill />
+            </ProgressBar.Track>
+          </ProgressBar>
         )}
 
         {/* 标题与来源 */}
@@ -976,16 +964,18 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             return false;
           }}
         >
-          <div
-            className='relative'
+          <Tooltip>
+            <Tooltip.Trigger>
+            <div
+              className='relative'
             style={{
               WebkitUserSelect: 'none',
               userSelect: 'none',
               WebkitTouchCallout: 'none',
             } as React.CSSProperties}
-          >
+            >
             <span
-              className='peer block truncate text-sm font-semibold text-foreground transition-colors duration-300 ease-in-out group-hover:text-accent'
+              className='block truncate text-sm font-semibold'
               style={{
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
@@ -998,33 +988,18 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             >
               {actualTitle}
             </span>
-            {/* 自定义 tooltip */}
-            <div
-              className='invisible pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-xl border border-border/70 bg-overlay/95 px-3 py-1 text-xs text-foreground opacity-0 shadow-xl backdrop-blur transition-all duration-200 ease-out delay-100 peer-hover:visible peer-hover:opacity-100'
-              style={{
-                WebkitUserSelect: 'none',
-                userSelect: 'none',
-                WebkitTouchCallout: 'none',
-              } as React.CSSProperties}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                return false;
-              }}
-            >
-              {actualTitle}
-              <div
-                className='absolute left-1/2 top-full h-2 w-px -translate-x-1/2 bg-border/70'
-                style={{
-                  WebkitUserSelect: 'none',
-                  userSelect: 'none',
-                  WebkitTouchCallout: 'none',
-                } as React.CSSProperties}
-              ></div>
             </div>
-          </div>
+            </Tooltip.Trigger>
+            <Tooltip.Content placement='top'>
+              {actualTitle}
+            </Tooltip.Content>
+          </Tooltip>
           {config.showSourceName && source_name && (
-            <span
-              className='mt-1 block text-xs font-medium tracking-normal text-muted'
+            <Chip
+              size='sm'
+              color='accent'
+              variant='soft'
+              className='mt-1'
               style={{
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
@@ -1035,27 +1010,14 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
                 return false;
               }}
             >
-              <span
-                className='inline-flex items-center gap-1 border-l-2 border-accent/70 pl-2 transition-all duration-300 ease-in-out group-hover:text-foreground'
-                style={{
-                  WebkitUserSelect: 'none',
-                  userSelect: 'none',
-                  WebkitTouchCallout: 'none',
-                } as React.CSSProperties}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  return false;
-                }}
-              >
                 {origin === 'live' && (
                   <Radio size={12} className="inline-block mr-1 text-muted" />
                 )}
-                {source_name}
-              </span>
-            </span>
+                <Chip.Label>{source_name}</Chip.Label>
+            </Chip>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* 操作菜单 - 支持右键和长按触发 */}
       <MobileActionSheet

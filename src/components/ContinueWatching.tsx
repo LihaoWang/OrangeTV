@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Button, Card, Skeleton } from '@heroui/react';
 
 import type { PlayRecord } from '@/lib/db.client';
 import {
@@ -86,26 +87,24 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
   };
 
   return (
-    <section className={`rounded-3xl border border-border/70 bg-surface/70 p-5 shadow-sm backdrop-blur sm:p-6 ${className || ''}`}>
-      <div className='mb-5 flex items-end justify-between gap-4'>
-        <div className='space-y-1'>
-          <p className='a2-kicker'>最近观看</p>
-          <h2 className='text-2xl font-semibold tracking-normal text-foreground'>
-            继续观看
-          </h2>
+    <Card className={className}>
+      <Card.Header className='flex-row items-end justify-between gap-4'>
+        <div>
+          <Card.Description>最近观看</Card.Description>
+          <Card.Title>继续观看</Card.Title>
         </div>
         {!loading && playRecords.length > 0 && (
-          <button
-            className='a2-link-action'
-            onClick={async () => {
+          <Button
+            variant='danger'
+            onPress={async () => {
               await clearAllPlayRecords();
               setPlayRecords([]);
             }}
           >
             清空
-          </button>
+          </Button>
         )}
-      </div>
+      </Card.Header>
       <ScrollableRow>
         {loading
           ? // 加载状态显示灰色占位数据
@@ -114,11 +113,9 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
                 key={index}
                 className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
               >
-                <div className='relative aspect-[2/3] w-full overflow-hidden rounded-2xl border border-border bg-surface-secondary animate-pulse'>
-                  <div className='absolute inset-0 bg-surface-tertiary'></div>
-                </div>
-                <div className='mt-3 h-4 rounded-lg bg-surface-secondary animate-pulse'></div>
-                <div className='mt-1 h-3 rounded-lg bg-surface-secondary animate-pulse'></div>
+                <Skeleton className='aspect-[2/3] w-full' />
+                <Skeleton className='mt-3 h-4' />
+                <Skeleton className='mt-1 h-3' />
               </div>
             ))
           : // 显示真实数据
@@ -152,6 +149,6 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
               );
             })}
       </ScrollableRow>
-    </section>
+    </Card>
   );
 }

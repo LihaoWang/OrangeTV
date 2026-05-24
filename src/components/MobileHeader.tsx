@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Card, Link as HeroLink } from '@heroui/react';
 
 import { BackButton } from './BackButton';
 import { useSite } from './SiteProvider';
@@ -14,16 +14,16 @@ interface MobileHeaderProps {
 const MobileHeader = ({ showBackButton = false }: MobileHeaderProps) => {
   const { siteName } = useSite();
   return (
-    <header className='fixed left-0 right-0 top-0 z-[999] w-full border-b border-border/70 bg-surface/90 shadow-sm backdrop-blur-xl md:hidden'>
+    <Card className='fixed left-0 right-0 top-0 z-[999] w-full rounded-none p-0 md:hidden'>
       <div className='flex h-12 items-center justify-between px-4'>
         {/* 左侧：搜索按钮、返回按钮和设置按钮 */}
         <div className='flex items-center gap-2'>
-          <Link
+          <HeroLink
             href='/search'
-            className='a2-icon-button h-8 w-8 p-1.5'
+            aria-label='搜索'
           >
             <svg
-              className='w-full h-full'
+              className='h-5 w-5'
               fill='none'
               stroke='currentColor'
               viewBox='0 0 24 24'
@@ -36,7 +36,7 @@ const MobileHeader = ({ showBackButton = false }: MobileHeaderProps) => {
                 d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
               />
             </svg>
-          </Link>
+          </HeroLink>
           {showBackButton && <BackButton />}
         </div>
 
@@ -49,14 +49,14 @@ const MobileHeader = ({ showBackButton = false }: MobileHeaderProps) => {
 
         {/* 中间：Logo（绝对居中） */}
         <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
-          <Link
+          <HeroLink
             href='/'
-            className='theme-transition text-lg font-semibold tracking-normal text-foreground hover:text-accent'
+            className='text-lg font-semibold'
           >
             {siteName}
-          </Link>
+          </HeroLink>
       </div>
-    </header>
+    </Card>
   );
 };
 

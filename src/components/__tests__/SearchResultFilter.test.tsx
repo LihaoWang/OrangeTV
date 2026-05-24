@@ -24,7 +24,7 @@ const categories: SearchFilterCategory[] = [
 ];
 
 describe('SearchResultFilter', () => {
-  it('opens an options menu and applies the selected option', () => {
+  it('applies selected options through accessible listbox options', () => {
     const onChange = jest.fn();
 
     render(
@@ -35,8 +35,8 @@ describe('SearchResultFilter', () => {
       />
     );
 
-    expect(screen.getByRole('menu', { name: '来源筛选' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('menuitem', { name: '稳定源' }));
+    expect(screen.getByRole('listbox', { name: '来源选项' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('option', { name: '稳定源' }));
 
     expect(onChange).toHaveBeenCalledWith({
       source: 'stable',
@@ -46,10 +46,10 @@ describe('SearchResultFilter', () => {
     });
   });
 
-  it('cycles year ordering when the year button is clicked repeatedly', () => {
+  it('applies year ordering from the same select pattern', () => {
     const onChange = jest.fn();
 
-    const { rerender } = render(
+    render(
       <SearchResultFilter
         categories={categories}
         values={{ source: 'all', title: 'all', yearOrder: 'none' }}
@@ -57,31 +57,13 @@ describe('SearchResultFilter', () => {
       />
     );
 
-    const yearButton = screen.getByRole('button', { name: '按年份排序排序' });
-    fireEvent.click(yearButton);
+    fireEvent.click(screen.getByRole('option', { name: '年份降序' }));
 
     expect(onChange).toHaveBeenLastCalledWith({
       source: 'all',
       title: 'all',
       year: 'all',
       yearOrder: 'desc',
-    });
-
-    rerender(
-      <SearchResultFilter
-        categories={categories}
-        values={{ source: 'all', title: 'all', yearOrder: 'desc' }}
-        onChange={onChange}
-      />
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: '按年份降序排序' }));
-
-    expect(onChange).toHaveBeenLastCalledWith({
-      source: 'all',
-      title: 'all',
-      year: 'all',
-      yearOrder: 'asc',
     });
   });
 });

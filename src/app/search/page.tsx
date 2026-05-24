@@ -2,6 +2,16 @@
 'use client';
 
 import { ChevronUp, Search, X } from 'lucide-react';
+import {
+  Button,
+  Card,
+  Chip,
+  EmptyState,
+  Input,
+  Spinner,
+  Switch,
+  Tooltip,
+} from '@heroui/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { startTransition, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -1021,7 +1031,7 @@ function SearchPageClient() {
           <form onSubmit={handleSearch} className='max-w-2xl mx-auto'>
             <div className='relative'>
               <Search className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted' />
-              <input
+              <Input
                 id='searchInput'
                 type='text'
                 value={searchQuery}
@@ -1029,14 +1039,18 @@ function SearchPageClient() {
                 onFocus={handleInputFocus}
                 placeholder='搜索电影、电视剧、短剧...'
                 autoComplete="off"
-                className='w-full h-12 rounded-2xl border border-border bg-surface/90 py-3 pl-10 pr-12 text-sm text-foreground placeholder:text-muted shadow-sm backdrop-blur focus:border-accent focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent/20'
+                fullWidth
+                className='pl-10 pr-12'
               />
 
               {/* 清除按钮 */}
               {searchQuery && (
-                <button
+                <Button
                   type='button'
-                  onClick={() => {
+                  isIconOnly
+                  size='sm'
+                  variant='ghost'
+                  onPress={() => {
                     setSearchQuery('');
                     setShowSuggestions(false);
                     document.getElementById('searchInput')?.focus();
@@ -1045,7 +1059,7 @@ function SearchPageClient() {
                   aria-label='清除搜索内容'
                 >
                   <X className='h-5 w-5' />
-                </button>
+                </Button>
               )}
 
               {/* 搜索建议 */}
@@ -1071,7 +1085,7 @@ function SearchPageClient() {
         {/* 搜索结果或搜索历史 */}
         <div className='max-w-[95%] mx-auto mt-12 overflow-visible'>
           {showResults ? (
-            <section className='mb-12 rounded-3xl border border-border/70 bg-surface/70 p-5 shadow-sm backdrop-blur sm:p-6'>
+            <Card className='mb-12'>
               {/* 标题 */}
               <div className='mb-4'>
                 <h2 className='text-xl font-semibold tracking-normal text-foreground'>
@@ -1082,9 +1096,7 @@ function SearchPageClient() {
                     </span>
                   )}
                   {isLoading && useFluidSearch && (
-                    <span className='ml-2 inline-block align-middle'>
-                      <span className='inline-block h-3 w-3 animate-spin rounded-full border-2 border-border border-t-accent'></span>
-                    </span>
+                    <Spinner size='sm' className='ml-2 inline-flex align-middle' />
                   )}
                 </h2>
               </div>
@@ -1106,29 +1118,26 @@ function SearchPageClient() {
                   )}
                 </div>
                 {/* 聚合开关 */}
-                <label className='flex items-center gap-2 cursor-pointer select-none shrink-0'>
-                  <span className='text-xs sm:text-sm font-medium text-muted'>聚合</span>
-                  <div className='relative'>
-                    <input
-                      type='checkbox'
-                      className='sr-only peer'
-                      checked={viewMode === 'agg'}
-                      onChange={() => setViewMode(viewMode === 'agg' ? 'all' : 'agg')}
-                    />
-                    <div className='w-9 h-5 rounded-full bg-surface-secondary transition-colors peer-checked:bg-accent'></div>
-                    <div className='absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-surface shadow-sm transition-transform peer-checked:translate-x-4'></div>
-                  </div>
-                </label>
+                <Switch
+                  size='sm'
+                  isSelected={viewMode === 'agg'}
+                  onChange={() => setViewMode(viewMode === 'agg' ? 'all' : 'agg')}
+                >
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                  <Switch.Content>聚合</Switch.Content>
+                </Switch>
               </div>
               {searchResults.length === 0 ? (
                 isLoading ? (
-                  <div className='flex justify-center items-center h-40'>
-                    <div className='h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent'></div>
+                  <div className='flex h-40 items-center justify-center'>
+                    <Spinner />
                   </div>
                 ) : (
-                  <div className='rounded-2xl border border-dashed border-border bg-surface-secondary/60 py-8 text-center text-muted'>
+                  <EmptyState>
                     未找到相关结果
-                  </div>
+                  </EmptyState>
                 )
               ) : (
                 <div
@@ -1196,51 +1205,56 @@ function SearchPageClient() {
                     ))}
                 </div>
               )}
-            </section>
+            </Card>
           ) : searchHistory.length > 0 ? (
             // 搜索历史
-            <section className='mb-12 rounded-3xl border border-border/70 bg-surface/70 p-5 shadow-sm backdrop-blur sm:p-6'>
-              <h2 className='mb-4 text-left text-xl font-semibold tracking-normal text-foreground'>
-                搜索历史
+            <Card className='mb-12'>
+              <Card.Header className='flex-row items-center justify-between gap-3'>
+                <Card.Title>搜索历史</Card.Title>
                 {searchHistory.length > 0 && (
-                  <button
-                    onClick={() => {
+                  <Button
+                    variant='danger'
+                    size='sm'
+                    onPress={() => {
                       clearSearchHistory(); // 事件监听会自动更新界面
                     }}
-                    className='ml-3 text-sm text-muted transition-colors hover:text-danger'
                   >
                     清空
-                  </button>
+                  </Button>
                 )}
-              </h2>
+              </Card.Header>
               <div className='flex flex-wrap gap-2'>
                 {searchHistory.map((item) => (
                   <div key={item} className='relative group'>
-                    <button
+                    <Chip
+                      role='button'
+                      tabIndex={0}
                       onClick={() => {
                         // 直接调用搜索函数
                         performSearch(item.trim());
                       }}
-                      className='rounded-full border border-border bg-surface-secondary px-4 py-2 text-sm text-foreground transition-colors duration-200 hover:border-accent/40 hover:bg-accent/10 hover:text-accent'
+                      color='accent'
+                      variant='soft'
                     >
-                      {item}
-                    </button>
+                      <Chip.Label>{item}</Chip.Label>
+                    </Chip>
                     {/* 删除按钮 */}
-                    <button
+                    <Button
                       aria-label='删除搜索历史'
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
+                      isIconOnly
+                      size='sm'
+                      variant='danger'
+                      className='absolute -right-2 -top-2 opacity-0 group-hover:opacity-100'
+                      onPress={() => {
                         deleteSearchHistory(item); // 事件监听会自动更新界面
                       }}
-                      className='absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-muted text-[10px] text-white opacity-0 transition-colors hover:bg-danger group-hover:opacity-100'
                     >
                       <X className='w-3 h-3' />
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
-            </section>
+            </Card>
           ) : null}
         </div>
       </div>
@@ -1252,62 +1266,18 @@ function SearchPageClient() {
           : 'opacity-0 translate-y-4 pointer-events-none'
           }`}
       >
-        <button
-          onClick={scrollToTop}
-          className='group relative h-14 w-14 rounded-2xl border border-border bg-overlay shadow-xl backdrop-blur-xl transition-all duration-300 ease-out hover:scale-105 hover:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/20'
-          aria-label={`返回顶部 (${Math.round(scrollProgress)}%)`}
-          style={{
-            background: `conic-gradient(from 0deg, rgb(var(--color-accent)) ${scrollProgress * 3.6}deg, rgb(var(--color-accent) / 0.12) ${scrollProgress * 3.6}deg)`
-          }}
-        >
-          {/* 内部发光圆圈 */}
-          <div className='absolute inset-1 flex items-center justify-center rounded-xl bg-surface/90 backdrop-blur-sm transition-all duration-300 group-hover:bg-accent/15'>
-            <ChevronUp className='w-6 h-6 text-accent transition-all duration-300 group-hover:scale-110' />
-          </div>
-
-          {/* 进度环 */}
-          <svg className='absolute inset-0 w-full h-full -rotate-90' viewBox='0 0 56 56'>
-            <circle
-              cx='28'
-              cy='28'
-              r='25'
-              fill='none'
-              stroke='rgba(255, 255, 255, 0.1)'
-              strokeWidth='2'
-            />
-            <circle
-              cx='28'
-              cy='28'
-              r='25'
-              fill='none'
-              stroke='url(#progressGradient)'
-              strokeWidth='2'
-              strokeLinecap='round'
-              strokeDasharray={`${(scrollProgress / 100) * 157} 157`}
-              className='transition-all duration-300 ease-out'
-            />
-            <defs>
-              <linearGradient id='progressGradient' x1='0%' y1='0%' x2='100%' y2='100%'>
-                <stop offset='0%' stopColor='rgb(var(--color-accent))' />
-                <stop offset='50%' stopColor='rgb(var(--color-accent))' />
-                <stop offset='100%' stopColor='rgb(var(--color-accent-strong))' />
-              </linearGradient>
-            </defs>
-          </svg>
-
-          {/* 悬停时的进度提示 */}
-          <div className='absolute -top-12 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none'>
-            <div className='rounded-xl border border-border bg-overlay px-3 py-1.5 text-xs text-foreground shadow-xl backdrop-blur'>
-              <div className='text-center font-medium'>
-                {Math.round(scrollProgress)}%
-              </div>
-              <div className='absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border-b border-r border-border bg-overlay'></div>
-            </div>
-          </div>
-
-          {/* 脉冲动画 */}
-          <div className='absolute inset-0 animate-pulse rounded-2xl bg-accent/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100'></div>
-        </button>
+        <Tooltip>
+          <Tooltip.Trigger>
+          <Button
+            onPress={scrollToTop}
+            isIconOnly
+            aria-label={`返回顶部 (${Math.round(scrollProgress)}%)`}
+          >
+            <ChevronUp className='w-6 h-6' />
+          </Button>
+          </Tooltip.Trigger>
+          <Tooltip.Content>{Math.round(scrollProgress)}%</Tooltip.Content>
+        </Tooltip>
       </div>
     </PageLayout>
   );

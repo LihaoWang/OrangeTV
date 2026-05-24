@@ -1,9 +1,8 @@
 'use client';
 
-import { Dropdown, Label } from '@heroui/react';
 import React, { useState } from 'react';
 
-import { AppButton } from './ui/HeroPrimitives';
+import { AppFilterSelect } from './ui/HeroPrimitives';
 
 interface MultiLevelOption {
   label: string;
@@ -367,103 +366,17 @@ const MultiLevelSelector: React.FC<MultiLevelSelectorProps> = ({
 
   };
 
-  // 获取显示文本
-  const getDisplayText = (categoryKey: string) => {
-    const category = categories.find((cat) => cat.key === categoryKey);
-    if (!category) return '';
-
-    const value = values[categoryKey];
-
-    if (
-      !value ||
-      value === 'all' ||
-      (categoryKey === 'sort' && value === 'T')
-    ) {
-      return category.label;
-    }
-    const option = category.options.find((opt) => opt.value === value);
-    return option?.label || category.label;
-  };
-
-  // 检查是否为默认值
-  const isDefaultValue = (categoryKey: string) => {
-    const value = values[categoryKey];
-    return (
-      !value || value === 'all' || (categoryKey === 'sort' && value === 'T')
-    );
-  };
-
-  // 检查选项是否被选中
-  const isOptionSelected = (categoryKey: string, optionValue: string) => {
-    let value = values[categoryKey];
-    if (value === undefined) {
-      value = 'all';
-      if (categoryKey === 'sort') {
-        value = 'T';
-      }
-    }
-    return value === optionValue;
-  };
-
   return (
-    <div className='app-filter-dropdowns'>
+    <div className='grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5'>
       {categories.map((category) => (
-        <Dropdown key={category.key}>
-          <AppButton
-            aria-label={`${category.label}筛选`}
-            variant='tertiary'
-            className={`app-filter-trigger ${
-              isDefaultValue(category.key)
-                ? ''
-                : 'app-filter-trigger-active'
-            }`}
-          >
-            <span>{getDisplayText(category.key)}</span>
-            <svg
-              className='ml-0.5 inline-block h-2.5 w-2.5 sm:ml-1 sm:h-3 sm:w-3'
-              fill='none'
-              stroke='currentColor'
-              viewBox='0 0 24 24'
-            >
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={2}
-                d='M19 9l-7 7-7-7'
-              />
-            </svg>
-          </AppButton>
-          <Dropdown.Popover className='w-[min(92vw,600px)]'>
-            <Dropdown.Menu
-              aria-label={`${category.label}选项`}
-              selectionMode='single'
-              selectedKeys={
-                new Set([
-                  values[category.key] ||
-                    (category.key === 'sort' ? 'T' : 'all'),
-                ])
-              }
-              onAction={(key) => handleOptionSelect(category.key, String(key))}
-              className='grid grid-cols-3 gap-1 p-2 sm:grid-cols-4 sm:gap-2 md:grid-cols-5'
-            >
-              {category.options.map((option) => (
-                <Dropdown.Item
-                  key={option.value}
-                  id={option.value}
-                  textValue={option.label}
-                  className={
-                    isOptionSelected(category.key, option.value)
-                      ? 'a2-selector-option-active'
-                      : ''
-                  }
-                >
-                  <Label>{option.label}</Label>
-                  <Dropdown.ItemIndicator />
-                </Dropdown.Item>
-              ))}
-            </Dropdown.Menu>
-          </Dropdown.Popover>
-        </Dropdown>
+        <AppFilterSelect
+          key={category.key}
+          ariaLabel={`${category.label}选项`}
+          label={category.label}
+          options={category.options}
+          value={values[category.key] || (category.key === 'sort' ? 'T' : 'all')}
+          onChange={(value) => handleOptionSelect(category.key, value)}
+        />
       ))}
     </div>
   );

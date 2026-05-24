@@ -5,7 +5,7 @@
 import React from 'react';
 
 import MultiLevelSelector from './MultiLevelSelector';
-import { AppFilterTabs } from './ui/HeroPrimitives';
+import { AppFilterSelect } from './ui/HeroPrimitives';
 import WeekdaySelector from './WeekdaySelector';
 
 interface SelectorOption {
@@ -73,31 +73,27 @@ const animePrimaryOptions: SelectorOption[] = [
 
 const renderSelector = (
   label: string,
+  ariaLabel: string,
   options: SelectorOption[],
   activeValue: string | undefined,
   onChange: (value: string) => void
 ) => (
-  <AppFilterTabs
-    ariaLabel={label}
-    selectedKey={activeValue}
-    onSelectionChange={onChange}
-    items={options.map((option) => ({
-      key: option.value,
-      label: option.label,
-    }))}
+  <AppFilterSelect
+    ariaLabel={ariaLabel}
+    label={label}
+    options={options}
+    value={activeValue}
+    onChange={onChange}
   />
 );
 
-const FilterRow = ({
-  label,
+const FilterGrid = ({
   children,
 }: {
-  label: string;
   children: React.ReactNode;
 }) => (
-  <div className='app-filter-row'>
-    <span className='app-filter-label'>{label}</span>
-    <div className='min-w-0'>{children}</div>
+  <div className='grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5'>
+    {children}
   </div>
 );
 
@@ -117,86 +113,81 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
   return (
     <div className='space-y-4 sm:space-y-6'>
       {type === 'movie' && (
-        <div className='space-y-3 sm:space-y-4'>
-          <FilterRow label='分类'>
-            {renderSelector(
-              '电影分类',
-              moviePrimaryOptions,
-              primarySelection || moviePrimaryOptions[0].value,
-              onPrimaryChange
-            )}
-          </FilterRow>
+        <FilterGrid>
+          {renderSelector(
+            '分类',
+            '电影分类选项',
+            moviePrimaryOptions,
+            primarySelection || moviePrimaryOptions[0].value,
+            onPrimaryChange
+          )}
 
           {primarySelection !== '全部' ? (
-            <FilterRow label='地区'>
-              {renderSelector(
-                '电影地区',
-                movieSecondaryOptions,
-                secondarySelection || movieSecondaryOptions[0].value,
-                onSecondaryChange
-              )}
-            </FilterRow>
+            renderSelector(
+              '地区',
+              '电影地区选项',
+              movieSecondaryOptions,
+              secondarySelection || movieSecondaryOptions[0].value,
+              onSecondaryChange
+            )
           ) : (
-            <FilterRow label='筛选'>
+            <div className='col-span-full'>
               <MultiLevelSelector
                 key={`${type}-${primarySelection}`}
                 onChange={handleMultiLevelChange}
                 contentType={type}
               />
-            </FilterRow>
+            </div>
           )}
-        </div>
+        </FilterGrid>
       )}
 
       {type === 'tv' && (
-        <div className='space-y-3 sm:space-y-4'>
-          <FilterRow label='分类'>
-            {renderSelector(
-              '剧集分类',
-              tvPrimaryOptions,
-              primarySelection || tvPrimaryOptions[1].value,
-              onPrimaryChange
-            )}
-          </FilterRow>
+        <FilterGrid>
+          {renderSelector(
+            '分类',
+            '剧集分类选项',
+            tvPrimaryOptions,
+            primarySelection || tvPrimaryOptions[1].value,
+            onPrimaryChange
+          )}
 
           {(primarySelection || tvPrimaryOptions[1].value) === '最近热门' ? (
-            <FilterRow label='类型'>
-              {renderSelector(
-                '剧集类型',
-                tvSecondaryOptions,
-                secondarySelection || tvSecondaryOptions[0].value,
-                onSecondaryChange
-              )}
-            </FilterRow>
+            renderSelector(
+              '类型',
+              '剧集类型选项',
+              tvSecondaryOptions,
+              secondarySelection || tvSecondaryOptions[0].value,
+              onSecondaryChange
+            )
           ) : (primarySelection || tvPrimaryOptions[1].value) === '全部' ? (
-            <FilterRow label='筛选'>
+            <div className='col-span-full'>
               <MultiLevelSelector
                 key={`${type}-${primarySelection}`}
                 onChange={handleMultiLevelChange}
                 contentType={type}
               />
-            </FilterRow>
+            </div>
           ) : null}
-        </div>
+        </FilterGrid>
       )}
 
       {type === 'anime' && (
-        <div className='space-y-3 sm:space-y-4'>
-          <FilterRow label='分类'>
-            {renderSelector(
-              '动漫分类',
-              animePrimaryOptions,
-              primarySelection || animePrimaryOptions[0].value,
-              onPrimaryChange
-            )}
-          </FilterRow>
+        <FilterGrid>
+          {renderSelector(
+            '分类',
+            '动漫分类选项',
+            animePrimaryOptions,
+            primarySelection || animePrimaryOptions[0].value,
+            onPrimaryChange
+          )}
 
           {(primarySelection || animePrimaryOptions[0].value) === '每日放送' ? (
-            <FilterRow label='星期'>
+            <div className='min-w-0'>
               <WeekdaySelector onWeekdayChange={onWeekdayChange} />
-            </FilterRow>
+            </div>
           ) : (
-            <FilterRow label='筛选'>
+            <div className='col-span-full'>
               {(primarySelection || animePrimaryOptions[0].value) === '番剧' ? (
                 <MultiLevelSelector
                   key={`anime-tv-${primarySelection}`}
@@ -210,41 +201,39 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
                   contentType='anime-movie'
                 />
               )}
-            </FilterRow>
+            </div>
           )}
-        </div>
+        </FilterGrid>
       )}
 
       {type === 'show' && (
-        <div className='space-y-3 sm:space-y-4'>
-          <FilterRow label='分类'>
-            {renderSelector(
-              '综艺分类',
-              showPrimaryOptions,
-              primarySelection || showPrimaryOptions[1].value,
-              onPrimaryChange
-            )}
-          </FilterRow>
+        <FilterGrid>
+          {renderSelector(
+            '分类',
+            '综艺分类选项',
+            showPrimaryOptions,
+            primarySelection || showPrimaryOptions[1].value,
+            onPrimaryChange
+          )}
 
           {(primarySelection || showPrimaryOptions[1].value) === '最近热门' ? (
-            <FilterRow label='类型'>
-              {renderSelector(
-                '综艺类型',
-                showSecondaryOptions,
-                secondarySelection || showSecondaryOptions[0].value,
-                onSecondaryChange
-              )}
-            </FilterRow>
+            renderSelector(
+              '类型',
+              '综艺类型选项',
+              showSecondaryOptions,
+              secondarySelection || showSecondaryOptions[0].value,
+              onSecondaryChange
+            )
           ) : (primarySelection || showPrimaryOptions[1].value) === '全部' ? (
-            <FilterRow label='筛选'>
+            <div className='col-span-full'>
               <MultiLevelSelector
                 key={`${type}-${primarySelection}`}
                 onChange={handleMultiLevelChange}
                 contentType={type}
               />
-            </FilterRow>
+            </div>
           ) : null}
-        </div>
+        </FilterGrid>
       )}
     </div>
   );

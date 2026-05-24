@@ -6,10 +6,9 @@ export function BackButton() {
   return (
     <AppIconButton
       onPress={() => window.history.back()}
-      className='a2-icon-button'
       aria-label='Back'
     >
-      <ArrowLeft className='w-full h-full' />
+      <ArrowLeft className='h-5 w-5' />
     </AppIconButton>
   );
 }

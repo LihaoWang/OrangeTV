@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Palette, Eye, Check } from 'lucide-react';
+import { Alert, Button, Card, Chip, TextArea } from '@heroui/react';
 
 // CSS模板配置
 const cssTemplates = [
@@ -9,10 +10,10 @@ const cssTemplates = [
     id: 'gradient-bg',
     name: '渐变背景',
     description: '为页面添加漂亮的渐变背景',
-    preview: 'body {\n  background: linear-gradient(135deg, \n    #667eea 0%, #764ba2 100%);\n}',
+    preview: 'body {\n  background: linear-gradient(135deg, \n    #18181b 0%, #be123c 100%);\n}',
     css: `/* 渐变背景主题 */
 body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #18181b 0%, #be123c 100%);
   background-attachment: fixed;
 }
 
@@ -67,26 +68,26 @@ body::before {
     id: 'sidebar-glow',
     name: '发光侧边栏',
     description: '为侧边栏添加发光效果',
-    preview: '.sidebar {\n  box-shadow: 0 0 20px rgba(14, 165, 233, 0.3);\n  border-radius: 15px;\n}',
+    preview: '.sidebar {\n  box-shadow: 0 0 20px rgba(225, 29, 72, 0.3);\n  border-radius: 15px;\n}',
     css: `/* 发光侧边栏效果 */
 .sidebar, [data-sidebar] {
-  box-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
+  box-shadow: 0 0 20px rgba(225, 29, 72, 0.3);
   border-radius: 15px;
-  border: 1px solid rgba(14, 165, 233, 0.2);
+  border: 1px solid rgba(225, 29, 72, 0.2);
   backdrop-filter: blur(10px);
 }
 
 /* 侧边栏项目悬停效果 */
 .sidebar a:hover, [data-sidebar] a:hover {
-  background: rgba(14, 165, 233, 0.1);
+  background: rgba(225, 29, 72, 0.1);
   transform: translateX(5px);
   transition: all 0.3s ease;
 }
 
 /* 活动项目发光 */
 .sidebar [data-active="true"], [data-sidebar] [data-active="true"] {
-  background: rgba(14, 165, 233, 0.15);
-  box-shadow: inset 0 0 10px rgba(14, 165, 233, 0.2);
+  background: rgba(225, 29, 72, 0.15);
+  box-shadow: inset 0 0 10px rgba(225, 29, 72, 0.2);
   border-radius: 8px;
 }`
   },
@@ -134,9 +135,9 @@ body::before {
     css: `/* 毛玻璃主题 */
 body {
   background: linear-gradient(45deg, 
-    rgba(59, 130, 246, 0.1) 0%, 
-    rgba(147, 51, 234, 0.1) 50%, 
-    rgba(236, 72, 153, 0.1) 100%);
+    rgba(24, 24, 27, 0.1) 0%, 
+    rgba(225, 29, 72, 0.1) 50%, 
+    rgba(244, 63, 94, 0.1) 100%);
 }
 
 /* 所有面板使用毛玻璃效果 */
@@ -212,13 +213,13 @@ const themes = [
   {
     id: 'default',
     name: '默认主题',
-    description: '现代蓝色主题，清新优雅',
+    description: '石墨玫瑰，冷静高级',
     preview: {
-      bg: '#ffffff',
-      surface: '#f9fafb',
-      accent: '#0ea5e9',
-      text: '#111827',
-      border: '#e5e7eb'
+      bg: '#fafafa',
+      surface: '#ffffff',
+      accent: '#e11d48',
+      text: '#18181b',
+      border: '#d4d4d8'
     }
   },
   {
@@ -560,51 +561,49 @@ const ThemeManager = ({ showAlert, role }: ThemeManagerProps) => {
     <div className="space-y-6">
       {/* 管理员控制面板 */}
       {isAdmin && globalThemeConfig && (
-        <div className="bg-theme-surface border border-theme-border rounded-lg p-4">
-          <h3 className="text-lg font-semibold text-theme-text mb-4 flex items-center gap-2">
-            <Palette className="h-5 w-5" />
-            全站主题设置
-          </h3>
+        <Card variant='default' className='p-4'>
+          <Card.Header>
+            <Card.Title className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              全站主题设置
+            </Card.Title>
+          </Card.Header>
 
           <div className="space-y-4">
-            <div className="p-3 bg-theme-accent/5 border border-theme-accent/20 rounded-lg">
-              <div className="text-sm text-theme-text">
+            <Card variant='secondary' className='p-3'>
+              <div className="text-sm">
                 <strong>当前全站配置：</strong>
               </div>
-              <div className="text-xs text-theme-text-secondary mt-1">
+              <div className="text-xs text-muted mt-1">
                 默认主题: {themes.find(t => t.id === globalThemeConfig.defaultTheme)?.name || globalThemeConfig.defaultTheme}
                 {globalThemeConfig.customCSS && ' | 包含自定义CSS'}
                 {!globalThemeConfig.allowUserCustomization && ' | 禁止用户自定义'}
               </div>
-            </div>
+            </Card>
 
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-700">
-              <div className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
-                <span className="text-sm font-medium">ℹ️ 全站主题</span>
-              </div>
-              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+            <Alert status='accent'>
+              <Alert.Title>全站主题</Alert.Title>
+              <Alert.Description>
                 在此设置的主题配置将应用到整个网站，影响所有用户的默认体验
-              </p>
-            </div>
+              </Alert.Description>
+            </Alert>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* 主题选择器 */}
       <div>
-        <h3 className="text-lg font-semibold text-theme-text mb-4 flex items-center gap-2">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Palette className="h-5 w-5" />
           全站主题选择
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {themes.map((theme) => (
-            <div
+            <Card
               key={theme.id}
-              className={`relative p-4 border-2 rounded-xl transition-all ${currentTheme === theme.id
-                ? 'border-theme-accent bg-theme-accent/5'
-                : 'border-theme-border bg-theme-surface'
-                } ${isAdmin ? 'cursor-pointer hover:border-theme-accent/50' : 'cursor-not-allowed opacity-60'}`}
+              variant={currentTheme === theme.id ? 'secondary' : 'default'}
+              className={`relative p-4 ${isAdmin ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}
               onClick={() => isAdmin && handleThemeChange(theme.id)}
             >
               {/* 主题预览 */}
@@ -615,83 +614,86 @@ const ThemeManager = ({ showAlert, role }: ThemeManagerProps) => {
                   <div className="w-4 h-4 rounded-full" style={{ backgroundColor: theme.preview.accent }} />
                 </div>
                 <div className="flex gap-1">
-                  <button
+                  <Button
+                    isIconOnly
+                    size='sm'
+                    variant='tertiary'
                     onClick={(e) => {
                       e.stopPropagation();
                       if (isAdmin) handleThemePreview(theme.id);
                     }}
-                    className={`p-1 transition-colors ${isAdmin ? 'text-theme-text-secondary hover:text-theme-accent' : 'text-theme-text-secondary opacity-50 cursor-not-allowed'}`}
-                    title={isAdmin ? "预览主题" : "仅管理员可预览"}
-                    disabled={previewMode || !isAdmin}
+                    aria-label={isAdmin ? "预览主题" : "仅管理员可预览"}
+                    isDisabled={previewMode || !isAdmin}
                   >
                     <Eye className="h-4 w-4" />
-                  </button>
+                  </Button>
                   {currentTheme === theme.id && (
-                    <Check className="h-4 w-4 text-theme-accent" />
+                    <Chip variant='primary' size='sm'>
+                      <Check className="h-3.5 w-3.5" />
+                    </Chip>
                   )}
                 </div>
               </div>
 
-              <h4 className="font-medium text-theme-text">{theme.name}</h4>
-              <p className="text-sm text-theme-text-secondary mt-1">{theme.description}</p>
-            </div>
+              <h4 className="font-medium">{theme.name}</h4>
+              <p className="text-sm text-muted mt-1">{theme.description}</p>
+            </Card>
           ))}
         </div>
 
         {previewMode && (
-          <div className="mt-4 p-3 bg-theme-info/10 border border-theme-info/20 rounded-lg">
-            <p className="text-sm text-theme-info">正在预览主题，3秒后将自动恢复...</p>
-          </div>
+          <Alert status='accent' className='mt-4'>
+            正在预览主题，3秒后将自动恢复...
+          </Alert>
         )}
       </div>
 
       {/* 自定义CSS编辑器 */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-theme-text flex items-center gap-2">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
             <Palette className="h-5 w-5" />
             全站自定义样式
           </h3>
           {isAdmin ? (
-            <button
-              onClick={() => setShowCustomEditor(!showCustomEditor)}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-theme-surface border border-theme-border rounded-lg hover:bg-theme-accent/5 transition-colors"
+            <Button
+              variant='secondary'
+              size='sm'
+              onPress={() => setShowCustomEditor(!showCustomEditor)}
             >
               {showCustomEditor ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               {showCustomEditor ? '收起编辑器' : '展开编辑器'}
-            </button>
+            </Button>
           ) : (
-            <div className="text-sm text-theme-text-secondary">
+            <div className="text-sm text-muted">
               仅管理员可编辑
             </div>
           )}
         </div>
 
         {!isAdmin && (
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg dark:bg-yellow-900/20 dark:border-yellow-700 mb-4">
-            <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
-              <span className="text-sm font-medium">⚠️ 权限限制</span>
-            </div>
-            <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+          <Alert status='warning' className='mb-4'>
+            <Alert.Title>权限限制</Alert.Title>
+            <Alert.Description>
               您当前没有权限修改全站主题设置，请联系管理员。
-            </p>
-          </div>
+            </Alert.Description>
+          </Alert>
         )}
 
         {isAdmin && showCustomEditor && (
           <div className="space-y-4">
-            <div className="text-sm text-theme-text-secondary bg-theme-surface p-3 rounded-lg border border-theme-border">
+            <Card variant='secondary' className='p-3 text-sm text-muted'>
               <p className="mb-2">💡 <strong>使用提示：</strong></p>
               <ul className="space-y-1 text-xs">
-                <li>• 使用CSS变量覆盖主题颜色：<code className="bg-theme-bg px-1 rounded">--color-theme-accent: 255, 0, 0;</code></li>
-                <li>• 使用Tailwind类名：<code className="bg-theme-bg px-1 rounded">{`.my-class { @apply bg-red-500; }`}</code></li>
-                <li>• 自定义组件样式：<code className="bg-theme-bg px-1 rounded">{`.admin-panel { border-radius: 20px; }`}</code></li>
+                <li>• 使用CSS变量覆盖主题颜色：<code>--color-theme-accent: 255, 0, 0;</code></li>
+                <li>• 使用Tailwind类名：<code>{`.my-class { @apply bg-red-500; }`}</code></li>
+                <li>• 自定义组件样式：<code>{`.admin-panel { border-radius: 20px; }`}</code></li>
                 <li>• 修改会实时生效，请谨慎使用</li>
               </ul>
-            </div>
+            </Card>
 
             <div className="relative">
-              <textarea
+              <TextArea
                 value={customCSS}
                 onChange={(e) => setCustomCSS(e.target.value)}
                 placeholder="/* 在此输入您的自定义CSS */
@@ -704,27 +706,22 @@ const ThemeManager = ({ showAlert, role }: ThemeManagerProps) => {
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
-/* 使用Tailwind类名 */
-.custom-button {
-  @apply bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl;
-}"
-                className="w-full h-64 p-4 bg-theme-surface border border-theme-border rounded-lg text-sm font-mono text-theme-text placeholder-theme-text-secondary resize-none focus:outline-none focus:ring-2 focus:ring-theme-accent/50"
+	/* 使用Tailwind类名 */
+	.custom-button {
+	  @apply bg-accent text-accent-foreground px-6 py-3;
+	}"
+                className="h-64 w-full font-mono text-sm"
+                fullWidth
               />
             </div>
 
             <div className="flex gap-3">
-              <button
-                onClick={handleCustomCSSApply}
-                className="px-4 py-2 bg-theme-accent text-white rounded-lg hover:opacity-90 transition-opacity"
-              >
+              <Button variant='primary' onPress={handleCustomCSSApply}>
                 应用样式
-              </button>
-              <button
-                onClick={handleCustomCSSReset}
-                className="px-4 py-2 bg-theme-surface border border-theme-border text-theme-text rounded-lg hover:bg-theme-accent/5 transition-colors"
-              >
+              </Button>
+              <Button variant='secondary' onPress={handleCustomCSSReset}>
                 重置样式
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -732,68 +729,71 @@ const ThemeManager = ({ showAlert, role }: ThemeManagerProps) => {
 
       {/* CSS 模板库 */}
       {isAdmin && (
-        <div className="bg-theme-surface border border-theme-border rounded-lg p-4">
-          <h4 className="font-medium text-theme-text mb-3 flex items-center gap-2">
-            <Palette className="h-4 w-4" />
-            🎨 全站样式模板库
-          </h4>
-          <p className="text-sm text-theme-text-secondary mb-4">选择预设模板快速应用炫酷效果到全站，也可以在此基础上进行自定义修改</p>
+        <Card variant='default' className='p-4'>
+          <Card.Header>
+            <Card.Title className="flex items-center gap-2">
+              <Palette className="h-4 w-4" />
+              全站样式模板库
+            </Card.Title>
+            <Card.Description>选择预设模板快速应用到全站，也可以在此基础上进行自定义修改</Card.Description>
+          </Card.Header>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {cssTemplates.map((template) => (
-              <div key={template.id} className="p-3 border border-theme-border rounded-lg hover:bg-theme-accent/5 transition-colors group">
+              <Card key={template.id} variant='secondary' className='p-3'>
                 <div className="flex items-center justify-between mb-2">
-                  <h5 className="text-sm font-medium text-theme-text">{template.name}</h5>
-                  <button
-                    onClick={() => handleApplyTemplate(template.css, template.name)}
-                    className="text-xs px-2 py-1 bg-theme-accent text-white rounded hover:opacity-90 transition-opacity opacity-0 group-hover:opacity-100"
+                  <h5 className="text-sm font-medium">{template.name}</h5>
+                  <Button
+                    size='sm'
+                    variant='primary'
+                    onPress={() => handleApplyTemplate(template.css, template.name)}
                   >
                     应用
-                  </button>
+                  </Button>
                 </div>
-                <p className="text-xs text-theme-text-secondary mb-2">{template.description}</p>
-                <div className="text-xs bg-theme-bg rounded p-2 max-h-16 overflow-y-auto">
-                  <code className="whitespace-pre-wrap text-theme-text-secondary">{template.preview}</code>
+                <p className="text-xs text-muted mb-2">{template.description}</p>
+                <div className="text-xs max-h-16 overflow-y-auto">
+                  <code className="whitespace-pre-wrap text-muted">{template.preview}</code>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
 
-          <div className="mt-4 p-3 bg-theme-accent/5 border border-theme-accent/20 rounded-lg">
-            <p className="text-xs text-theme-text-secondary">
+          <Alert status='accent' className='mt-4'>
+            <Alert.Description>
               <strong>💡 使用提示：</strong> 点击模板的"应用"按钮将代码复制到自定义CSS编辑器，然后可以在此基础上进行修改。记得点击"应用样式"按钮生效。
-            </p>
-          </div>
-        </div>
+            </Alert.Description>
+          </Alert>
+        </Card>
       )}
 
       {/* 使用说明 */}
-      <div className="bg-theme-surface border border-theme-border rounded-lg p-4">
-        <h4 className="font-medium text-theme-text mb-2">📖 全站主题定制指南</h4>
-        <div className="text-sm text-theme-text-secondary space-y-2">
+      <Card variant='default' className='p-4'>
+        <Card.Title>全站主题定制指南</Card.Title>
+        <div className="text-sm text-muted space-y-2 mt-2">
           <p><strong>内置主题：</strong>{isAdmin ? '选择预设主题即可一键切换全站整体风格' : '由管理员设置的全站预设主题'}</p>
           {isAdmin && <p><strong>自定义CSS：</strong>通过CSS变量或直接样式实现全站个性化定制</p>}
           {isAdmin && <p><strong>样式模板：</strong>使用预设模板快速实现炫酷效果</p>}
           <p><strong>主题变量：</strong></p>
           <ul className="text-xs space-y-1 ml-4 mt-1">
-            <li>• <code className="bg-theme-bg px-1 rounded">--color-theme-bg</code> - 背景色</li>
-            <li>• <code className="bg-theme-bg px-1 rounded">--color-theme-surface</code> - 卡片背景</li>
-            <li>• <code className="bg-theme-bg px-1 rounded">--color-theme-accent</code> - 主题色</li>
-            <li>• <code className="bg-theme-bg px-1 rounded">--color-theme-text</code> - 主文本色</li>
-            <li>• <code className="bg-theme-bg px-1 rounded">--color-theme-border</code> - 边框色</li>
+            <li>• <code>--color-theme-bg</code> - 背景色</li>
+            <li>• <code>--color-theme-surface</code> - 卡片背景</li>
+            <li>• <code>--color-theme-accent</code> - 主题色</li>
+            <li>• <code>--color-theme-text</code> - 主文本色</li>
+            <li>• <code>--color-theme-border</code> - 边框色</li>
           </ul>
           {isAdmin && (
             <>
               <p><strong>常用技巧：</strong></p>
               <ul className="text-xs space-y-1 ml-4 mt-1">
-                <li>• 修改背景：<code className="bg-theme-bg px-1 rounded">{`body { background: linear-gradient(...); }`}</code></li>
-                <li>• 使用Tailwind：<code className="bg-theme-bg px-1 rounded">{`.my-class { @apply bg-red-500; }`}</code></li>
+                <li>• 修改背景：<code>{`body { background: linear-gradient(...); }`}</code></li>
+                <li>• 使用Tailwind：<code>{`.my-class { @apply bg-red-500; }`}</code></li>
                 <li>• 组合多个模板效果获得独特样式</li>
               </ul>
             </>
           )}
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

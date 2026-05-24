@@ -1,5 +1,6 @@
 'use client';
 
+import { Card, Label, ListBox, ScrollShadow } from '@heroui/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface SearchSuggestionsProps {
@@ -146,21 +147,27 @@ export default function SearchSuggestions({
   }
 
   return (
-    <div
+    <Card
       ref={containerRef}
-      className='absolute top-full left-0 right-0 z-[600] mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-80 overflow-y-auto'
+      className='absolute left-0 right-0 top-full z-[600] mt-1 p-0'
     >
-      {suggestions.map((suggestion) => (
-        <button
-          key={`related-${suggestion.text}`}
-          onClick={() => onSelect(suggestion.text)}
-          className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 flex items-center gap-3"
+      <ScrollShadow className='max-h-80' hideScrollBar>
+        <ListBox
+          aria-label='搜索建议'
+          selectionMode='none'
+          onAction={(key) => onSelect(String(key))}
         >
-          <span className='flex-1 text-sm text-gray-700 dark:text-gray-300 truncate'>
-            {suggestion.text}
-          </span>
-        </button>
-      ))}
-    </div>
+          {suggestions.map((suggestion) => (
+            <ListBox.Item
+              key={`related-${suggestion.text}`}
+              id={suggestion.text}
+              textValue={suggestion.text}
+            >
+              <Label className='truncate'>{suggestion.text}</Label>
+            </ListBox.Item>
+          ))}
+        </ListBox>
+      </ScrollShadow>
+    </Card>
   );
 }

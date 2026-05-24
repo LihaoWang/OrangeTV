@@ -4,8 +4,11 @@ import {
   Button,
   Card,
   Drawer,
+  Label,
+  ListBox,
   Modal,
   ScrollShadow,
+  Select,
   Spinner,
   Tabs,
   useOverlayState,
@@ -40,6 +43,72 @@ export function AppSurface(props: CardProps) {
 
 export function AppScrollShadow(props: ScrollShadowProps) {
   return <ScrollShadow hideScrollBar {...props} />;
+}
+
+export interface AppFilterSelectOption {
+  label: string;
+  value: string;
+  isDisabled?: boolean;
+}
+
+interface AppFilterSelectProps {
+  label: string;
+  value?: string;
+  options: AppFilterSelectOption[];
+  onChange: (value: string) => void;
+  ariaLabel?: string;
+  placeholder?: string;
+  className?: string;
+  isDisabled?: boolean;
+}
+
+export function AppFilterSelect({
+  label,
+  value,
+  options,
+  onChange,
+  ariaLabel,
+  placeholder,
+  className,
+  isDisabled,
+}: AppFilterSelectProps) {
+  return (
+    <Select
+      className={className}
+      fullWidth
+      isDisabled={isDisabled}
+      placeholder={placeholder ?? `选择${label}`}
+      value={value ?? null}
+      variant='secondary'
+      onChange={(nextValue) => {
+        if (Array.isArray(nextValue) || nextValue == null) return;
+        onChange(String(nextValue));
+      }}
+    >
+      <Label>{label}</Label>
+      <Select.Trigger>
+        <Select.Value />
+        <Select.Indicator />
+      </Select.Trigger>
+      <Select.Popover>
+        <ScrollShadow className='max-h-[min(52vh,22rem)]' hideScrollBar>
+          <ListBox aria-label={ariaLabel ?? `${label}选项`} selectionMode='single'>
+            {options.map((option) => (
+              <ListBox.Item
+                key={option.value}
+                id={option.value}
+                isDisabled={option.isDisabled}
+                textValue={option.label}
+              >
+                <Label>{option.label}</Label>
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+            ))}
+          </ListBox>
+        </ScrollShadow>
+      </Select.Popover>
+    </Select>
+  );
 }
 
 export function AppLoading({
@@ -214,18 +283,15 @@ export function AppTabs({
 }
 
 export function AppFilterTabs({
-  className,
   ...props
 }: AppTabsProps) {
   return (
     <ScrollShadow
       orientation='horizontal'
-      className='app-filter-scroll'
+      hideScrollBar
+      className='w-full min-w-0'
     >
-      <AppTabs
-        {...props}
-        className={`app-filter-tabs ${className ?? ''}`.trim()}
-      />
+      <AppTabs {...props} />
     </ScrollShadow>
   );
 }

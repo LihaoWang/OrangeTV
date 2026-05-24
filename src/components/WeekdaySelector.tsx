@@ -4,7 +4,7 @@
 
 import React, { useEffect, useState } from 'react';
 
-import { AppFilterTabs } from './ui/HeroPrimitives';
+import { AppFilterSelect } from './ui/HeroPrimitives';
 
 interface WeekdaySelectorProps {
   onWeekdayChange: (weekday: string) => void;
@@ -43,15 +43,16 @@ const WeekdaySelector: React.FC<WeekdaySelectorProps> = ({
   }, []); // 只在组件挂载时执行一次
 
   return (
-    <AppFilterTabs
-      ariaLabel='星期筛选'
+    <AppFilterSelect
+      ariaLabel='星期选项'
       className={className}
-      items={weekdays.map((weekday) => ({
-        key: weekday.value,
+      label='星期'
+      options={weekdays.map((weekday) => ({
+        value: weekday.value,
         label: weekday.shortLabel,
       }))}
-      selectedKey={selectedWeekday}
-      onSelectionChange={(value) => {
+      value={selectedWeekday}
+      onChange={(value) => {
         setSelectedWeekday(value);
         onWeekdayChange(value);
       }}

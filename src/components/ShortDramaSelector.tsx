@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useEffect, useState } from 'react';
+import { Skeleton } from '@heroui/react';
 
 import { getShortDramaCategories, ShortDramaCategory } from '@/lib/shortdrama.client';
 
-import { AppFilterTabs } from './ui/HeroPrimitives';
+import { AppFilterSelect } from './ui/HeroPrimitives';
 
 interface ShortDramaSelectorProps {
   selectedCategory: string;
@@ -49,44 +50,31 @@ const ShortDramaSelector = ({
     fetchCategories();
   }, []);
 
-  // 渲染胶囊式选择器
-  const renderCapsuleSelector = () => {
+  const renderCategorySelector = () => {
     if (loading) {
       return (
-        <div className='inline-flex rounded-full bg-surface-secondary p-1'>
-          {Array.from({ length: 8 }).map((_, index) => (
-            <div
-              key={index}
-              className='mx-0.5 h-8 w-16 rounded-full bg-surface-tertiary animate-pulse'
-            />
-          ))}
-        </div>
+        <Skeleton className='h-16 w-full' />
       );
     }
 
     return (
-      <AppFilterTabs
-        ariaLabel='短剧分类'
-        selectedKey={selectedCategory}
-        onSelectionChange={onCategoryChange}
-        items={categories.map((category) => ({
-          key: category.type_id.toString(),
+      <AppFilterSelect
+        ariaLabel='短剧分类选项'
+        label='分类'
+        options={categories.map((category) => ({
+          value: category.type_id.toString(),
           label: category.type_name,
         }))}
+        value={selectedCategory}
+        onChange={onCategoryChange}
       />
     );
   };
 
   return (
     <div className='space-y-4 sm:space-y-6'>
-      {/* 分类选择 */}
-      <div className='app-filter-row'>
-        <span className='app-filter-label'>
-          分类
-        </span>
-        <div className='min-w-0'>
-          {renderCapsuleSelector()}
-        </div>
+      <div className='grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5'>
+        {renderCategorySelector()}
       </div>
     </div>
   );

@@ -10,6 +10,10 @@ const MenuActionContext = createContext<{
   onAction?: (key: React.Key) => void;
   selectedKeys?: Iterable<React.Key>;
 }>({});
+const SelectContext = createContext<{
+  value?: React.Key | React.Key[] | null;
+  onChange?: (value: React.Key | React.Key[] | null) => void;
+}>({});
 
 type OverlayStateValue = {
   isOpen: boolean;
@@ -370,10 +374,131 @@ export const Dropdown = Object.assign(DropdownRoot, {
   ItemIndicator: () => <span aria-hidden='true' />,
 });
 
-export const ScrollShadow = ({
+const SelectRoot = ({
+  children,
+  value,
+  onChange,
+  fullWidth: _fullWidth,
+  isDisabled: _isDisabled,
+  variant: _variant,
+  placeholder: _placeholder,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & {
+  value?: React.Key | React.Key[] | null;
+  onChange?: (value: React.Key | React.Key[] | null) => void;
+  fullWidth?: boolean;
+  isDisabled?: boolean;
+  variant?: string;
+  placeholder?: string;
+}) => (
+  <SelectContext.Provider value={{ value, onChange }}>
+    <div {...props}>{children}</div>
+  </SelectContext.Provider>
+);
+
+const SelectTrigger = ({
+  children,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+  <button type='button' role='combobox' aria-expanded='true' {...props}>
+    {children}
+  </button>
+);
+
+const SelectValue = ({
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => <span {...props}>{children}</span>;
+
+const SelectIndicator = ({
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span aria-hidden='true' {...props}>
+    {children}
+  </span>
+);
+
+const SelectPopover = ({
   children,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>;
+
+const ListBoxRoot = ({
+  children,
+  selectionMode: _selectionMode,
+  selectedKeys: _selectedKeys,
+  onSelectionChange: _onSelectionChange,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & {
+  selectionMode?: string;
+  selectedKeys?: Iterable<React.Key>;
+  onSelectionChange?: (keys: Iterable<React.Key>) => void;
+}) => (
+  <div role='listbox' {...props}>
+    {children}
+  </div>
+);
+
+const ListBoxItem = ({
+  children,
+  id,
+  textValue,
+  isDisabled,
+  ...props
+}: React.HTMLAttributes<HTMLButtonElement> & {
+  id: React.Key;
+  textValue?: string;
+  isDisabled?: boolean;
+}) => {
+  const { value, onChange } = useContext(SelectContext);
+  const selected = Array.isArray(value)
+    ? value.includes(id)
+    : value === id;
+
+  return (
+    <button
+      type='button'
+      role='option'
+      aria-label={textValue}
+      aria-selected={selected}
+      disabled={isDisabled}
+      {...props}
+      onClick={() => onChange?.(id)}
+    >
+      {children}
+    </button>
+  );
+};
+
+export const Select = Object.assign(SelectRoot, {
+  Root: SelectRoot,
+  Trigger: SelectTrigger,
+  Value: SelectValue,
+  Indicator: SelectIndicator,
+  Popover: SelectPopover,
+});
+
+export const ListBox = Object.assign(ListBoxRoot, {
+  Root: ListBoxRoot,
+  Item: Object.assign(ListBoxItem, {
+    Indicator: () => <span aria-hidden='true' />,
+  }),
+  ItemIndicator: () => <span aria-hidden='true' />,
+  Section: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+    <div {...props}>{children}</div>
+  ),
+});
+
+export const ScrollShadow = ({
+  children,
+  hideScrollBar: _hideScrollBar,
+  orientation: _orientation,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & {
+  hideScrollBar?: boolean;
+  orientation?: string;
+}) => <div {...props}>{children}</div>;
 
 export const Spinner = (props: React.HTMLAttributes<HTMLSpanElement>) => (
   <span role='status' {...props} />

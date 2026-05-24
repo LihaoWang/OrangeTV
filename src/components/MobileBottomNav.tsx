@@ -3,8 +3,8 @@
 'use client';
 
 import { Cat, Clover, Film, Home, Play, Radio, Star, Tv } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Button, Card, ScrollShadow } from '@heroui/react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 interface MobileBottomNavProps {
@@ -16,6 +16,7 @@ interface MobileBottomNavProps {
 
 const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
   const pathname = usePathname();
+  const router = useRouter();
 
   // 当前激活路径：优先使用传入的 activePath，否则回退到浏览器地址
   const currentActive = activePath ?? pathname;
@@ -95,8 +96,8 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
   };
 
   return (
-    <nav
-      className='fixed left-0 right-0 z-[600] overflow-hidden border-t border-border/70 bg-surface/90 shadow-[0_-12px_40px_-30px_rgb(15_23_42)] backdrop-blur-xl md:hidden'
+    <Card
+      className='fixed left-0 right-0 z-[600] rounded-none p-0 md:hidden'
       style={{
         /* 紧贴视口底部，同时在内部留出安全区高度 */
         bottom: 0,
@@ -104,41 +105,31 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
         minHeight: 'calc(3.5rem + env(safe-area-inset-bottom))',
       }}
     >
-      <ul className='flex items-center overflow-x-auto scrollbar-hide'>
-        {navItems.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <li
-              key={item.href}
-              className='flex-shrink-0'
-              style={{ width: '20vw', minWidth: '20vw' }}
-            >
-              <Link
-                href={item.href}
-                className='theme-transition relative flex h-14 w-full flex-col items-center justify-center gap-1 text-xs font-medium tracking-normal'
+      <ScrollShadow orientation='horizontal' hideScrollBar>
+        <ul className='flex items-center gap-1 px-2'>
+          {navItems.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <li
+                key={item.href}
+                className='flex-shrink-0'
+                style={{ width: '20vw', minWidth: '20vw' }}
               >
-                {active && <span className='absolute left-3 right-3 top-1 h-1 rounded-full bg-accent' />}
-                <item.icon
-                  className={`h-5 w-5 ${active
-                    ? 'text-accent'
-                    : 'text-muted'
-                    }`}
-                />
-                <span
-                  className={
-                    active
-                      ? 'text-foreground'
-                      : 'text-muted'
-                  }
+                <Button
+                  variant={active ? 'primary' : 'ghost'}
+                  fullWidth
+                  className='h-14 flex-col gap-1'
+                  onPress={() => router.push(item.href)}
                 >
-                  {item.label}
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+                  <item.icon className='h-5 w-5' />
+                  <span className='text-xs'>{item.label}</span>
+                </Button>
+              </li>
+            );
+          })}
+        </ul>
+      </ScrollShadow>
+    </Card>
   );
 };
 

@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useRouter } from 'next/navigation';
+import { Button, Chip, Spinner } from '@heroui/react';
 import React, {
   useCallback,
   useEffect,
@@ -403,32 +404,29 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                 {categories.map((label, idx) => {
                   const isActive = idx === displayPage;
                   return (
-                    <button
+                    <Button
                       key={label}
                       ref={(el) => {
                         buttonRefs.current[idx] = el;
                       }}
-                      onClick={() => handleCategoryClick(idx)}
-                      className={`relative w-20 flex-shrink-0 py-2 text-center text-[11px] font-medium uppercase tracking-[0.14em] transition-colors whitespace-nowrap 
-                        ${isActive
-                          ? 'text-foreground'
-                          : 'text-muted hover:text-muted'
-                        }
-                      `.trim()}
+                      onPress={() => handleCategoryClick(idx)}
+                      variant={isActive ? 'primary' : 'ghost'}
+                      size='sm'
+                      className='w-20 flex-shrink-0'
                     >
                       {label}
-                      {isActive && (
-                        <div className='absolute bottom-0 left-0 right-0 h-px bg-accent' />
-                      )}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
             </div>
             {/* 向上/向下按钮 */}
-            <button
-              className='a2-icon-button h-8 w-8 flex-shrink-0 translate-y-[-4px]'
-              onClick={() => {
+            <Button
+              isIconOnly
+              size='sm'
+              variant='tertiary'
+              className='flex-shrink-0 translate-y-[-4px]'
+              onPress={() => {
                 // 切换集数排序（正序/倒序）
                 setDescending((prev) => !prev);
               }}
@@ -446,7 +444,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                   d='M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4'
                 />
               </svg>
-            </button>
+            </Button>
           </div>
 
           {/* 集数网格 */}
@@ -460,14 +458,12 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
             })().map((episodeNumber) => {
               const isActive = episodeNumber === value;
               return (
-                <button
+                <Button
                   key={episodeNumber}
-                  onClick={() => handleEpisodeClick(episodeNumber - 1)}
-                  className={`a2-data flex h-10 min-w-10 items-center justify-center border px-3 py-2 text-sm font-medium transition-all duration-200 whitespace-nowrap
-                    ${isActive
-                      ? 'border-accent bg-accent text-accent-foreground'
-                      : 'border-border/70 bg-surface/60 text-muted hover:border-accent/35 hover:text-foreground'
-                    }`.trim()}
+                  onPress={() => handleEpisodeClick(episodeNumber - 1)}
+                  variant={isActive ? 'primary' : 'tertiary'}
+                  size='sm'
+                  className='min-w-10'
                 >
                   {(() => {
                     const title = episodes_titles?.[episodeNumber - 1];
@@ -481,7 +477,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                     }
                     return title;
                   })()}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -493,9 +489,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
         <div className='flex flex-col h-full mt-4'>
           {sourceSearchLoading && (
             <div className='flex items-center justify-center py-8'>
-              <div className='h-px w-24 bg-border/70'>
-                <div className='h-full w-1/2 animate-pulse bg-accent'></div>
-              </div>
+              <Spinner size='sm' />
               <span className='ml-3 text-xs uppercase tracking-[0.16em] text-muted'>
                 搜索中
               </span>
@@ -630,9 +624,9 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
 
                           {/* 源名称和集数信息 - 垂直居中 */}
                           <div className='flex items-center justify-between'>
-                            <span className='text-xs px-2 py-1 border border-gray-500/60 rounded text-gray-700 dark:text-gray-300'>
-                              {source.source_name}
-                            </span>
+                            <Chip size='sm' variant='secondary'>
+                              <Chip.Label>{source.source_name}</Chip.Label>
+                            </Chip>
                             {source.episodes.length > 1 && (
                               <span className='text-xs text-gray-500 dark:text-gray-400 font-medium'>
                                 {source.episodes.length} 集
@@ -649,12 +643,12 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                                 if (!videoInfo.hasError) {
                                   return (
                                     <div className='flex items-end gap-3 text-xs'>
-                                      <div className='a2-data text-accent font-medium text-xs'>
-                                        {videoInfo.loadSpeed}
-                                      </div>
-                                      <div className='a2-data text-warning font-medium text-xs'>
-                                        {videoInfo.pingTime}ms
-                                      </div>
+                                      <Chip size='sm' color='accent' variant='soft'>
+                                        <Chip.Label>{videoInfo.loadSpeed}</Chip.Label>
+                                      </Chip>
+                                      <Chip size='sm' color='warning' variant='soft'>
+                                        <Chip.Label>{videoInfo.pingTime}ms</Chip.Label>
+                                      </Chip>
                                     </div>
                                   );
                                 } else {
@@ -672,18 +666,19 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                     );
                   })}
                 <div className='flex-shrink-0 mt-auto pt-2 border-t border-gray-400 dark:border-gray-700'>
-                  <button
-                    onClick={() => {
+                  <Button
+                    variant='tertiary'
+                    fullWidth
+                    onPress={() => {
                       if (videoTitle) {
                         router.push(
                           `/search?q=${encodeURIComponent(videoTitle)}`
                         );
                       }
                     }}
-                    className='a2-link-action w-full justify-center border-b-0 pt-2 text-center'
                   >
                     影片匹配有误？点击去搜索
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}

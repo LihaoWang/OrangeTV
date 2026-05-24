@@ -6,6 +6,7 @@ import { MessageCircle, Moon, Sun } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState, useCallback } from 'react';
+import { Badge } from '@heroui/react';
 import { ChatModal } from './ChatModal';
 import { AppIconButton } from './ui/HeroPrimitives';
 import { useWebSocket } from '../hooks/useWebSocket';
@@ -105,28 +106,28 @@ export function ThemeToggle() {
         {!isLoginPage && (
           <AppIconButton
             onPress={() => setIsChatModalOpen(true)}
-            className={`a2-icon-button relative ${isMobile ? 'h-8 w-8 p-1.5' : 'h-10 w-10 p-2'}`}
+            size={isMobile ? 'sm' : 'md'}
             aria-label='Open chat'
           >
-            <MessageCircle className='w-full h-full' />
             {messageCount > 0 && (
-              <span className={`absolute ${isMobile ? '-right-0.5 -top-0.5 h-4 w-4 text-[10px]' : '-right-1 -top-1 h-5 w-5 text-[10px]'} flex items-center justify-center border border-border/70 bg-accent text-accent-foreground`}>
-                {messageCount > 99 ? '99+' : messageCount}
-              </span>
+              <Badge size='sm' color='accent' variant='primary' className='absolute -right-1 -top-1'>
+                <Badge.Label>{messageCount > 99 ? '99+' : messageCount}</Badge.Label>
+              </Badge>
             )}
+            <MessageCircle className='h-5 w-5' />
           </AppIconButton>
         )}
 
         {/* 主题切换按钮 */}
         <AppIconButton
           onPress={toggleTheme}
-          className={`a2-icon-button ${isMobile ? 'h-8 w-8 p-1.5' : 'h-10 w-10 p-2'}`}
+          size={isMobile ? 'sm' : 'md'}
           aria-label='Toggle theme'
         >
           {resolvedTheme === 'dark' ? (
-            <Sun className='w-full h-full' />
+            <Sun className='h-5 w-5' />
           ) : (
-            <Moon className='w-full h-full' />
+            <Moon className='h-5 w-5' />
           )}
         </AppIconButton>
       </div>

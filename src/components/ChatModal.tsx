@@ -1,11 +1,25 @@
 'use client';
 
 import { MessageCircle, Search, Users, X, Send, UserPlus, Smile, Image as ImageIcon, Paperclip } from 'lucide-react';
+import {
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  Chip,
+  Input,
+  Label,
+  ScrollShadow,
+  Spinner,
+  TextArea,
+  TextField,
+} from '@heroui/react';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { ChatMessage, Conversation, Friend, FriendRequest, WebSocketMessage } from '../lib/types';
 import { getAuthInfoFromBrowserCookie } from '../lib/auth';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useToast } from './Toast';
+import { AppDialog, AppTabs } from './ui/HeroPrimitives';
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -828,560 +842,366 @@ export function ChatModal({
     }
   };
 
+  const pendingFriendRequests = friendRequests.filter(
+    (req) => req.to_user === currentUser?.username && req.status === 'pending'
+  );
+
+  const renderAvatar = (
+    username: string,
+    displayName = getDisplayName(username),
+    size: 'sm' | 'md' | 'lg' = 'md'
+  ) => (
+    <Avatar size={size}>
+      <Avatar.Image src={getAvatarUrl(username)} alt={displayName} />
+      <Avatar.Fallback>{displayName.charAt(0).toUpperCase()}</Avatar.Fallback>
+    </Avatar>
+  );
+
+  const renderPresence = (username: string) => (
+    <span
+      className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-background ${
+        isUserOnline(username) ? 'bg-success' : 'bg-muted'
+      }`}
+    />
+  );
+
+  const getConversationAvatar = (conv: Conversation) => {
+    if (conv.participants.length === 2) {
+      const otherUser = conv.participants.find(
+        (participant) => participant !== currentUser?.username
+      );
+
+      return otherUser ? (
+        <div className='relative'>
+          {renderAvatar(otherUser, getDisplayName(otherUser), 'lg')}
+          {renderPresence(otherUser)}
+        </div>
+      ) : null;
+    }
+
+    return (
+      <Badge color='accent' size='sm'>
+        <Badge.Anchor>
+          <Avatar size='lg'>
+            <Avatar.Fallback>
+              <Users className='h-5 w-5' />
+            </Avatar.Fallback>
+          </Avatar>
+        </Badge.Anchor>
+        <Badge.Label>{conv.participants.length}</Badge.Label>
+      </Badge>
+    );
+  };
+
+  const selectedOtherUser =
+    selectedConversation?.participants.length === 2
+      ? selectedConversation.participants.find(
+          (participant) => participant !== currentUser?.username
+        )
+      : null;
+
   if (!isOpen) return null;
 
   return (
-    <div
-      className={`z-[2147483647] ${isMobile
-        ? 'fixed top-0 left-0 right-0 bottom-0 bg-white dark:bg-gray-900'
-        : 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50'
-        }`}
-      style={{
-        zIndex: '2147483647',
-        ...(isMobile && {
-          paddingTop: '56px', // 减少顶部padding
-          paddingBottom: '72px' // 减少底部padding
-        })
+    <AppDialog
+      isOpen={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
       }}
+      title='聊天'
+      description={isConnected ? '实时连接已建立' : '实时连接未建立'}
+      size='cover'
+      className='h-[min(86vh,52rem)]'
     >
-      <div
-        className={`${isMobile
-          ? 'w-full bg-white dark:bg-gray-900 flex flex-col'
-          : 'w-full max-w-6xl h-[80vh] bg-white dark:bg-gray-900 rounded-lg shadow-xl flex flex-row relative'
+      <div className='grid h-full min-h-[32rem] grid-cols-1 overflow-hidden md:grid-cols-[22rem_minmax(0,1fr)]'>
+        <section
+          className={`min-h-0 flex-col gap-4 pr-0 md:flex md:border-r md:border-border md:pr-4 ${
+            isMobile && selectedConversation ? 'hidden' : 'flex'
           }`}
-        style={{
-          transform: !isMobile ? `translate(${dragPosition.x}px, ${dragPosition.y}px)` : 'none',
-          transition: isDragging ? 'none' : 'transform 0.2s ease-out',
-          ...(isMobile && {
-            height: 'calc(100vh - 128px)', // 调整为新的padding总和
-            minHeight: 'calc(100vh - 128px)'
-          })
-        }}
-      >
-        {/* 拖动头部 - 仅桌面端显示 */}
-        <div
-          className="absolute top-0 left-0 right-0 h-8 bg-gray-100 dark:bg-gray-800 rounded-t-lg cursor-grab active:cursor-grabbing hidden md:flex items-center justify-center"
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
-          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
         >
-          <div className="flex space-x-1">
-            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-          </div>
-        </div>
-        {/* 左侧面板 */}
-        <div className={`${isMobile
-          ? `w-full flex flex-col ${selectedConversation ? 'hidden' : 'flex'}`
-          : `w-1/3 border-r border-gray-200 dark:border-gray-700 flex flex-col mt-8 h-auto ${selectedConversation ? 'block' : 'block'}`
-          }`}
-          style={{
-            ...(isMobile && {
-              height: '100%',
-              maxHeight: '100%'
-            })
-          }}>
-          {/* 头部 */}
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <h2 className="text-lg font-semibold">聊天</h2>
-                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'
-                  }`} title={isConnected ? '已连接' : '未连接'} />
-              </div>
-              <button
-                onClick={onClose}
-                className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* 标签页 */}
-            <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-              <button
-                onClick={() => handleTabChange('chat')}
-                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors relative ${activeTab === 'chat'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                  }`}
-              >
-                <MessageCircle className="w-4 h-4 inline-block mr-1" />
-                对话
-                {unreadChatCount > 0 && activeTab !== 'chat' && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {unreadChatCount > 99 ? '99+' : unreadChatCount}
+          <AppTabs
+            ariaLabel='聊天类型'
+            selectedKey={activeTab}
+            onSelectionChange={(key) => handleTabChange(key as 'chat' | 'friends')}
+            items={[
+              {
+                key: 'chat',
+                label: (
+                  <span className='inline-flex items-center gap-2'>
+                    <MessageCircle className='h-4 w-4' />
+                    对话
+                    {unreadChatCount > 0 && (
+                      <Chip color='danger' size='sm'>
+                        {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                      </Chip>
+                    )}
                   </span>
-                )}
-              </button>
-              <button
-                onClick={() => handleTabChange('friends')}
-                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors relative ${activeTab === 'friends'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                  }`}
-              >
-                <Users className="w-4 h-4 inline-block mr-1" />
-                好友
-                {unreadFriendRequestCount > 0 && activeTab !== 'friends' && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {unreadFriendRequestCount > 99 ? '99+' : unreadFriendRequestCount}
+                ),
+              },
+              {
+                key: 'friends',
+                label: (
+                  <span className='inline-flex items-center gap-2'>
+                    <Users className='h-4 w-4' />
+                    好友
+                    {unreadFriendRequestCount > 0 && (
+                      <Chip color='danger' size='sm'>
+                        {unreadFriendRequestCount > 99 ? '99+' : unreadFriendRequestCount}
+                      </Chip>
+                    )}
                   </span>
-                )}
-              </button>
-            </div>
-          </div>
+                ),
+              },
+            ]}
+          />
 
-          {/* 搜索栏 */}
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            {activeTab === 'chat' ? (
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="搜索对话..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="搜索用户..."
-                    value={friendSearchQuery}
-                    onChange={(e) => {
-                      setFriendSearchQuery(e.target.value);
-                    }}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+          <TextField>
+            <Label className='sr-only'>
+              {activeTab === 'chat' ? '搜索对话' : '搜索用户'}
+            </Label>
+            <Input
+              type='search'
+              placeholder={activeTab === 'chat' ? '搜索对话...' : '搜索用户...'}
+              value={activeTab === 'chat' ? searchQuery : friendSearchQuery}
+              onChange={(event) =>
+                activeTab === 'chat'
+                  ? setSearchQuery(event.target.value)
+                  : setFriendSearchQuery(event.target.value)
+              }
+            />
+          </TextField>
 
-                {/* 搜索结果显示在搜索框下方 */}
-                {searchResults.length > 0 && (
-                  <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                    <div className="p-2">
-                      <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">搜索结果</h4>
-                      {searchResults.map((user) => (
-                        <div key={user.id} className="flex items-center justify-between p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                          <div className="flex items-center space-x-3 flex-1">
-                            {/* 用户头像 */}
-                            <img
-                              src={getAvatarUrl(user.username)}
-                              alt={user.nickname || user.username}
-                              className="w-8 h-8 rounded-full ring-1 ring-gray-200 dark:ring-gray-600"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                target.nextElementSibling?.classList.remove('hidden');
-                              }}
-                            />
-                            <div className="hidden w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium ring-1 ring-gray-200 dark:ring-gray-600">
-                              {(user.nickname || user.username).charAt(0).toUpperCase()}
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-gray-900 dark:text-white text-sm truncate">
-                                {user.nickname || user.username}
-                              </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {isFriend(user.username) ? '已是好友' : '陌生人'}
-                              </div>
-                            </div>
-                          </div>
-
-                          {!isFriend(user.username) && (
-                            <button
-                              onClick={() => sendFriendRequest(user.username)}
-                              className="ml-2 p-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                              title="发送好友申请"
-                            >
-                              <UserPlus className="w-3 h-3" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
+          {activeTab === 'friends' && searchResults.length > 0 ? (
+            <Card variant='secondary' className='p-3'>
+              <p className='mb-2 text-xs font-medium text-muted'>搜索结果</p>
+              <div className='space-y-2'>
+                {searchResults.map((user) => (
+                  <div key={user.id} className='flex items-center gap-3'>
+                    {renderAvatar(user.username, user.nickname || user.username, 'sm')}
+                    <div className='min-w-0 flex-1'>
+                      <p className='truncate text-sm font-medium'>
+                        {user.nickname || user.username}
+                      </p>
+                      <p className='text-xs text-muted'>
+                        {isFriend(user.username) ? '已是好友' : '陌生人'}
+                      </p>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* 列表内容 */}
-          <div className="flex-1 overflow-y-auto">
-            {activeTab === 'chat' ? (
-              <div className="space-y-1 p-2">
-                {filteredConversations.map((conv) => {
-                  // 获取对话头像 - 私人对话显示对方头像，群聊显示群组图标
-                  const getConversationAvatar = () => {
-                    if (conv.participants.length === 2) {
-                      // 私人对话：显示对方用户的头像
-                      const otherUser = conv.participants.find(p => p !== currentUser?.username);
-                      return otherUser ? (
-                        <div className="relative">
-                          <img
-                            src={getAvatarUrl(otherUser)}
-                            alt={getDisplayName(otherUser)}
-                            className="w-12 h-12 rounded-full ring-2 ring-white dark:ring-gray-700 shadow-sm"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              target.nextElementSibling?.classList.remove('hidden');
-                            }}
-                          />
-                          <div className="hidden w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold ring-2 ring-white dark:ring-gray-700 shadow-sm">
-                            {getDisplayName(otherUser).charAt(0).toUpperCase()}
-                          </div>
-                          {/* 在线状态指示器 */}
-                          <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white dark:border-gray-700 ${isUserOnline(otherUser) ? 'bg-green-400' : 'bg-gray-400'
-                            }`} />
-                        </div>
-                      ) : null;
-                    } else {
-                      // 群聊：显示群组图标和参与者头像叠加
-                      const firstThreeParticipants = conv.participants.slice(0, 3);
-                      return (
-                        <div className="relative">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold shadow-sm ring-2 ring-white dark:ring-gray-700">
-                            <Users className="w-6 h-6" />
-                          </div>
-                          {/* 群聊成员数量指示 */}
-                          <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-blue-600 text-white text-xs rounded-full flex items-center justify-center font-bold border-2 border-white dark:border-gray-700">
-                            {conv.participants.length}
-                          </div>
-                        </div>
-                      );
-                    }
-                  };
-
-                  return (
-                    <button
-                      key={conv.id}
-                      onClick={() => handleConversationSelect(conv)}
-                      className={`w-full p-3 rounded-lg text-left transition-all duration-200 relative ${selectedConversation?.id === conv.id
-                        ? 'bg-blue-100 dark:bg-blue-900/50 shadow-md'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-sm'
-                        }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        {/* 对话头像 */}
-                        <div className="flex-shrink-0">
-                          {getConversationAvatar()}
-                        </div>
-
-                        {/* 对话信息 */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <div className="font-medium text-gray-900 dark:text-white truncate">
-                              {conv.name}
-                            </div>
-                            {/* 最后消息时间 */}
-                            {conv.last_message?.timestamp && (
-                              <div className="text-xs text-gray-400 dark:text-gray-500 ml-2 flex-shrink-0">
-                                {new Date(conv.last_message.timestamp).toLocaleTimeString('zh-CN', {
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <div className="text-sm text-gray-500 dark:text-gray-400 truncate flex-1 mr-2">
-                              {conv.last_message?.message_type === 'image'
-                                ? '[图片]'
-                                : (conv.last_message?.content || '暂无消息')
-                              }
-                            </div>
-
-                            {/* 未读消息数量 */}
-                            {conversationUnreadCounts[conv.id] > 0 && (
-                              <div className="flex-shrink-0">
-                                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
-                                  {conversationUnreadCounts[conv.id] > 99 ? '99+' : conversationUnreadCounts[conv.id]}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="space-y-2 p-2">
-                {/* 好友申请 */}
-                {friendRequests.filter(req => req.to_user === currentUser?.username && req.status === 'pending').length > 0 && (
-                  <div className="mb-4">
-                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">好友申请</h3>
-                    {friendRequests
-                      .filter(req => req.to_user === currentUser?.username && req.status === 'pending')
-                      .map((request) => (
-                        <div key={request.id} className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 hover:shadow-sm transition-shadow">
-                          <div className="flex items-center space-x-3 mb-3">
-                            {/* 申请者头像 */}
-                            <div className="flex-shrink-0">
-                              <img
-                                src={getAvatarUrl(request.from_user)}
-                                alt={request.from_user}
-                                className="w-10 h-10 rounded-full ring-2 ring-white dark:ring-gray-700 shadow-sm"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.style.display = 'none';
-                                  target.nextElementSibling?.classList.remove('hidden');
-                                }}
-                              />
-                              <div className="hidden w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold ring-2 ring-white dark:ring-gray-700 shadow-sm">
-                                {request.from_user.charAt(0).toUpperCase()}
-                              </div>
-                            </div>
-
-                            {/* 申请者信息 */}
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                {request.from_user}
-                              </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {new Date(request.created_at).toLocaleString('zh-CN', {
-                                  month: '2-digit',
-                                  day: '2-digit',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="text-xs text-gray-600 dark:text-gray-300 mb-3 pl-13">
-                            {request.message}
-                          </div>
-
-                          <div className="flex space-x-2 pl-13">
-                            <button
-                              onClick={() => handleFriendRequest(request.id, 'accepted')}
-                              className="px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors font-medium"
-                            >
-                              接受
-                            </button>
-                            <button
-                              onClick={() => handleFriendRequest(request.id, 'rejected')}
-                              className="px-3 py-1.5 bg-gray-500 text-white text-xs rounded-lg hover:bg-gray-600 transition-colors font-medium"
-                            >
-                              拒绝
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
-
-                {/* 好友列表 */}
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">我的好友</h3>
-                {friends.map((friend) => (
-                  <button
-                    key={friend.id}
-                    onClick={() => startConversationWithFriend(friend.username)}
-                    className="w-full p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <div className="flex items-center space-x-3">
-                      {/* 好友头像 */}
-                      <div className="relative">
-                        <img
-                          src={getAvatarUrl(friend.username)}
-                          alt={friend.nickname || friend.username}
-                          className="w-10 h-10 rounded-full"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            target.nextElementSibling?.classList.remove('hidden');
-                          }}
-                        />
-                        <div className="hidden w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-                          {(friend.nickname || friend.username).charAt(0).toUpperCase()}
-                        </div>
-                        {/* 在线状态指示器 */}
-                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-gray-800 ${isUserOnline(friend.username) ? 'bg-green-400' : 'bg-gray-400'
-                          }`} />
-                      </div>
-                      <div className="flex-1 text-left">
-                        <div className="font-medium text-gray-900 dark:text-white">
-                          {friend.nickname || friend.username}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {isUserOnline(friend.username) ? '在线' : '离线'}
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 右侧聊天区域 */}
-        <div className={`${isMobile
-          ? `w-full flex flex-col ${selectedConversation ? 'flex' : 'hidden'}`
-          : `flex-1 flex flex-col mt-8 ${selectedConversation ? 'block' : 'block'}`
-          }`}
-          style={{
-            ...(isMobile && {
-              height: '100%',
-              maxHeight: '100%'
-            })
-          }}>
-          {selectedConversation ? (
-            <>
-              {/* 聊天头部 */}
-              <div className="p-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                <div className="flex items-center space-x-2">
-                  {/* 移动端返回按钮 */}
-                  {isMobile && (
-                    <button
-                      onClick={() => setSelectedConversation(null)}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
-                    </button>
-                  )}
-                  {/* 对话头像（显示对方用户的头像，如果是群聊则显示群组图标） */}
-                  <div className="flex-shrink-0">
-                    {selectedConversation.participants.length === 2 ? (
-                      // 私人对话：显示对方的头像
-                      (() => {
-                        const otherUser = selectedConversation.participants.find(p => p !== currentUser?.username);
-                        return otherUser ? (
-                          <div className="relative">
-                            <img
-                              src={getAvatarUrl(otherUser)}
-                              alt={getDisplayName(otherUser)}
-                              className="w-12 h-12 rounded-full"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                target.nextElementSibling?.classList.remove('hidden');
-                              }}
-                            />
-                            <div className="hidden w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
-                              {getDisplayName(otherUser).charAt(0).toUpperCase()}
-                            </div>
-                            {/* 在线状态 */}
-                            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-gray-800 ${isUserOnline(otherUser) ? 'bg-green-400' : 'bg-gray-400'
-                              }`} />
-                          </div>
-                        ) : null;
-                      })()
-                    ) : (
-                      // 群聊：显示群组图标
-                      <div className="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center text-white font-medium">
-                        <Users className="w-6 h-6" />
-                      </div>
+                    {!isFriend(user.username) && (
+                      <Button
+                        isIconOnly
+                        size='sm'
+                        variant='primary'
+                        aria-label='发送好友申请'
+                        onPress={() => sendFriendRequest(user.username)}
+                      >
+                        <UserPlus className='h-4 w-4' />
+                      </Button>
                     )}
                   </div>
+                ))}
+              </div>
+            </Card>
+          ) : null}
 
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 dark:text-white truncate text-sm">
-                      {selectedConversation.name}
-                    </h3>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {selectedConversation.participants.length === 2 ? (
-                        // 私人对话：显示在线状态
-                        (() => {
-                          const otherUser = selectedConversation.participants.find(p => p !== currentUser?.username);
-                          return otherUser ? (
-                            <span className="flex items-center space-x-1">
-                              <span>{isUserOnline(otherUser) ? '在线' : '离线'}</span>
-                              <span>•</span>
-                              <span>{selectedConversation.participants.length} 人</span>
+          <ScrollShadow hideScrollBar className='min-h-0 flex-1'>
+            {activeTab === 'chat' ? (
+              <div className='space-y-2'>
+                {filteredConversations.map((conv) => (
+                  <Button
+                    key={conv.id}
+                    fullWidth
+                    variant={selectedConversation?.id === conv.id ? 'secondary' : 'tertiary'}
+                    className='h-auto justify-start p-3'
+                    onPress={() => handleConversationSelect(conv)}
+                  >
+                    <span className='flex w-full items-center gap-3 text-left'>
+                      {getConversationAvatar(conv)}
+                      <span className='min-w-0 flex-1'>
+                        <span className='mb-1 flex items-center justify-between gap-2'>
+                          <span className='truncate font-medium'>{conv.name}</span>
+                          {conv.last_message?.timestamp ? (
+                            <span className='shrink-0 text-xs text-muted'>
+                              {new Date(conv.last_message.timestamp).toLocaleTimeString('zh-CN', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
                             </span>
-                          ) : `${selectedConversation.participants.length} 人`;
-                        })()
-                      ) : (
-                        // 群聊：显示参与者数量
-                        `${selectedConversation.participants.length} 人`
-                      )}
-                    </div>
-                  </div>
+                          ) : null}
+                        </span>
+                        <span className='flex items-center justify-between gap-2'>
+                          <span className='truncate text-sm text-muted'>
+                            {conv.last_message?.message_type === 'image'
+                              ? '[图片]'
+                              : conv.last_message?.content || '暂无消息'}
+                          </span>
+                          {conversationUnreadCounts[conv.id] > 0 ? (
+                            <Chip color='danger' size='sm'>
+                              {conversationUnreadCounts[conv.id] > 99
+                                ? '99+'
+                                : conversationUnreadCounts[conv.id]}
+                            </Chip>
+                          ) : null}
+                        </span>
+                      </span>
+                    </span>
+                  </Button>
+                ))}
+              </div>
+            ) : (
+              <div className='space-y-4'>
+                {pendingFriendRequests.length > 0 ? (
+                  <section className='space-y-2'>
+                    <p className='text-sm font-medium'>好友申请</p>
+                    {pendingFriendRequests.map((request) => (
+                      <Card key={request.id} variant='secondary' className='p-3'>
+                        <div className='flex items-center gap-3'>
+                          {renderAvatar(request.from_user, request.from_user, 'md')}
+                          <div className='min-w-0 flex-1'>
+                            <p className='truncate text-sm font-medium'>
+                              {request.from_user}
+                            </p>
+                            <p className='text-xs text-muted'>
+                              {new Date(request.created_at).toLocaleString('zh-CN', {
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <p className='mt-3 text-xs text-muted'>{request.message}</p>
+                        <div className='mt-3 flex gap-2'>
+                          <Button
+                            size='sm'
+                            variant='primary'
+                            onPress={() => handleFriendRequest(request.id, 'accepted')}
+                          >
+                            接受
+                          </Button>
+                          <Button
+                            size='sm'
+                            variant='secondary'
+                            onPress={() => handleFriendRequest(request.id, 'rejected')}
+                          >
+                            拒绝
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </section>
+                ) : null}
+
+                <section className='space-y-2'>
+                  <p className='text-sm font-medium'>我的好友</p>
+                  {friends.map((friend) => (
+                    <Button
+                      key={friend.id}
+                      fullWidth
+                      variant='tertiary'
+                      className='h-auto justify-start p-3'
+                      onPress={() => startConversationWithFriend(friend.username)}
+                    >
+                      <span className='flex w-full items-center gap-3 text-left'>
+                        <span className='relative'>
+                          {renderAvatar(friend.username, friend.nickname || friend.username, 'md')}
+                          {renderPresence(friend.username)}
+                        </span>
+                        <span className='min-w-0 flex-1'>
+                          <span className='block truncate font-medium'>
+                            {friend.nickname || friend.username}
+                          </span>
+                          <span className='block text-xs text-muted'>
+                            {isUserOnline(friend.username) ? '在线' : '离线'}
+                          </span>
+                        </span>
+                      </span>
+                    </Button>
+                  ))}
+                </section>
+              </div>
+            )}
+          </ScrollShadow>
+        </section>
+
+        <section
+          className={`min-h-0 flex-col md:flex md:pl-4 ${
+            isMobile && !selectedConversation ? 'hidden' : 'flex'
+          }`}
+        >
+          {selectedConversation ? (
+            <>
+              <div className='flex items-center gap-3 pb-3'>
+                {isMobile ? (
+                  <Button
+                    isIconOnly
+                    variant='tertiary'
+                    aria-label='返回对话列表'
+                    onPress={() => setSelectedConversation(null)}
+                  >
+                    <span aria-hidden>‹</span>
+                  </Button>
+                ) : null}
+                {selectedOtherUser ? (
+                  <span className='relative'>
+                    {renderAvatar(selectedOtherUser, getDisplayName(selectedOtherUser), 'lg')}
+                    {renderPresence(selectedOtherUser)}
+                  </span>
+                ) : (
+                  <Avatar size='lg'>
+                    <Avatar.Fallback>
+                      <Users className='h-5 w-5' />
+                    </Avatar.Fallback>
+                  </Avatar>
+                )}
+                <div className='min-w-0 flex-1'>
+                  <p className='truncate text-sm font-medium'>
+                    {selectedConversation.name}
+                  </p>
+                  <p className='text-xs text-muted'>
+                    {selectedOtherUser
+                      ? `${isUserOnline(selectedOtherUser) ? '在线' : '离线'} · ${selectedConversation.participants.length} 人`
+                      : `${selectedConversation.participants.length} 人`}
+                  </p>
                 </div>
               </div>
 
-              {/* 消息列表 */}
-              <div className={`flex-1 overflow-y-auto space-y-4 bg-gradient-to-b from-gray-50/30 to-white/50 dark:from-gray-800/30 dark:to-gray-900/50 ${isMobile ? 'p-3' : 'p-6'
-                }`}>
-                {messages.map((message, index) => {
-                  const isOwnMessage = message.sender_id === currentUser?.username;
-                  const prevMessage = index > 0 ? messages[index - 1] : null;
-                  const nextMessage = index < messages.length - 1 ? messages[index + 1] : null;
-                  // 每条消息都显示头像
-                  const showName = !prevMessage || prevMessage.sender_id !== message.sender_id;
-                  const isSequential = prevMessage && prevMessage.sender_id === message.sender_id;
+              <ScrollShadow hideScrollBar className='min-h-0 flex-1 py-2'>
+                <div className='space-y-4'>
+                  {messages.map((message, index) => {
+                    const isOwnMessage = message.sender_id === currentUser?.username;
+                    const prevMessage = index > 0 ? messages[index - 1] : null;
+                    const showName =
+                      !isOwnMessage &&
+                      (!prevMessage || prevMessage.sender_id !== message.sender_id);
 
-                  return (
-                    <div
-                      key={message.id}
-                      className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} ${isSequential ? 'mt-1' : 'mt-4'}`}
-                    >
-                      <div className={`flex items-end space-x-3 max-w-xs lg:max-w-md xl:max-w-lg ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                        {/* 头像 - 每条消息都显示 */}
-                        <div className="flex-shrink-0">
-                          <div className="relative">
-                            <img
-                              src={getAvatarUrl(message.sender_id)}
-                              alt={getDisplayName(message.sender_id)}
-                              className="w-10 h-10 rounded-full ring-2 ring-white dark:ring-gray-600 shadow-md"
-                              onError={(e) => {
-                                // 头像加载失败时显示文字头像
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                target.nextElementSibling?.classList.remove('hidden');
-                              }}
-                            />
-                            <div className="hidden w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold ring-2 ring-white dark:ring-gray-600 shadow-md">
-                              {getDisplayName(message.sender_id).charAt(0).toUpperCase()}
-                            </div>
-                            {/* 在线状态指示器 */}
-                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full ring-2 ring-white dark:ring-gray-700"></div>
-                          </div>
-                        </div>
-
-                        {/* 消息内容 */}
-                        <div className="flex flex-col min-w-0">
-                          {/* 发送者名称（仅在非连续消息时显示） */}
-                          {!isOwnMessage && showName && (
-                            <div className="mb-2 px-1">
-                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    return (
+                      <div
+                        key={message.id}
+                        className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`flex max-w-[min(36rem,86%)] items-end gap-3 ${
+                            isOwnMessage ? 'flex-row-reverse' : ''
+                          }`}
+                        >
+                          {renderAvatar(message.sender_id, getDisplayName(message.sender_id), 'sm')}
+                          <div className='min-w-0'>
+                            {showName ? (
+                              <p className='mb-1 text-xs font-medium text-muted'>
                                 {getDisplayName(message.sender_id)}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* 消息气泡 */}
-                          <div
-                            className={`relative px-5 py-3 rounded-2xl shadow-lg backdrop-blur-sm transition-all duration-200 hover:shadow-xl ${isOwnMessage
-                              ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-blue-500/25 rounded-br-md'
-                              : 'bg-white/90 dark:bg-gray-700/90 text-gray-900 dark:text-white shadow-gray-900/10 dark:shadow-black/20 ring-1 ring-gray-200/50 dark:ring-gray-600/50 rounded-bl-md'
-                              }`}
-                          >
-                            {message.message_type === 'image' ? (
-                              <div className="group">
+                              </p>
+                            ) : null}
+                            <Card
+                              variant={isOwnMessage ? 'secondary' : 'default'}
+                              className='p-3'
+                            >
+                              {message.message_type === 'image' ? (
                                 <img
                                   src={message.content}
-                                  alt="图片消息"
-                                  className="max-w-full h-auto rounded-xl cursor-pointer transition-transform group-hover:scale-[1.02] shadow-md"
-                                  style={{ maxHeight: '300px' }}
+                                  alt='图片消息'
+                                  className='max-h-[300px] max-w-full cursor-pointer object-contain'
                                   onClick={() => {
-                                    // 点击图片放大查看
-                                    const img = new Image();
-                                    img.src = message.content;
                                     const newWindow = window.open('');
                                     if (newWindow) {
                                       newWindow.document.write(`
@@ -1401,220 +1221,156 @@ export function ChatModal({
                                     }
                                   }}
                                 />
-                                {/* 图片遮罩 */}
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 rounded-xl transition-colors pointer-events-none"></div>
-                              </div>
-                            ) : (
-                              <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                                {message.content}
-                              </div>
-                            )}
-
-                            {/* 消息气泡装饰尾巴 */}
-                            <div
-                              className={`absolute bottom-2 w-3 h-3 ${isOwnMessage
-                                ? 'right-0 -mr-1.5 bg-gradient-to-br from-blue-500 to-blue-600'
-                                : 'left-0 -ml-1.5 bg-white/90 dark:bg-gray-700/90 ring-1 ring-gray-200/50 dark:ring-gray-600/50'
-                                } transform rotate-45`}
-                            ></div>
-                          </div>
-
-                          {/* 时间戳显示在消息气泡下方 */}
-                          <div className={`mt-1 px-1 ${isOwnMessage ? 'flex justify-end' : 'flex justify-start'}`}>
-                            <span className="text-xs text-gray-400 dark:text-gray-500">
+                              ) : (
+                                <p className='whitespace-pre-wrap break-words text-sm leading-relaxed'>
+                                  {message.content}
+                                </p>
+                              )}
+                            </Card>
+                            <p
+                              className={`mt-1 text-xs text-muted ${
+                                isOwnMessage ? 'text-right' : 'text-left'
+                              }`}
+                            >
                               {formatMessageTime(message.timestamp)}
-                            </span>
+                            </p>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-                <div ref={messagesEndRef} />
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollShadow>
 
-                {/* 消息列表底部装饰 */}
-                <div className="h-4"></div>
-              </div>
-
-              {/* 消息输入区域 */}
-              <div className="border-t border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 relative">
-                {/* 表情选择器 - 绝对定位，不占据文档流空间 */}
-                {showEmojiPicker && (
-                  <div className="emoji-picker-container absolute left-4 right-4 bottom-full mb-2 p-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl shadow-xl z-50">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">选择表情</h3>
-                      <button
-                        onClick={() => setShowEmojiPicker(false)}
-                        className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full transition-colors"
+              <div className='relative pt-3'>
+                {showEmojiPicker ? (
+                  <Card
+                    variant='default'
+                    className='emoji-picker-container absolute bottom-full left-0 right-0 z-50 mb-2 p-3'
+                  >
+                    <div className='mb-3 flex items-center justify-between'>
+                      <p className='text-sm font-medium'>选择表情</p>
+                      <Button
+                        isIconOnly
+                        size='sm'
+                        variant='tertiary'
+                        aria-label='关闭表情'
+                        onPress={() => setShowEmojiPicker(false)}
                       >
-                        <X className="w-4 h-4" />
-                      </button>
+                        <X className='h-4 w-4' />
+                      </Button>
                     </div>
-                    <div className="grid grid-cols-9 gap-1 max-h-40 overflow-y-auto custom-scrollbar">
+                    <div className='grid max-h-40 grid-cols-9 gap-1 overflow-y-auto'>
                       {emojis.map((emoji, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleEmojiSelect(emoji)}
-                          className="p-2 text-xl hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-all duration-200 hover:scale-110 active:scale-95"
-                          title={emoji}
+                        <Button
+                          key={`${emoji}-${index}`}
+                          isIconOnly
+                          variant='tertiary'
+                          aria-label={`选择表情 ${emoji}`}
+                          onPress={() => handleEmojiSelect(emoji)}
                         >
-                          {emoji}
-                        </button>
+                          <span className='text-xl'>{emoji}</span>
+                        </Button>
                       ))}
                     </div>
-                  </div>
-                )}
+                  </Card>
+                ) : null}
 
-                {/* 主输入区域 */}
-                <div className={`${isMobile ? 'p-2' : 'p-3'} pb-safe`}>
-                  <div className="bg-white dark:bg-gray-700 rounded-2xl shadow-sm border border-gray-200/80 dark:border-gray-600/80 backdrop-blur-sm">
-                    {/* 顶部工具栏 */}
-                    <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-100 dark:border-gray-600">
-                      {/* 左侧功能按钮组 */}
-                      <div className="flex items-center space-x-1">
-                        {/* 表情按钮 */}
-                        <button
-                          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                          className={`emoji-picker-container p-2 rounded-xl transition-all duration-200 transform hover:scale-105 ${showEmojiPicker
-                            ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
-                            : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20'
-                            }`}
-                          title="表情"
-                        >
-                          <Smile className="w-5 h-5" />
-                        </button>
-
-                        {/* 图片上传按钮 */}
-                        <button
-                          onClick={() => fileInputRef.current?.click()}
-                          disabled={uploadingImage}
-                          className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                          title="上传图片"
-                        >
-                          {uploadingImage ? (
-                            <div className="w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <ImageIcon className="w-5 h-5" />
-                          )}
-                        </button>
-
-                        {/* 隐藏的文件输入 */}
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleImageUpload}
-                        />
-
-                        {/* 附件按钮（预留） */}
-                        <button
-                          className="p-2 text-gray-400 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl transition-all duration-200 transform hover:scale-105"
-                          disabled
-                          title="附件（即将开放）"
-                        >
-                          <Paperclip className="w-5 h-5" />
-                        </button>
-                      </div>
-
-                      {/* 右侧状态指示 */}
-                      <div className="flex items-center space-x-2">
-                        {/* 字符计数 */}
-                        <span className="text-xs text-gray-400">
-                          {newMessage.length > 0 && (
-                            <span className={newMessage.length > 500 ? 'text-red-500' : ''}>
-                              {newMessage.length}/1000
-                            </span>
-                          )}
-                        </span>
-                        {/* 连接状态 */}
-                        <div className="flex items-center space-x-1">
-                          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`} />
-                          <span className="text-xs text-gray-400">
-                            {isConnected ? '在线' : '离线'}
-                          </span>
-                        </div>
-                      </div>
+                <Card variant='secondary' className='p-3'>
+                  <div className='mb-2 flex items-center justify-between gap-2'>
+                    <div className='flex items-center gap-1'>
+                      <Button
+                        isIconOnly
+                        variant={showEmojiPicker ? 'secondary' : 'tertiary'}
+                        aria-label='表情'
+                        className='emoji-picker-container'
+                        onPress={() => setShowEmojiPicker(!showEmojiPicker)}
+                      >
+                        <Smile className='h-5 w-5' />
+                      </Button>
+                      <Button
+                        isIconOnly
+                        variant='tertiary'
+                        aria-label='上传图片'
+                        isDisabled={uploadingImage}
+                        onPress={() => fileInputRef.current?.click()}
+                      >
+                        {uploadingImage ? <Spinner size='sm' /> : <ImageIcon className='h-5 w-5' />}
+                      </Button>
+                      <input
+                        ref={fileInputRef}
+                        type='file'
+                        accept='image/*'
+                        className='hidden'
+                        onChange={handleImageUpload}
+                      />
+                      <Button
+                        isIconOnly
+                        variant='tertiary'
+                        aria-label='附件即将开放'
+                        isDisabled
+                      >
+                        <Paperclip className='h-5 w-5' />
+                      </Button>
                     </div>
-
-                    {/* 消息输入区域 */}
-                    <div className="p-3">
-                      <div className="relative">
-                        <textarea
-                          value={newMessage}
-                          onChange={(e) => setNewMessage(e.target.value)}
-                          placeholder="输入消息内容... 按Enter发送，Shift+Enter换行"
-                          className="w-full px-3 py-2 pr-14 bg-gray-50 dark:bg-gray-600 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-gray-500 placeholder-gray-400 dark:placeholder-gray-400 resize-none min-h-[40px] max-h-28 transition-all duration-200"
-                          rows={1}
-                          maxLength={1000}
-                          style={{ height: 'auto' }}
-                          onInput={(e) => {
-                            // 自动调整高度
-                            const target = e.target as HTMLTextAreaElement;
-                            target.style.height = 'auto';
-                            target.style.height = Math.min(target.scrollHeight, 128) + 'px';
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSendMessage();
-                            }
-                          }}
-                        />
-
-                        {/* 发送按钮 */}
-                        <button
-                          onClick={handleSendMessage}
-                          disabled={!newMessage.trim() || uploadingImage}
-                          className="absolute right-2 bottom-2 p-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg hover:shadow-xl"
-                          title={!newMessage.trim() ? '请输入消息内容' : '发送消息 (Enter)'}
-                        >
-                          <Send className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 底部信息栏 */}
-                    <div className="flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-gray-600/50 rounded-b-2xl border-t border-gray-100 dark:border-gray-600">
-                      <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                        <span className="flex items-center space-x-1">
-                          <span>📝</span>
-                          <span>支持文字</span>
+                    <div className='flex items-center gap-2 text-xs text-muted'>
+                      {newMessage.length > 0 ? (
+                        <span className={newMessage.length > 500 ? 'text-danger' : ''}>
+                          {newMessage.length}/1000
                         </span>
-                        <span className="flex items-center space-x-1">
-                          <span>😊</span>
-                          <span>表情</span>
-                        </span>
-                        <span className="flex items-center space-x-1">
-                          <span>🖼️</span>
-                          <span>图片 (5MB内)</span>
-                        </span>
-                      </div>
-
-                      <div className="text-xs text-gray-400">
-                        {uploadingImage ? (
-                          <span className="flex items-center space-x-1 text-blue-500">
-                            <div className="w-3 h-3 border border-blue-500 border-t-transparent rounded-full animate-spin" />
-                            <span>上传中...</span>
-                          </span>
-                        ) : (
-                          <span>Enter发送</span>
-                        )}
-                      </div>
+                      ) : null}
+                      <Chip color={isConnected ? 'success' : 'danger'} size='sm'>
+                        {isConnected ? '在线' : '离线'}
+                      </Chip>
                     </div>
                   </div>
-                </div>
+
+                  <div className='relative'>
+                    <TextArea
+                      value={newMessage}
+                      onChange={(event) => setNewMessage(event.target.value)}
+                      placeholder='输入消息内容... 按Enter发送，Shift+Enter换行'
+                      className='max-h-28 min-h-12 w-full pr-14'
+                      rows={1}
+                      maxLength={1000}
+                      onInput={(event) => {
+                        const target = event.target as HTMLTextAreaElement;
+                        target.style.height = 'auto';
+                        target.style.height = Math.min(target.scrollHeight, 128) + 'px';
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' && !event.shiftKey) {
+                          event.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                    />
+                    <Button
+                      isIconOnly
+                      variant='primary'
+                      aria-label={!newMessage.trim() ? '请输入消息内容' : '发送消息'}
+                      className='absolute bottom-1.5 right-1.5'
+                      isDisabled={!newMessage.trim() || uploadingImage}
+                      onPress={handleSendMessage}
+                    >
+                      <Send className='h-4 w-4' />
+                    </Button>
+                  </div>
+                  <div className='mt-2 flex items-center justify-between text-xs text-muted'>
+                    <span>支持文字、表情、5MB 内图片</span>
+                    <span>{uploadingImage ? '上传中...' : 'Enter发送'}</span>
+                  </div>
+                </Card>
               </div>
             </>
           ) : (
-            !isMobile && (
-              <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                选择一个对话开始聊天
-              </div>
-            )
+            <div className='flex h-full items-center justify-center text-muted'>
+              选择一个对话开始聊天
+            </div>
           )}
-        </div>
+        </section>
       </div>
-    </div>
+    </AppDialog>
   );
 }
