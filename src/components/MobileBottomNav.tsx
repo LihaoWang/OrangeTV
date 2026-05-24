@@ -2,7 +2,7 @@
 
 'use client';
 
-import { Cat, Clover, Film, Home, Play, Radio, Star, Tv } from 'lucide-react';
+import { Clover, Film, Home, Star, Tv } from 'lucide-react';
 import { Button, Card, ScrollShadow } from '@heroui/react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -34,24 +34,9 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
       href: '/douban?type=tv',
     },
     {
-      icon: Play,
-      label: '短剧',
-      href: '/shortdrama',
-    },
-    {
-      icon: Cat,
-      label: '动漫',
-      href: '/douban?type=anime',
-    },
-    {
       icon: Clover,
       label: '综艺',
       href: '/douban?type=show',
-    },
-    {
-      icon: Radio,
-      label: '直播',
-      href: '/live',
     },
   ]);
 
@@ -78,11 +63,6 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
 
     // 精确匹配路径
     if (decodedActive === decodedItemHref) {
-      return true;
-    }
-
-    // 短剧页面的特殊处理
-    if (href === '/shortdrama' && decodedActive.startsWith('/shortdrama')) {
       return true;
     }
 

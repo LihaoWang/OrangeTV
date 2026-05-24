@@ -3,14 +3,11 @@
 'use client';
 
 import {
-  Cat,
   Clover,
   ExternalLink,
   Film,
   Home,
   Menu,
-  PlayCircle,
-  Radio,
   Search,
   Star,
   Tv,
@@ -177,29 +174,14 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
       href: '/douban?type=movie',
     },
     {
-      icon: PlayCircle,
-      label: '短剧',
-      href: '/shortdrama',
-    },
-    {
       icon: Tv,
       label: '剧集',
       href: '/douban?type=tv',
     },
     {
-      icon: Cat,
-      label: '动漫',
-      href: '/douban?type=anime',
-    },
-    {
       icon: Clover,
       label: '综艺',
       href: '/douban?type=show',
-    },
-    {
-      icon: Radio,
-      label: '直播',
-      href: '/live',
     },
   ]);
 
@@ -327,8 +309,7 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                   const isActive =
                     decodedActive === decodedItemHref ||
                     (decodedActive.startsWith('/douban') &&
-                      decodedActive.includes(`type=${typeMatch}`)) ||
-                    (item.href === '/shortdrama' && decodedActive.startsWith('/shortdrama'));
+                      decodedActive.includes(`type=${typeMatch}`));
                   const Icon = item.icon;
                   return (
                     <div key={item.label}>

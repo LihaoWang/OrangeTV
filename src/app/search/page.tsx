@@ -1037,7 +1037,7 @@ function SearchPageClient() {
                 value={searchQuery}
                 onChange={handleInputChange}
                 onFocus={handleInputFocus}
-                placeholder='搜索电影、电视剧、短剧...'
+                placeholder='搜索电影、电视剧...'
                 autoComplete="off"
                 fullWidth
                 className='pl-10 pr-12'

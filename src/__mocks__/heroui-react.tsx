@@ -199,6 +199,45 @@ export const Card = Object.assign(
   }
 );
 
+export const Link = ({
+  children,
+  href,
+  ...props
+}: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+  <a href={href} {...props}>
+    {children}
+  </a>
+);
+
+export const Tooltip = Object.assign(
+  ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+    <div {...props}>{children}</div>
+  ),
+  {
+    Trigger: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+      <div {...props}>{children}</div>
+    ),
+    Content: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+      <div {...props}>{children}</div>
+    ),
+  }
+);
+
+export const Badge = Object.assign(
+  ({ children, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+    <span {...props}>{children}</span>
+  ),
+  {
+    Label: ({ children, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+      <span {...props}>{children}</span>
+    ),
+  }
+);
+
+export const Separator = (props: React.HTMLAttributes<HTMLHRElement>) => (
+  <hr {...props} />
+);
+
 const ModalRoot = ({
   children,
   state,
