@@ -72,4 +72,38 @@ describe('HeroPrimitives', () => {
     fireEvent.click(screen.getByRole('button', { name: '播放' }));
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
+
+  it('clears stale root scroll locks when dialogs unmount', () => {
+    const onOpenChange = jest.fn();
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    const { unmount } = render(
+      <AppDialog isOpen title='提示' onOpenChange={onOpenChange}>
+        <p>内容</p>
+      </AppDialog>
+    );
+
+    unmount();
+
+    expect(document.documentElement.style.overflow).toBe('');
+    expect(document.body.style.overflow).toBe('');
+  });
+
+  it('clears stale root scroll locks when drawers unmount', () => {
+    const onOpenChange = jest.fn();
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    const { unmount } = render(
+      <AppDrawer isOpen title='更多操作' onOpenChange={onOpenChange}>
+        <p>内容</p>
+      </AppDrawer>
+    );
+
+    unmount();
+
+    expect(document.documentElement.style.overflow).toBe('');
+    expect(document.body.style.overflow).toBe('');
+  });
 });

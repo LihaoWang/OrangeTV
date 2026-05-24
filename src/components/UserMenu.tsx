@@ -72,29 +72,6 @@ export const UserMenu: React.FC = () => {
   const imageRef = useRef<HTMLImageElement>(null);
   const [showCropper, setShowCropper] = useState(false);
 
-  // Body 滚动锁定 - 使用 overflow 方式避免布局问题
-  useEffect(() => {
-    if (isSettingsOpen || isChangePasswordOpen || isChangeAvatarOpen) {
-      const body = document.body;
-      const html = document.documentElement;
-
-      // 保存原始样式
-      const originalBodyOverflow = body.style.overflow;
-      const originalHtmlOverflow = html.style.overflow;
-
-      // 只设置 overflow 来阻止滚动
-      body.style.overflow = 'hidden';
-      html.style.overflow = 'hidden';
-
-      return () => {
-
-        // 恢复所有原始样式
-        body.style.overflow = originalBodyOverflow;
-        html.style.overflow = originalHtmlOverflow;
-      };
-    }
-  }, [isSettingsOpen, isChangePasswordOpen]);
-
   // 设置相关状态
   const [defaultAggregateSearch, setDefaultAggregateSearch] = useState(true);
   const [doubanProxyUrl, setDoubanProxyUrl] = useState('');

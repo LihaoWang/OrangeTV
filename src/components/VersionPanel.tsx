@@ -49,28 +49,6 @@ export const VersionPanel: React.FC<VersionPanelProps> = ({
     return () => setMounted(false);
   }, []);
 
-  // Body 滚动锁定 - 使用 overflow 方式避免布局问题
-  useEffect(() => {
-    if (isOpen) {
-      const body = document.body;
-      const html = document.documentElement;
-
-      // 保存原始样式
-      const originalBodyOverflow = body.style.overflow;
-      const originalHtmlOverflow = html.style.overflow;
-
-      // 只设置 overflow 来阻止滚动
-      body.style.overflow = 'hidden';
-      html.style.overflow = 'hidden';
-
-      return () => {
-        // 恢复所有原始样式
-        body.style.overflow = originalBodyOverflow;
-        html.style.overflow = originalHtmlOverflow;
-      };
-    }
-  }, [isOpen]);
-
   // 获取远程变更日志
   useEffect(() => {
     if (isOpen) {

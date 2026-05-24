@@ -20,10 +20,40 @@ import type {
   SpinnerProps,
   TabsProps,
 } from '@heroui/react';
-import { forwardRef } from 'react';
+import { forwardRef, useEffect } from 'react';
 import type { Key, ReactNode } from 'react';
 
 type AppButtonProps = ButtonProps;
+
+let activeRootOverlayCount = 0;
+
+function releaseRootScrollLockIfIdle() {
+  if (activeRootOverlayCount > 0 || typeof document === 'undefined') return;
+
+  const html = document.documentElement;
+  const body = document.body;
+
+  if (html.style.overflow === 'hidden') {
+    html.style.overflow = '';
+  }
+
+  if (body.style.overflow === 'hidden') {
+    body.style.overflow = '';
+  }
+}
+
+function useRootOverlayCleanup(isOpen: boolean) {
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    activeRootOverlayCount += 1;
+
+    return () => {
+      activeRootOverlayCount = Math.max(0, activeRootOverlayCount - 1);
+      releaseRootScrollLockIfIdle();
+    };
+  }, [isOpen]);
+}
 
 export const AppButton = forwardRef<HTMLButtonElement, AppButtonProps>(
   function AppButton(props, ref) {
@@ -151,6 +181,7 @@ export function AppDialog({
   isDismissable = true,
 }: AppDialogProps) {
   const state = useOverlayState({ isOpen, onOpenChange });
+  useRootOverlayCleanup(isOpen);
 
   return (
     <Modal state={state}>
@@ -202,6 +233,7 @@ export function AppDrawer({
   isDismissable = true,
 }: AppDrawerProps) {
   const state = useOverlayState({ isOpen, onOpenChange });
+  useRootOverlayCleanup(isOpen);
 
   return (
     <Drawer state={state}>

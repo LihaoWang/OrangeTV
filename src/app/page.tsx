@@ -25,13 +25,13 @@ import {
 import { getDoubanCategories } from '@/lib/douban.client';
 import { DoubanItem } from '@/lib/types';
 
+import { AnnouncementBanner } from '@/components/AnnouncementBanner';
 import CapsuleSwitch from '@/components/CapsuleSwitch';
 import ContinueWatching from '@/components/ContinueWatching';
 import PageLayout from '@/components/PageLayout';
 import ScrollableRow from '@/components/ScrollableRow';
 import { useSite } from '@/components/SiteProvider';
 import VideoCard from '@/components/VideoCard';
-import { AppDialog } from '@/components/ui/HeroPrimitives';
 
 function HomeClient() {
   const [activeTab, setActiveTab] = useState<'home' | 'favorites'>('home');
@@ -190,6 +190,13 @@ function HomeClient() {
         </div>
 
         <div className='mx-auto max-w-[1380px] space-y-10'>
+          {announcement && showAnnouncement && (
+            <AnnouncementBanner
+              announcement={announcement}
+              onDismiss={() => handleCloseAnnouncement(announcement)}
+            />
+          )}
+
           {activeTab === 'favorites' ? (
             // 收藏夹视图
             <Card>
@@ -427,25 +434,6 @@ function HomeClient() {
           )}
         </div>
       </div>
-      {announcement && (
-        <AppDialog
-          isOpen={showAnnouncement}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) handleCloseAnnouncement(announcement);
-          }}
-          title='提示'
-          footer={
-            <Button
-              fullWidth
-              onPress={() => handleCloseAnnouncement(announcement)}
-            >
-              我知道了
-            </Button>
-          }
-        >
-          <p className='text-sm leading-6 text-muted'>{announcement}</p>
-        </AppDialog>
-      )}
     </PageLayout>
   );
 }
