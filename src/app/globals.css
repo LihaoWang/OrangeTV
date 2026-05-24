@@ -199,10 +199,7 @@ html {
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at 18% -12%, rgb(var(--color-accent) / 0.1), transparent 34rem),
-    linear-gradient(180deg, rgb(var(--color-background)) 0%, rgb(var(--color-surface-secondary)) 100%);
-  background-attachment: fixed;
+  background: rgb(var(--color-background));
   color: rgb(var(--color-foreground));
   font-family: var(--font-body);
   font-feature-settings: "tnum" 1, "cv02" 1, "cv03" 1, "cv04" 1;

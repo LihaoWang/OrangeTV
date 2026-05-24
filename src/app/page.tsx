@@ -2,7 +2,13 @@
 
 'use client';
 
-import { Button, Card, EmptyState, Link as HeroLink, Skeleton } from '@heroui/react';
+import {
+  Button,
+  Card,
+  EmptyState,
+  Link as HeroLink,
+  Skeleton,
+} from '@heroui/react';
 import { Suspense, useEffect, useState } from 'react';
 
 import {
@@ -175,9 +181,10 @@ function HomeClient() {
           <CapsuleSwitch
             options={[
               { label: '首页', value: 'home' },
-              { label: '收藏夹', value: 'favorites' },
+              { label: '收藏', value: 'favorites' },
             ]}
             active={activeTab}
+            compact
             onChange={(value) => setActiveTab(value as 'home' | 'favorites')}
           />
         </div>
@@ -203,7 +210,7 @@ function HomeClient() {
                   </Button>
                 )}
               </Card.Header>
-              <div className='grid justify-start grid-cols-3 gap-x-3 gap-y-14 px-0 sm:grid-cols-[repeat(auto-fill,_minmax(11rem,_1fr))] sm:gap-x-8 sm:gap-y-20'>
+              <div className='grid grid-cols-[repeat(auto-fill,_minmax(96px,_96px))] justify-start gap-x-3 gap-y-10 px-0 pt-2 pb-5 sm:grid-cols-[repeat(auto-fill,_minmax(180px,_180px))] sm:gap-x-5 sm:gap-y-12 sm:pb-3'>
                 {favoriteItems.map((item) => (
                   <div key={item.id + item.source} className='w-full'>
                     <VideoCard
@@ -234,41 +241,37 @@ function HomeClient() {
                     <Card.Description>精选推荐</Card.Description>
                     <Card.Title>热门电影</Card.Title>
                   </div>
-                  <HeroLink
-                    href='/douban?type=movie'
-                  >
-                    查看更多
-                  </HeroLink>
+                  <HeroLink href='/douban?type=movie'>查看更多</HeroLink>
                 </Card.Header>
                 <ScrollableRow>
                   {loading
                     ? // 加载状态显示灰色占位数据
-                    Array.from({ length: 8 }).map((_, index) => (
-                      <div
-                        key={index}
-                        className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
-                      >
-                        <Skeleton className='aspect-[2/3] w-full' />
-                        <Skeleton className='mt-3 h-4' />
-                      </div>
-                    ))
+                      Array.from({ length: 8 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
+                        >
+                          <Skeleton className='aspect-[2/3] w-full' />
+                          <Skeleton className='mt-3 h-4' />
+                        </div>
+                      ))
                     : // 显示真实数据
-                    hotMovies.map((movie, index) => (
-                      <div
-                        key={index}
-                        className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
-                      >
-                        <VideoCard
-                          from='douban'
-                          title={movie.title}
-                          poster={movie.poster}
-                          douban_id={Number(movie.id)}
-                          rate={movie.rate}
-                          year={movie.year}
-                          type='movie'
-                        />
-                      </div>
-                    ))}
+                      hotMovies.map((movie, index) => (
+                        <div
+                          key={index}
+                          className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
+                        >
+                          <VideoCard
+                            from='douban'
+                            title={movie.title}
+                            poster={movie.poster}
+                            douban_id={Number(movie.id)}
+                            rate={movie.rate}
+                            year={movie.year}
+                            type='movie'
+                          />
+                        </div>
+                      ))}
                 </ScrollableRow>
               </Card>
 
@@ -279,38 +282,36 @@ function HomeClient() {
                     <Card.Description>Series</Card.Description>
                     <Card.Title>热门剧集</Card.Title>
                   </div>
-                  <HeroLink href='/douban?type=tv'>
-                    查看更多
-                  </HeroLink>
+                  <HeroLink href='/douban?type=tv'>查看更多</HeroLink>
                 </Card.Header>
                 <ScrollableRow>
                   {loading
                     ? // 加载状态显示灰色占位数据
-                    Array.from({ length: 8 }).map((_, index) => (
-                      <div
-                        key={index}
-                        className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
-                      >
-                        <Skeleton className='aspect-[2/3] w-full' />
-                        <Skeleton className='mt-3 h-4' />
-                      </div>
-                    ))
+                      Array.from({ length: 8 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
+                        >
+                          <Skeleton className='aspect-[2/3] w-full' />
+                          <Skeleton className='mt-3 h-4' />
+                        </div>
+                      ))
                     : // 显示真实数据
-                    hotTvShows.map((show, index) => (
-                      <div
-                        key={index}
-                        className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
-                      >
-                        <VideoCard
-                          from='douban'
-                          title={show.title}
-                          poster={show.poster}
-                          douban_id={Number(show.id)}
-                          rate={show.rate}
-                          year={show.year}
-                        />
-                      </div>
-                    ))}
+                      hotTvShows.map((show, index) => (
+                        <div
+                          key={index}
+                          className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
+                        >
+                          <VideoCard
+                            from='douban'
+                            title={show.title}
+                            poster={show.poster}
+                            douban_id={Number(show.id)}
+                            rate={show.rate}
+                            year={show.year}
+                          />
+                        </div>
+                      ))}
                 </ScrollableRow>
               </Card>
 
@@ -321,69 +322,65 @@ function HomeClient() {
                     <Card.Description>Bangumi</Card.Description>
                     <Card.Title>新番放送</Card.Title>
                   </div>
-                  <HeroLink
-                    href='/douban?type=anime'
-                  >
-                    查看更多
-                  </HeroLink>
+                  <HeroLink href='/douban?type=anime'>查看更多</HeroLink>
                 </Card.Header>
                 <ScrollableRow>
                   {loading
                     ? // 加载状态显示灰色占位数据
-                    Array.from({ length: 8 }).map((_, index) => (
-                      <div
-                        key={index}
-                        className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
-                      >
-                        <Skeleton className='aspect-[2/3] w-full' />
-                        <Skeleton className='mt-3 h-4' />
-                      </div>
-                    ))
-                    : // 展示当前日期的番剧
-                    (() => {
-                      // 获取当前日期对应的星期
-                      const today = new Date();
-                      const weekdays = [
-                        'Sun',
-                        'Mon',
-                        'Tue',
-                        'Wed',
-                        'Thu',
-                        'Fri',
-                        'Sat',
-                      ];
-                      const currentWeekday = weekdays[today.getDay()];
-
-                      // 找到当前星期对应的番剧数据
-                      const todayAnimes =
-                        bangumiCalendarData.find(
-                          (item) => item.weekday.en === currentWeekday
-                        )?.items || [];
-
-                      return todayAnimes.map((anime, index) => (
+                      Array.from({ length: 8 }).map((_, index) => (
                         <div
-                          key={`${anime.id || 0}-${index}`}
+                          key={index}
                           className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
                         >
-                          <VideoCard
-                            from='douban'
-                            title={anime.name_cn || anime.name || '未知标题'}
-                            poster={
-                              anime.images?.large ||
-                              anime.images?.common ||
-                              anime.images?.medium ||
-                              anime.images?.small ||
-                              anime.images?.grid ||
-                              '' // 空字符串，让 VideoCard 组件处理图片加载失败
-                            }
-                            douban_id={anime.id || 0}
-                            rate={anime.rating?.score?.toFixed(1) || ''}
-                            year={anime.air_date?.split('-')?.[0] || ''}
-                            isBangumi={true}
-                          />
+                          <Skeleton className='aspect-[2/3] w-full' />
+                          <Skeleton className='mt-3 h-4' />
                         </div>
-                      ));
-                    })()}
+                      ))
+                    : // 展示当前日期的番剧
+                      (() => {
+                        // 获取当前日期对应的星期
+                        const today = new Date();
+                        const weekdays = [
+                          'Sun',
+                          'Mon',
+                          'Tue',
+                          'Wed',
+                          'Thu',
+                          'Fri',
+                          'Sat',
+                        ];
+                        const currentWeekday = weekdays[today.getDay()];
+
+                        // 找到当前星期对应的番剧数据
+                        const todayAnimes =
+                          bangumiCalendarData.find(
+                            (item) => item.weekday.en === currentWeekday
+                          )?.items || [];
+
+                        return todayAnimes.map((anime, index) => (
+                          <div
+                            key={`${anime.id || 0}-${index}`}
+                            className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
+                          >
+                            <VideoCard
+                              from='douban'
+                              title={anime.name_cn || anime.name || '未知标题'}
+                              poster={
+                                anime.images?.large ||
+                                anime.images?.common ||
+                                anime.images?.medium ||
+                                anime.images?.small ||
+                                anime.images?.grid ||
+                                '' // 空字符串，让 VideoCard 组件处理图片加载失败
+                              }
+                              douban_id={anime.id || 0}
+                              rate={anime.rating?.score?.toFixed(1) || ''}
+                              year={anime.air_date?.split('-')?.[0] || ''}
+                              isBangumi={true}
+                            />
+                          </div>
+                        ));
+                      })()}
                 </ScrollableRow>
               </Card>
 
@@ -394,40 +391,36 @@ function HomeClient() {
                     <Card.Description>Shows</Card.Description>
                     <Card.Title>热门综艺</Card.Title>
                   </div>
-                  <HeroLink
-                    href='/douban?type=show'
-                  >
-                    查看更多
-                  </HeroLink>
+                  <HeroLink href='/douban?type=show'>查看更多</HeroLink>
                 </Card.Header>
                 <ScrollableRow>
                   {loading
                     ? // 加载状态显示灰色占位数据
-                    Array.from({ length: 8 }).map((_, index) => (
-                      <div
-                        key={index}
-                        className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
-                      >
-                        <Skeleton className='aspect-[2/3] w-full' />
-                        <Skeleton className='mt-3 h-4' />
-                      </div>
-                    ))
+                      Array.from({ length: 8 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
+                        >
+                          <Skeleton className='aspect-[2/3] w-full' />
+                          <Skeleton className='mt-3 h-4' />
+                        </div>
+                      ))
                     : // 显示真实数据
-                    hotVarietyShows.map((show, index) => (
-                      <div
-                        key={index}
-                        className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
-                      >
-                        <VideoCard
-                          from='douban'
-                          title={show.title}
-                          poster={show.poster}
-                          douban_id={Number(show.id)}
-                          rate={show.rate}
-                          year={show.year}
-                        />
-                      </div>
-                    ))}
+                      hotVarietyShows.map((show, index) => (
+                        <div
+                          key={index}
+                          className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
+                        >
+                          <VideoCard
+                            from='douban'
+                            title={show.title}
+                            poster={show.poster}
+                            douban_id={Number(show.id)}
+                            rate={show.rate}
+                            year={show.year}
+                          />
+                        </div>
+                      ))}
                 </ScrollableRow>
               </Card>
             </>
