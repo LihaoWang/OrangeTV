@@ -31,7 +31,7 @@ describe('dev-with-redis helpers', () => {
     });
   });
 
-  test('builds the Redis URL passed to the Next.js dev process', () => {
+  test('builds the Redis URL passed to the local dev process', () => {
     expect(buildRedisUrl('6380')).toBe('redis://localhost:6380');
   });
 

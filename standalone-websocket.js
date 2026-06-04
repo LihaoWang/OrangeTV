@@ -1,6 +1,6 @@
 /**
  * 独立的WebSocket服务器
- * 完全独立于Next.js，避免任何冲突
+ * 完全独立于主应用服务器，避免任何冲突
  */
 const WebSocket = require('ws');
 

@@ -8,7 +8,7 @@ import { UpstashRedisStorage } from './upstash.db';
 
 // storage type 常量: 'localstorage' | 'redis' | 'upstash'，默认 'localstorage'
 const STORAGE_TYPE =
-  (process.env.NEXT_PUBLIC_STORAGE_TYPE as
+  (process.env.VITE_STORAGE_TYPE as
     | 'localstorage'
     | 'redis'
     | 'upstash'

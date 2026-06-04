@@ -8,7 +8,7 @@ Chosen direction: `A2` cinematic lounge
 
 OrangeTV will be redesigned around the `A2` direction: a sharper, warmer, projection-inspired interface that treats the app like a screening room rather than a generic streaming dashboard.
 
-The redesign will not introduce a new information architecture or a new framework. It will keep the current Next.js 14 + Tailwind CSS v3 stack, preserve existing product flows, and refactor the visual system through a new design token layer and updated component styling.
+The redesign will not introduce a new information architecture or a new framework. It will keep the current React + Tailwind CSS stack, preserve existing product flows, and refactor the visual system through a new design token layer and updated component styling.
 
 The visual reset is defined by these decisions:
 

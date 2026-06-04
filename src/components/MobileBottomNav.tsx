@@ -4,7 +4,7 @@
 
 import { Clover, Film, Home, Star, Tv } from 'lucide-react';
 import { Button, Card, ScrollShadow } from '@heroui/react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter } from '@/client/router';
 import { useEffect, useState } from 'react';
 
 interface MobileBottomNavProps {

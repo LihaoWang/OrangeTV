@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
+/* eslint-disable react/no-unknown-property */
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/client/router';
 import { Button, Chip, Spinner } from '@heroui/react';
 import React, {
   useCallback,

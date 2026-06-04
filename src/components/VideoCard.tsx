@@ -9,7 +9,6 @@ import {
   Trash2,
 } from 'lucide-react';
 import {
-  Badge,
   Button,
   Card,
   Chip,
@@ -17,8 +16,8 @@ import {
   ProgressBar,
   Tooltip,
 } from '@heroui/react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import Image from '@/client/AppImage';
+import { useRouter } from '@/client/router';
 import React, {
   forwardRef,
   memo,
@@ -478,6 +477,14 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(
       return configs[from] || configs.search;
     }, [from, isAggregate, douban_id, rate]);
 
+    const coverBadgeClass =
+      'pointer-events-none inline-flex h-7 min-w-11 max-w-[calc(100%-1rem)] items-center justify-center rounded-full border border-white/20 bg-black/70 px-2.5 text-[12px] font-semibold leading-none tracking-normal text-white shadow-[0_6px_18px_rgba(0,0,0,0.35)] backdrop-blur-md';
+    const hasYearBadge =
+      config.showYear &&
+      actualYear &&
+      actualYear !== 'unknown' &&
+      actualYear.trim() !== '';
+
     // 移动端操作菜单配置
     const mobileActions = useMemo(() => {
       const actions = [];
@@ -835,14 +842,9 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(
             )}
 
             {/* 年份徽章 */}
-            {config.showYear &&
-              actualYear &&
-              actualYear !== 'unknown' &&
-              actualYear.trim() !== '' && (
-                <Badge
-                  size='sm'
-                  variant='secondary'
-                  className='absolute left-2 top-2'
+            {hasYearBadge && (
+                <div
+                  className={`absolute left-2 top-2 ${coverBadgeClass}`}
                   style={
                     {
                       WebkitUserSelect: 'none',
@@ -855,17 +857,14 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(
                     return false;
                   }}
                 >
-                  <Badge.Label>{actualYear}</Badge.Label>
-                </Badge>
+                  {actualYear}
+                </div>
               )}
 
             {/* 徽章 */}
             {config.showRating && rate && (
-              <Chip
-                size='md'
-                color='accent'
-                variant='primary'
-                className='absolute right-2 top-2'
+              <div
+                className={`absolute right-2 top-2 ${coverBadgeClass}`}
                 style={
                   {
                     WebkitUserSelect: 'none',
@@ -878,15 +877,13 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(
                   return false;
                 }}
               >
-                <Chip.Label>{rate}</Chip.Label>
-              </Chip>
+                {rate}
+              </div>
             )}
 
             {actualEpisodes && actualEpisodes > 1 && (
-              <Chip
-                size='md'
-                variant='secondary'
-                className='absolute right-3 top-3 min-w-12 justify-center'
+              <div
+                className={`absolute right-2 ${config.showRating && rate ? 'top-10' : 'top-2'} ${coverBadgeClass}`}
                 style={
                   {
                     WebkitUserSelect: 'none',
@@ -899,12 +896,10 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(
                   return false;
                 }}
               >
-                <Chip.Label>
-                  {currentEpisode
-                    ? `${currentEpisode}/${actualEpisodes}`
-                    : actualEpisodes}
-                </Chip.Label>
-              </Chip>
+                {currentEpisode
+                  ? `${currentEpisode}/${actualEpisodes}`
+                  : actualEpisodes}
+              </div>
             )}
 
             {/* 豆瓣链接 */}
@@ -920,7 +915,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(
                   target='_blank'
                   rel='noopener noreferrer'
                   onClick={(e) => e.stopPropagation()}
-                  className='absolute top-2 left-2 opacity-0 -translate-x-2 transition-all duration-300 ease-in-out delay-100 sm:group-hover:opacity-100 sm:group-hover:translate-x-0'
+                  className={`absolute left-2 ${hasYearBadge ? 'top-11' : 'top-2'} opacity-0 -translate-x-2 transition-all duration-300 ease-in-out delay-100 sm:group-hover:opacity-100 sm:group-hover:translate-x-0`}
                   style={
                     {
                       WebkitUserSelect: 'none',
@@ -980,10 +975,8 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(
                         } as React.CSSProperties
                       }
                     >
-                      <Badge
-                        size='sm'
-                        color='accent'
-                        variant='secondary'
+                      <div
+                        className={coverBadgeClass}
                         style={
                           {
                             WebkitUserSelect: 'none',
@@ -996,8 +989,8 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(
                           return false;
                         }}
                       >
-                        <Badge.Label>{sourceCount}</Badge.Label>
-                      </Badge>
+                        {sourceCount}
+                      </div>
 
                       {/* 播放源详情悬浮框 */}
                       {(() => {

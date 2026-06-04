@@ -3,8 +3,8 @@
 'use client';
 
 import { Moon, Sun } from 'lucide-react';
-import { usePathname } from 'next/navigation';
-import { useTheme } from 'next-themes';
+import { usePathname } from '@/client/router';
+import { useTheme } from '@/client/theme-provider';
 import { useEffect, useState } from 'react';
 
 import { AppIconButton } from './ui/HeroPrimitives';

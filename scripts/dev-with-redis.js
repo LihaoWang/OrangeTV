@@ -38,7 +38,7 @@ function isPortAvailable(port) {
   });
 }
 
-async function assertDevPortsAvailable(ports = [3000, 3001]) {
+async function assertDevPortsAvailable(ports = [3000]) {
   const checks = await Promise.all(
     ports.map(async (port) => ({
       port,
@@ -136,16 +136,16 @@ function ensureRedis(config = getRedisConfig()) {
   }
 }
 
-function startNextDev(config = getRedisConfig()) {
+function startFastifyDev(config = getRedisConfig()) {
   const redisUrl = buildRedisUrl(config.port);
   const env = {
     ...process.env,
-    NEXT_PUBLIC_STORAGE_TYPE: 'redis',
+    VITE_STORAGE_TYPE: 'redis',
     REDIS_URL: redisUrl,
   };
 
   console.log(`Using Redis storage: ${redisUrl}`);
-  console.log('Starting OrangeTV dev server...');
+  console.log('Starting OrangeTV Fastify/Vite dev server...');
 
   const child = spawn('pnpm', ['dev'], {
     env,
@@ -172,7 +172,7 @@ async function main() {
     const config = getRedisConfig();
     await assertDevPortsAvailable();
     ensureRedis(config);
-    startNextDev(config);
+    startFastifyDev(config);
   } catch (error) {
     console.error(error.message);
     process.exit(1);
@@ -190,4 +190,5 @@ module.exports = {
   getRedisConfig,
   isPortAvailable,
   resolveRedisAction,
+  startFastifyDev,
 };

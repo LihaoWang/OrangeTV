@@ -4,13 +4,14 @@
   <img src="public/logo.png" alt="OrangeTV Logo" width="120">
 </div>
 
-> 🎬 **OrangeTV** 是一个开箱即用的、跨平台的影视聚合播放器。它基于 **Next.js 14** + **Tailwind&nbsp;CSS** + **TypeScript** 构建，支持多资源搜索、在线播放、收藏同步、播放记录、云端存储，让你可以随时随地畅享海量免费影视内容。
+> 🎬 **OrangeTV** 是一个开箱即用的、跨平台的影视聚合播放器。它基于 **Vite + React**、**Fastify**、**Tailwind&nbsp;CSS** 和 **TypeScript** 构建，支持多资源搜索、在线播放、收藏同步、播放记录、云端存储，让你可以随时随地畅享海量免费影视内容。
 
 <div align="center">
 
-![Next.js](https://img.shields.io/badge/Next.js-14-000?logo=nextdotjs)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-38bdf8?logo=tailwindcss)
-![TypeScript](https://img.shields.io/badge/TypeScript-4.x-3178c6?logo=typescript)
+![Vite](https://img.shields.io/badge/Vite-React-646cff?logo=vite)
+![Fastify](https://img.shields.io/badge/Fastify-API-000?logo=fastify)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4-38bdf8?logo=tailwindcss)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6?logo=typescript)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Docker Ready](https://img.shields.io/badge/Docker-ready-blue?logo=docker)
 
@@ -42,6 +43,7 @@
 ## 🗺 目录
 
 - [技术栈](#技术栈)
+- [本地开发环境](#本地开发环境)
 - [部署](#部署)
 - [配置文件](#配置文件)
 - [自动更新](#自动更新)
@@ -56,12 +58,19 @@
 
 | 分类      | 主要依赖                                                                                              |
 | --------- | ----------------------------------------------------------------------------------------------------- |
-| 前端框架  | [Next.js 14](https://nextjs.org/) · App Router                                                        |
-| UI & 样式 | [Tailwind&nbsp;CSS 3](https://tailwindcss.com/)                                                       |
-| 语言      | TypeScript 4                                                                                          |
+| 前端框架  | [Vite](https://vite.dev/) · [React Router](https://reactrouter.com/)                                  |
+| 后端      | [Fastify](https://fastify.dev/)                                                                       |
+| UI & 样式 | [Tailwind&nbsp;CSS 4](https://tailwindcss.com/)                                                       |
+| 语言      | TypeScript 5                                                                                          |
 | 播放器    | [ArtPlayer](https://github.com/zhw2590582/ArtPlayer) · [HLS.js](https://github.com/video-dev/hls.js/) |
 | 代码质量  | ESLint · Prettier · Jest                                                                              |
 | 部署      | Docker                                                                    |
+
+## 本地开发环境
+
+- Node.js：`v24.14.1`，仓库通过 `.nvmrc` 固定，并只支持 Node 24.x。
+- pnpm：`10.14.0`，通过 `packageManager`、`engines` 和 `.npmrc` 校验。
+- 建议先运行 `nvm use`，再运行 `corepack enable && corepack prepare pnpm@10.14.0 --activate`，然后执行 `pnpm install`。
 
 ## 部署
 
@@ -77,11 +86,10 @@ services:
     restart: on-failure
     ports:
       - '3000:3000'
-      - '3001:3001'
     environment:
       - USERNAME=admin
       - PASSWORD=orange
-      - NEXT_PUBLIC_STORAGE_TYPE=kvrocks
+      - VITE_STORAGE_TYPE=kvrocks
       - KVROCKS_URL=redis://OrangeTV-kvrocks:6666
     networks:
       - OrangeTV-network
@@ -112,11 +120,10 @@ services:
     restart: on-failure
     ports:
       - '3000:3000'
-      - '3001:3001'
     environment:
       - USERNAME=admin
       - PASSWORD=orange
-      - NEXT_PUBLIC_STORAGE_TYPE=redis
+      - VITE_STORAGE_TYPE=redis
       - REDIS_URL=redis://OrangeTV-redis:6379
     networks:
       - OrangeTV-network
@@ -149,11 +156,10 @@ services:
     restart: on-failure
     ports:
       - '3000:3000'
-      - '3001:3001'
     environment:
       - USERNAME=admin
       - PASSWORD=orange
-      - NEXT_PUBLIC_STORAGE_TYPE=upstash
+      - VITE_STORAGE_TYPE=upstash
       - UPSTASH_URL=上面 https 开头的 HTTPS ENDPOINT
       - UPSTASH_TOKEN=上面的 TOKEN
 ```
@@ -218,37 +224,37 @@ dockge/komodo 等 docker compose UI 也有自动更新功能
 | USERNAME                            | 站长账号           | 任意字符串                       | 无默认，必填字段                                                                                                                     |
 | PASSWORD                            | 站长密码           | 任意字符串                       | 无默认，必填字段                                                                                                                     |
 | SITE_BASE                           | 站点 url              |       形如 https://example.com                  | 空                                                                                                                     |
-| NEXT_PUBLIC_SITE_NAME               | 站点名称                                     | 任意字符串                       | OrangeTV                                                                                                                     |
+| VITE_SITE_NAME               | 站点名称                                     | 任意字符串                       | OrangeTV                                                                                                                     |
 | ANNOUNCEMENT                        | 站点公告                                     | 任意字符串                       | 本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。 |
-| NEXT_PUBLIC_STORAGE_TYPE            | 播放记录/收藏的存储方式                      | redis、kvrocks、upstash | 无默认，必填字段                                                                                                               |
+| VITE_STORAGE_TYPE            | 播放记录/收藏的存储方式                      | redis、kvrocks、upstash | 无默认，必填字段                                                                                                               |
 | KVROCKS_URL                           | kvrocks 连接 url                               | 连接 url                         | 空                                                                                                                         |
 | REDIS_URL                           | redis 连接 url                               | 连接 url                         | 空                                                                                                                         |
 | UPSTASH_URL                         | upstash redis 连接 url                       | 连接 url                         | 空                                                                                                                         |
 | UPSTASH_TOKEN                       | upstash redis 连接 token                     | 连接 token                       | 空                                                                                                                         |
-| NEXT_PUBLIC_SEARCH_MAX_PAGE         | 搜索接口可拉取的最大页数                     | 1-50                             | 5                                                                                                                          |
-| NEXT_PUBLIC_DOUBAN_PROXY_TYPE       | 豆瓣数据源请求方式                           | 见下方                           | direct                                                                                                                     |
-| NEXT_PUBLIC_DOUBAN_PROXY            | 自定义豆瓣数据代理 URL                       | url prefix                       | (空)                                                                                                                       |
-| NEXT_PUBLIC_DOUBAN_IMAGE_PROXY_TYPE | 豆瓣图片代理类型                             | 见下方                           | direct                                                                                                                     |
-| NEXT_PUBLIC_DOUBAN_IMAGE_PROXY      | 自定义豆瓣图片代理 URL                       | url prefix                       | (空)                                                                                                                       |
-| NEXT_PUBLIC_DISABLE_YELLOW_FILTER   | 关闭色情内容过滤                             | true/false                       | false                                                                                                                      |
-| NEXT_PUBLIC_FLUID_SEARCH | 是否开启搜索接口流式输出 | true/ false | true |
+| VITE_SEARCH_MAX_PAGE         | 搜索接口可拉取的最大页数                     | 1-50                             | 5                                                                                                                          |
+| VITE_DOUBAN_PROXY_TYPE       | 豆瓣数据源请求方式                           | 见下方                           | direct                                                                                                                     |
+| VITE_DOUBAN_PROXY            | 自定义豆瓣数据代理 URL                       | url prefix                       | (空)                                                                                                                       |
+| VITE_DOUBAN_IMAGE_PROXY_TYPE | 豆瓣图片代理类型                             | 见下方                           | direct                                                                                                                     |
+| VITE_DOUBAN_IMAGE_PROXY      | 自定义豆瓣图片代理 URL                       | url prefix                       | (空)                                                                                                                       |
+| VITE_DISABLE_YELLOW_FILTER   | 关闭色情内容过滤                             | true/false                       | false                                                                                                                      |
+| VITE_FLUID_SEARCH | 是否开启搜索接口流式输出 | true/ false | true |
 
-NEXT_PUBLIC_DOUBAN_PROXY_TYPE 选项解释：
+VITE_DOUBAN_PROXY_TYPE 选项解释：
 
 - direct: 由服务器直接请求豆瓣源站
 - cors-proxy-zwei: 浏览器向 cors proxy 请求豆瓣数据，该 cors proxy 由 [Zwei](https://github.com/bestzwei) 搭建
 - cmliussss-cdn-tencent: 浏览器向豆瓣 CDN 请求数据，该 CDN 由 [CMLiussss](https://github.com/cmliu) 搭建，并由腾讯云 cdn 提供加速
 - cmliussss-cdn-ali: 浏览器向豆瓣 CDN 请求数据，该 CDN 由 [CMLiussss](https://github.com/cmliu) 搭建，并由阿里云 cdn 提供加速
-- custom: 用户自定义 proxy，由 NEXT_PUBLIC_DOUBAN_PROXY 定义
+- custom: 用户自定义 proxy，由 VITE_DOUBAN_PROXY 定义
 
-NEXT_PUBLIC_DOUBAN_IMAGE_PROXY_TYPE 选项解释：
+VITE_DOUBAN_IMAGE_PROXY_TYPE 选项解释：
 
 - direct：由浏览器直接请求豆瓣分配的默认图片域名
 - server：由服务器代理请求豆瓣分配的默认图片域名
 - img3：由浏览器请求豆瓣官方的精品 cdn（阿里云）
 - cmliussss-cdn-tencent：由浏览器请求豆瓣 CDN，该 CDN 由 [CMLiussss](https://github.com/cmliu) 搭建，并由腾讯云 cdn 提供加速
 - cmliussss-cdn-ali：由浏览器请求豆瓣 CDN，该 CDN 由 [CMLiussss](https://github.com/cmliu) 搭建，并由阿里云 cdn 提供加速
-- custom: 用户自定义 proxy，由 NEXT_PUBLIC_DOUBAN_IMAGE_PROXY 定义
+- custom: 用户自定义 proxy，由 VITE_DOUBAN_IMAGE_PROXY 定义
 
 ## AndroidTV 使用
 
@@ -282,7 +288,7 @@ NEXT_PUBLIC_DOUBAN_IMAGE_PROXY_TYPE 选项解释：
 
 ## 致谢
 
-- [ts-nextjs-tailwind-starter](https://github.com/theodorusclarence/ts-nextjs-tailwind-starter) — 项目最初基于该脚手架。
+- OrangeTV has moved to a pure Vite/Fastify runtime while preserving the original product flows.
 - [LibreTV](https://github.com/LibreSpark/LibreTV) — 由此启发，站在巨人的肩膀上。
 - [MoonTV](https://github.com/MoonTechLab/LunaTV) — 由此启发，第二次站在巨人的肩膀上。
 - [艾福森昵] - 感谢论坛佬友提供的短剧API

@@ -12,8 +12,8 @@ import {
   Star,
   Tv,
 } from 'lucide-react';
-import Image from 'next/image';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import Image from '@/client/AppImage';
+import { usePathname, useRouter, useSearchParams } from '@/client/router';
 import { Button, Card, Link as HeroLink, Separator, Tooltip } from '@heroui/react';
 import {
   createContext,

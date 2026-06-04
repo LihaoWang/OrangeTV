@@ -1,5 +1,5 @@
 import { Radio } from 'lucide-react';
-import Image from 'next/image';
+import Image from '@/client/AppImage';
 import React from 'react';
 import { Card, Chip } from '@heroui/react';
 

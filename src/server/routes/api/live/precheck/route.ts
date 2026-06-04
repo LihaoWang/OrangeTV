@@ -1,0 +1,53 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { AppRequest, AppResponse } from '@/server/web';
+
+import { getConfig } from '@/lib/config';
+
+
+export async function GET(request: AppRequest) {
+  const { searchParams } = new URL(request.url);
+  const url = searchParams.get('url');
+  const source = searchParams.get('OrangeTV-source');
+
+  if (!url) {
+    return AppResponse.json({ error: 'Missing url' }, { status: 400 });
+  }
+  const config = await getConfig();
+  const liveSource = config.LiveConfig?.find((s: any) => s.key === source);
+  if (!liveSource) {
+    return AppResponse.json({ error: 'Source not found' }, { status: 404 });
+  }
+  const ua = liveSource.ua || 'AptvPlayer/1.4.10';
+
+  try {
+    const decodedUrl = decodeURIComponent(url);
+
+    const response = await fetch(decodedUrl, {
+      cache: 'no-cache',
+      redirect: 'follow',
+      credentials: 'same-origin',
+      headers: {
+        'User-Agent': ua,
+      },
+    });
+
+    if (!response.ok) {
+      return AppResponse.json({ error: 'Failed to fetch', message: response.statusText }, { status: 500 });
+    }
+
+    const contentType = response.headers.get('Content-Type');
+    if (response.body) {
+      response.body.cancel();
+    }
+    if (contentType?.includes('video/mp4')) {
+      return AppResponse.json({ success: true, type: 'mp4' }, { status: 200 });
+    }
+    if (contentType?.includes('video/x-flv')) {
+      return AppResponse.json({ success: true, type: 'flv' }, { status: 200 });
+    }
+    return AppResponse.json({ success: true, type: 'm3u8' }, { status: 200 });
+  } catch (error) {
+    return AppResponse.json({ error: 'Failed to fetch', message: error }, { status: 500 });
+  }
+}

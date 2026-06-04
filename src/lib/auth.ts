@@ -1,7 +1,7 @@
-import { NextRequest } from 'next/server';
+import type { AppRequest } from '@/server/web';
 
 // 从cookie获取认证信息 (服务端使用)
-export function getAuthInfoFromCookie(request: NextRequest): {
+export function getAuthInfoFromCookie(request: AppRequest): {
   password?: string;
   username?: string;
   signature?: string;

@@ -225,25 +225,25 @@ async function getInitConfig(configFile: string, subConfig: {
     ConfigFile: configFile,
     ConfigSubscribtion: subConfig,
     SiteConfig: {
-      SiteName: process.env.NEXT_PUBLIC_SITE_NAME || 'OrangeTV',
+      SiteName: process.env.VITE_SITE_NAME || 'OrangeTV',
       Announcement:
         process.env.ANNOUNCEMENT ||
         '本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。',
       SearchDownstreamMaxPage:
-        Number(process.env.NEXT_PUBLIC_SEARCH_MAX_PAGE) || 5,
+        Number(process.env.VITE_SEARCH_MAX_PAGE) || 5,
       SiteInterfaceCacheTime: cfgFile.cache_time || 7200,
       DoubanProxyType:
-        process.env.NEXT_PUBLIC_DOUBAN_PROXY_TYPE || 'cmliussss-cdn-tencent',
-      DoubanProxy: process.env.NEXT_PUBLIC_DOUBAN_PROXY || '',
+        process.env.VITE_DOUBAN_PROXY_TYPE || 'cmliussss-cdn-tencent',
+      DoubanProxy: process.env.VITE_DOUBAN_PROXY || '',
       DoubanImageProxyType:
-        process.env.NEXT_PUBLIC_DOUBAN_IMAGE_PROXY_TYPE || 'cmliussss-cdn-tencent',
-      DoubanImageProxy: process.env.NEXT_PUBLIC_DOUBAN_IMAGE_PROXY || '',
+        process.env.VITE_DOUBAN_IMAGE_PROXY_TYPE || 'cmliussss-cdn-tencent',
+      DoubanImageProxy: process.env.VITE_DOUBAN_IMAGE_PROXY || '',
       DisableYellowFilter:
-        process.env.NEXT_PUBLIC_DISABLE_YELLOW_FILTER === 'true',
+        process.env.VITE_DISABLE_YELLOW_FILTER === 'true',
       FluidSearch:
-        process.env.NEXT_PUBLIC_FLUID_SEARCH !== 'false',
+        process.env.VITE_FLUID_SEARCH !== 'false',
       RequireDeviceCode:
-        process.env.NEXT_PUBLIC_REQUIRE_DEVICE_CODE !== 'false',
+        process.env.VITE_REQUIRE_DEVICE_CODE !== 'false',
     },
     UserConfig: {
       Users: [],
@@ -360,23 +360,23 @@ export function configSelfCheck(adminConfig: AdminConfig): AdminConfig {
   // 确保 SiteConfig 及其属性存在
   if (!adminConfig.SiteConfig) {
     adminConfig.SiteConfig = {
-      SiteName: process.env.NEXT_PUBLIC_SITE_NAME || 'OrangeTV',
+      SiteName: process.env.VITE_SITE_NAME || 'OrangeTV',
       Announcement: process.env.ANNOUNCEMENT || '本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。',
-      SearchDownstreamMaxPage: Number(process.env.NEXT_PUBLIC_SEARCH_MAX_PAGE) || 5,
+      SearchDownstreamMaxPage: Number(process.env.VITE_SEARCH_MAX_PAGE) || 5,
       SiteInterfaceCacheTime: 7200,
-      DoubanProxyType: process.env.NEXT_PUBLIC_DOUBAN_PROXY_TYPE || 'cmliussss-cdn-tencent',
-      DoubanProxy: process.env.NEXT_PUBLIC_DOUBAN_PROXY || '',
-      DoubanImageProxyType: process.env.NEXT_PUBLIC_DOUBAN_IMAGE_PROXY_TYPE || 'cmliussss-cdn-tencent',
-      DoubanImageProxy: process.env.NEXT_PUBLIC_DOUBAN_IMAGE_PROXY || '',
-      DisableYellowFilter: process.env.NEXT_PUBLIC_DISABLE_YELLOW_FILTER === 'true',
-      FluidSearch: process.env.NEXT_PUBLIC_FLUID_SEARCH !== 'false',
-      RequireDeviceCode: process.env.NEXT_PUBLIC_REQUIRE_DEVICE_CODE !== 'false',
+      DoubanProxyType: process.env.VITE_DOUBAN_PROXY_TYPE || 'cmliussss-cdn-tencent',
+      DoubanProxy: process.env.VITE_DOUBAN_PROXY || '',
+      DoubanImageProxyType: process.env.VITE_DOUBAN_IMAGE_PROXY_TYPE || 'cmliussss-cdn-tencent',
+      DoubanImageProxy: process.env.VITE_DOUBAN_IMAGE_PROXY || '',
+      DisableYellowFilter: process.env.VITE_DISABLE_YELLOW_FILTER === 'true',
+      FluidSearch: process.env.VITE_FLUID_SEARCH !== 'false',
+      RequireDeviceCode: process.env.VITE_REQUIRE_DEVICE_CODE !== 'false',
     };
   }
 
   // 确保 RequireDeviceCode 属性存在
   if (adminConfig.SiteConfig.RequireDeviceCode === undefined) {
-    adminConfig.SiteConfig.RequireDeviceCode = process.env.NEXT_PUBLIC_REQUIRE_DEVICE_CODE !== 'false';
+    adminConfig.SiteConfig.RequireDeviceCode = process.env.VITE_REQUIRE_DEVICE_CODE !== 'false';
   }
 
   // 确保 ThemeConfig 存在

@@ -23,8 +23,8 @@ import {
   User,
   Upload,
 } from 'lucide-react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import Image from '@/client/AppImage';
+import { useRouter } from '@/client/router';
 import { useEffect, useRef, useState } from 'react';
 import ReactCrop, { Crop, PercentCrop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';

@@ -4,15 +4,15 @@ import MobileBottomNav from '../MobileBottomNav';
 import Sidebar from '../Sidebar';
 import { ThemeToggle } from '../ThemeToggle';
 
-const push = jest.fn();
+const mockPush = jest.fn();
 
-jest.mock('next/navigation', () => ({
+jest.mock('@/client/router', () => ({
   usePathname: () => '/',
-  useRouter: () => ({ push }),
+  useRouter: () => ({ push: mockPush }),
   useSearchParams: () => new URLSearchParams(),
 }));
 
-jest.mock('next-themes', () => ({
+jest.mock('@/client/theme-provider', () => ({
   useTheme: () => ({
     resolvedTheme: 'dark',
     setTheme: jest.fn(),
@@ -25,7 +25,7 @@ jest.mock('../ChatModal', () => ({
 
 describe('hidden front-end options', () => {
   beforeEach(() => {
-    push.mockClear();
+    mockPush.mockClear();
     localStorage.clear();
   });
 

@@ -1,0 +1,129 @@
+import * as route0 from './api/admin/category/route';
+import * as route1 from './api/admin/config/route';
+import * as route2 from './api/admin/config_file/route';
+import * as route3 from './api/admin/config_subscription/fetch/route';
+import * as route4 from './api/admin/data_migration/export/route';
+import * as route5 from './api/admin/data_migration/import/route';
+import * as route6 from './api/admin/live/route';
+import * as route7 from './api/admin/live/refresh/route';
+import * as route8 from './api/admin/reset/route';
+import * as route9 from './api/admin/site/route';
+import * as route10 from './api/admin/source/route';
+import * as route11 from './api/admin/source/validate/route';
+import * as route12 from './api/admin/theme/route';
+import * as route13 from './api/admin/user/route';
+import * as route14 from './api/avatar/route';
+import * as route15 from './api/change-password/route';
+import * as route16 from './api/chat/conversations/route';
+import * as route17 from './api/chat/friend-requests/route';
+import * as route18 from './api/chat/friends/route';
+import * as route19 from './api/chat/messages/route';
+import * as route20 from './api/chat/online-users/route';
+import * as route21 from './api/chat/search-users/route';
+import * as route22 from './api/chat/send-message/route';
+import * as route23 from './api/cron/route';
+import * as route24 from './api/danmu/route';
+import * as route25 from './api/detail/route';
+import * as route26 from './api/douban/route';
+import * as route27 from './api/douban/categories/route';
+import * as route28 from './api/douban/recommends/route';
+import * as route29 from './api/favorites/route';
+import * as route30 from './api/health/route';
+import * as route31 from './api/image-proxy/route';
+import * as route32 from './api/live/channels/route';
+import * as route33 from './api/live/epg/route';
+import * as route34 from './api/live/precheck/route';
+import * as route35 from './api/live/sources/route';
+import * as route36 from './api/login/route';
+import * as route37 from './api/logout/route';
+import * as route38 from './api/machine-code/route';
+import * as route39 from './api/playrecords/route';
+import * as route40 from './api/proxy/key/route';
+import * as route41 from './api/proxy/logo/route';
+import * as route42 from './api/proxy/m3u8/route';
+import * as route43 from './api/proxy/segment/route';
+import * as route44 from './api/proxy/video/route';
+import * as route45 from './api/proxy/video/test/route';
+import * as route46 from './api/search/route';
+import * as route47 from './api/search/one/route';
+import * as route48 from './api/search/resources/route';
+import * as route49 from './api/search/suggestions/route';
+import * as route50 from './api/search/ws/route';
+import * as route51 from './api/searchhistory/route';
+import * as route52 from './api/server-config/route';
+import * as route53 from './api/shortdrama/categories/route';
+import * as route54 from './api/shortdrama/latest/route';
+import * as route55 from './api/shortdrama/list/route';
+import * as route56 from './api/shortdrama/parse/all/route';
+import * as route57 from './api/shortdrama/parse/batch/route';
+import * as route58 from './api/shortdrama/parse/single/route';
+import * as route59 from './api/shortdrama/recommend/route';
+import * as route60 from './api/shortdrama/search/route';
+import * as route61 from './api/skipconfigs/route';
+import * as route62 from './api/websocket/route';
+
+export const apiRoutes = [
+  { path: '/api/admin/category', module: route0 },
+  { path: '/api/admin/config', module: route1 },
+  { path: '/api/admin/config_file', module: route2 },
+  { path: '/api/admin/config_subscription/fetch', module: route3 },
+  { path: '/api/admin/data_migration/export', module: route4 },
+  { path: '/api/admin/data_migration/import', module: route5 },
+  { path: '/api/admin/live', module: route6 },
+  { path: '/api/admin/live/refresh', module: route7 },
+  { path: '/api/admin/reset', module: route8 },
+  { path: '/api/admin/site', module: route9 },
+  { path: '/api/admin/source', module: route10 },
+  { path: '/api/admin/source/validate', module: route11 },
+  { path: '/api/admin/theme', module: route12 },
+  { path: '/api/admin/user', module: route13 },
+  { path: '/api/avatar', module: route14 },
+  { path: '/api/change-password', module: route15 },
+  { path: '/api/chat/conversations', module: route16 },
+  { path: '/api/chat/friend-requests', module: route17 },
+  { path: '/api/chat/friends', module: route18 },
+  { path: '/api/chat/messages', module: route19 },
+  { path: '/api/chat/online-users', module: route20 },
+  { path: '/api/chat/search-users', module: route21 },
+  { path: '/api/chat/send-message', module: route22 },
+  { path: '/api/cron', module: route23 },
+  { path: '/api/danmu', module: route24 },
+  { path: '/api/detail', module: route25 },
+  { path: '/api/douban', module: route26 },
+  { path: '/api/douban/categories', module: route27 },
+  { path: '/api/douban/recommends', module: route28 },
+  { path: '/api/favorites', module: route29 },
+  { path: '/api/health', module: route30 },
+  { path: '/api/image-proxy', module: route31 },
+  { path: '/api/live/channels', module: route32 },
+  { path: '/api/live/epg', module: route33 },
+  { path: '/api/live/precheck', module: route34 },
+  { path: '/api/live/sources', module: route35 },
+  { path: '/api/login', module: route36 },
+  { path: '/api/logout', module: route37 },
+  { path: '/api/machine-code', module: route38 },
+  { path: '/api/playrecords', module: route39 },
+  { path: '/api/proxy/key', module: route40 },
+  { path: '/api/proxy/logo', module: route41 },
+  { path: '/api/proxy/m3u8', module: route42 },
+  { path: '/api/proxy/segment', module: route43 },
+  { path: '/api/proxy/video', module: route44 },
+  { path: '/api/proxy/video/test', module: route45 },
+  { path: '/api/search', module: route46 },
+  { path: '/api/search/one', module: route47 },
+  { path: '/api/search/resources', module: route48 },
+  { path: '/api/search/suggestions', module: route49 },
+  { path: '/api/search/ws', module: route50 },
+  { path: '/api/searchhistory', module: route51 },
+  { path: '/api/server-config', module: route52 },
+  { path: '/api/shortdrama/categories', module: route53 },
+  { path: '/api/shortdrama/latest', module: route54 },
+  { path: '/api/shortdrama/list', module: route55 },
+  { path: '/api/shortdrama/parse/all', module: route56 },
+  { path: '/api/shortdrama/parse/batch', module: route57 },
+  { path: '/api/shortdrama/parse/single', module: route58 },
+  { path: '/api/shortdrama/recommend', module: route59 },
+  { path: '/api/shortdrama/search', module: route60 },
+  { path: '/api/skipconfigs', module: route61 },
+  { path: '/api/websocket', module: route62 },
+];
