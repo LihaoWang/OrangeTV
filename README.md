@@ -76,12 +76,18 @@
 
 本项目**仅支持 Docker 或其他基于 Docker 的平台** 部署。
 
+主镜像发布到 `ghcr.io/lihaowang/orangetv:latest`。测试当前 refactor 分支构建时，可以先拉取分支标签：
+
+```bash
+docker pull ghcr.io/lihaowang/orangetv:branch-codex-vite-fastify-refactor-plan
+```
+
 ### Kvrocks 存储（推荐）
 
 ```yml
 services:
   OrangeTV-core:
-    image: ghcr.io/djteang/orangetv:latest
+    image: ghcr.io/lihaowang/orangetv:latest
     container_name: OrangeTV-core
     restart: on-failure
     ports:
@@ -115,7 +121,7 @@ volumes:
 ```yml
 services:
   OrangeTV-core:
-    image: ghcr.io/djteang/orangetv:latest
+    image: ghcr.io/lihaowang/orangetv:latest
     container_name: OrangeTV-core
     restart: on-failure
     ports:
@@ -151,7 +157,7 @@ networks:
 ```yml
 services:
   OrangeTV-core:
-    image: ghcr.io/djteang/orangetv:latest
+    image: ghcr.io/lihaowang/orangetv:latest
     container_name: OrangeTV-core
     restart: on-failure
     ports:
