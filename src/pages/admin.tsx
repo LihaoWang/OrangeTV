@@ -21,10 +21,10 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Alert, Avatar, Button, Card, Checkbox, Chip, Input, Label, Skeleton, Switch, Table, TextArea, TextField } from '@heroui/react';
 import {
   AlertCircle,
   AlertTriangle,
-  Check,
   CheckCircle,
   ChevronDown,
   ChevronUp,
@@ -37,60 +37,18 @@ import {
   User,
   Users,
   Video,
+  X,
 } from 'lucide-react';
 import { GripVertical, Palette } from 'lucide-react';
-import { Alert, Avatar, Button, Card, Checkbox, Chip, Input, Label, Skeleton, Switch, Table, TextArea, TextField } from '@heroui/react';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { AdminConfig, AdminConfigResult } from '@/lib/admin.types';
 import { getAuthInfoFromBrowserCookie } from '@/lib/auth';
 
 import DataMigration from '@/components/DataMigration';
-import ThemeManager from '@/components/ThemeManager';
 import PageLayout from '@/components/PageLayout';
+import ThemeManager from '@/components/ThemeManager';
 import { AppDialog, AppFilterSelect } from '@/components/ui/HeroPrimitives';
-
-// 统一按钮样式系统
-const buttonStyles = {
-  // 主要操作按钮（蓝色）- 用于配置、设置、确认等
-  primary: 'px-3 py-1.5 text-sm font-medium bg-accent hover:bg-accent-strong text-accent-foreground rounded-xl transition-colors',
-  // 成功操作按钮（绿色）- 用于添加、启用、保存等
-  success: 'px-3 py-1.5 text-sm font-medium bg-accent hover:bg-accent-strong text-accent-foreground rounded-xl transition-colors',
-  // 危险操作按钮（红色）- 用于删除、禁用、重置等
-  danger: 'px-3 py-1.5 text-sm font-medium bg-danger hover:bg-danger/90 text-white rounded-xl transition-colors',
-  // 次要操作按钮（灰色）- 用于取消、关闭等
-  secondary: 'px-3 py-1.5 text-sm font-medium bg-surface-secondary hover:bg-surface-tertiary text-foreground border border-border rounded-xl transition-colors',
-  // 警告操作按钮（黄色）- 用于批量禁用等
-  warning: 'px-3 py-1.5 text-sm font-medium bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-600 dark:hover:bg-yellow-700 text-white rounded-lg transition-colors',
-  // 小尺寸主要按钮
-  primarySmall: 'px-2 py-1 text-xs font-medium bg-accent hover:bg-accent-strong text-accent-foreground rounded-lg transition-colors',
-  // 小尺寸成功按钮
-  successSmall: 'px-2 py-1 text-xs font-medium bg-accent hover:bg-accent-strong text-accent-foreground rounded-lg transition-colors',
-  // 小尺寸危险按钮
-  dangerSmall: 'px-2 py-1 text-xs font-medium bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 text-white rounded-md transition-colors',
-  // 小尺寸次要按钮
-  secondarySmall: 'px-2 py-1 text-xs font-medium bg-surface-secondary hover:bg-surface-tertiary text-foreground border border-border rounded-lg transition-colors',
-  // 小尺寸警告按钮
-  warningSmall: 'px-2 py-1 text-xs font-medium bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-600 dark:hover:bg-yellow-700 text-white rounded-md transition-colors',
-  // 圆角小按钮（用于表格操作）
-  roundedPrimary: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-accent/10 text-accent hover:bg-accent/15 transition-colors',
-  roundedSuccess: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-accent/10 text-accent hover:bg-accent/15 transition-colors',
-  roundedDanger: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-900/60 dark:text-red-200 transition-colors',
-  roundedSecondary: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-secondary text-foreground hover:bg-surface-tertiary transition-colors',
-  roundedWarning: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/40 dark:hover:bg-yellow-900/60 dark:text-yellow-200 transition-colors',
-  roundedPurple: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-accent/10 text-accent hover:bg-accent/15 transition-colors',
-  // 禁用状态
-  disabled: 'px-3 py-1.5 text-sm font-medium bg-gray-400 dark:bg-gray-600 cursor-not-allowed text-white rounded-lg transition-colors',
-  disabledSmall: 'px-2 py-1 text-xs font-medium bg-gray-400 dark:bg-gray-600 cursor-not-allowed text-white rounded-md transition-colors',
-  // 开关按钮样式
-  toggleOn: 'bg-accent',
-  toggleOff: 'bg-surface-tertiary',
-  toggleThumb: 'bg-surface',
-  toggleThumbOn: 'translate-x-6',
-  toggleThumbOff: 'translate-x-1',
-  // 快速操作按钮样式
-  quickAction: 'px-3 py-1.5 text-xs font-medium text-muted bg-surface border border-border hover:bg-surface-secondary rounded-lg transition-colors',
-};
 
 const AdminTable = ({
   ariaLabel,
@@ -544,6 +502,83 @@ interface LiveDataSource {
   disabled?: boolean;
   from: 'config' | 'custom';
 }
+
+type ValidationResult = {
+  status: 'valid' | 'invalid' | 'no_results' | 'validating' | null;
+  message: string;
+  details?: {
+    responseTime?: number;
+    resultCount?: number;
+    error?: string;
+    searchKeyword?: string;
+  };
+};
+
+const SourceValidationSummary = ({ result }: { result: ValidationResult }) => {
+  if (!result.status) return null;
+
+  const statusMeta = {
+    valid: {
+      chipColor: 'success' as const,
+      icon: CheckCircle,
+      label: '检测通过',
+    },
+    validating: {
+      chipColor: 'accent' as const,
+      icon: Settings,
+      label: '检测中',
+    },
+    no_results: {
+      chipColor: 'warning' as const,
+      icon: AlertTriangle,
+      label: '无搜索结果',
+    },
+    invalid: {
+      chipColor: 'danger' as const,
+      icon: AlertCircle,
+      label: '检测失败',
+    },
+  }[result.status];
+
+  const StatusIcon = statusMeta.icon;
+
+  return (
+    <div className='rounded-lg border border-border bg-surface/70 p-3'>
+      <div className='space-y-3'>
+        <div className='flex flex-wrap items-center gap-2'>
+          <span className='text-sm font-medium text-foreground'>检测结果</span>
+          <Chip size='sm' color={statusMeta.chipColor} variant='soft'>
+            <Chip.Label className='inline-flex items-center gap-1.5'>
+              <StatusIcon
+                className={`size-3.5 ${result.status === 'validating' ? 'animate-spin' : ''}`}
+              />
+              {statusMeta.label}
+            </Chip.Label>
+          </Chip>
+          <span className='text-sm text-muted'>{result.message}</span>
+        </div>
+        {result.details && (
+          <div className='grid gap-1 text-xs text-muted sm:grid-cols-2'>
+            {result.details.searchKeyword && (
+              <div>测试关键词: {result.details.searchKeyword}</div>
+            )}
+            {result.details.responseTime && (
+              <div>响应时间: {result.details.responseTime}ms</div>
+            )}
+            {result.details.resultCount !== undefined && (
+              <div>搜索结果数: {result.details.resultCount}</div>
+            )}
+            {result.details.error && (
+              <div className='text-danger sm:col-span-2'>
+                错误信息: {result.details.error}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 // 自定义分类数据类型
 interface CustomCategory {
@@ -2772,7 +2807,7 @@ const VideoSourceConfig = ({
     <div className='space-y-6'>
       {/* 添加视频源表单 */}
       <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
-        <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+        <h4 className='text-sm font-medium text-foreground'>
           视频源列表
         </h4>
         <div className='flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-2'>
@@ -2780,7 +2815,7 @@ const VideoSourceConfig = ({
           {selectedSources.size > 0 && (
             <>
               <div className='flex flex-wrap items-center gap-3 order-2 sm:order-1'>
-                <span className='text-sm text-gray-600 dark:text-gray-400'>
+                <span className='text-sm text-muted'>
                   <span className='sm:hidden'>已选 {selectedSources.size}</span>
                   <span className='hidden sm:inline'>已选择 {selectedSources.size} 个视频源</span>
                 </span>
@@ -2809,7 +2844,7 @@ const VideoSourceConfig = ({
                   {isLoading('batchSource_batch_delete') ? '删除中...' : '批量删除'}
                 </Button>
               </div>
-              <div className='hidden sm:block w-px h-6 bg-gray-300 dark:bg-gray-600 order-2'></div>
+              <div className='hidden sm:block w-px h-6 bg-border order-2'></div>
             </>
           )}
           <div className='flex items-center gap-2 order-1 sm:order-2'>
@@ -2845,240 +2880,189 @@ const VideoSourceConfig = ({
       </div>
 
       {showAddForm && (
-        <div className='p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 space-y-4'>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-            <input
-              type='text'
-              placeholder='名称'
-              value={newSource.name}
-              onChange={(e) =>
-                setNewSource((prev) => ({ ...prev, name: e.target.value }))
-              }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-            />
-            <input
-              type='text'
-              placeholder='Key'
-              value={newSource.key}
-              onChange={(e) =>
-                setNewSource((prev) => ({ ...prev, key: e.target.value }))
-              }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-            />
-            <input
-              type='text'
-              placeholder='API 地址'
-              value={newSource.api}
-              onChange={(e) =>
-                setNewSource((prev) => ({ ...prev, api: e.target.value }))
-              }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-            />
-            <input
-              type='text'
-              placeholder='Detail 地址（选填）'
-              value={newSource.detail}
-              onChange={(e) =>
-                setNewSource((prev) => ({ ...prev, detail: e.target.value }))
-              }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-            />
-          </div>
-
-          {/* 新增视频源有效性检测结果显示 */}
-          {newSourceValidationResult.status && (
-            <div className='p-3 rounded-lg border'>
-              <div className='space-y-2'>
-                <div className='flex items-center space-x-2'>
-                  <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>检测结果:</span>
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full ${newSourceValidationResult.status === 'valid'
-                      ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300'
-                      : newSourceValidationResult.status === 'validating'
-                        ? 'bg-accent/10 text-accent'
-                        : newSourceValidationResult.status === 'no_results'
-                          ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300'
-                          : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300'
-                      }`}
-                  >
-                    {newSourceValidationResult.status === 'valid' && '✓ '}
-                    {newSourceValidationResult.status === 'validating' && '⏳ '}
-                    {newSourceValidationResult.status === 'no_results' && '⚠️ '}
-                    {newSourceValidationResult.status === 'invalid' && '✗ '}
-                    {newSourceValidationResult.message}
-                  </span>
-                </div>
-                {newSourceValidationResult.details && (
-                  <div className='text-xs text-gray-600 dark:text-gray-400 space-y-1'>
-                    {newSourceValidationResult.details.searchKeyword && (
-                      <div>测试关键词: {newSourceValidationResult.details.searchKeyword}</div>
-                    )}
-                    {newSourceValidationResult.details.responseTime && (
-                      <div>响应时间: {newSourceValidationResult.details.responseTime}ms</div>
-                    )}
-                    {newSourceValidationResult.details.resultCount !== undefined && (
-                      <div>搜索结果数: {newSourceValidationResult.details.resultCount}</div>
-                    )}
-                    {newSourceValidationResult.details.error && (
-                      <div className='text-red-600 dark:text-red-400'>错误信息: {newSourceValidationResult.details.error}</div>
-                    )}
-                  </div>
-                )}
-              </div>
+        <Card variant='secondary'>
+          <Card.Header className='flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between'>
+            <div>
+              <Card.Title>添加视频源</Card.Title>
+              <Card.Description>
+                填写资源站名称、唯一 Key 和采集 API 地址。
+              </Card.Description>
             </div>
-          )}
+          </Card.Header>
+          <Card.Content className='space-y-4'>
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+              <TextField fullWidth>
+                <Label>名称</Label>
+                <Input
+                  type='text'
+                  placeholder='例如：量子资源'
+                  value={newSource.name}
+                  onChange={(e) =>
+                    setNewSource((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  variant='secondary'
+                />
+              </TextField>
+              <TextField fullWidth>
+                <Label>Key</Label>
+                <Input
+                  type='text'
+                  placeholder='例如：lzizy'
+                  value={newSource.key}
+                  onChange={(e) =>
+                    setNewSource((prev) => ({ ...prev, key: e.target.value }))
+                  }
+                  variant='secondary'
+                />
+              </TextField>
+              <TextField fullWidth>
+                <Label>API 地址</Label>
+                <Input
+                  type='text'
+                  placeholder='https://example.com/api.php/provide/vod'
+                  value={newSource.api}
+                  onChange={(e) =>
+                    setNewSource((prev) => ({ ...prev, api: e.target.value }))
+                  }
+                  variant='secondary'
+                />
+              </TextField>
+              <TextField fullWidth>
+                <Label>Detail 地址</Label>
+                <Input
+                  type='text'
+                  placeholder='选填，用于详情页跳转'
+                  value={newSource.detail}
+                  onChange={(e) =>
+                    setNewSource((prev) => ({ ...prev, detail: e.target.value }))
+                  }
+                  variant='secondary'
+                />
+              </TextField>
+            </div>
 
-          <div className='flex justify-end space-x-2'>
-            <button
-              onClick={handleValidateNewSource}
-              disabled={!newSource.api || isNewSourceValidating || isLoading('validateNewSource')}
-              className={`px-4 py-2 ${!newSource.api || isNewSourceValidating || isLoading('validateNewSource') ? buttonStyles.disabled : buttonStyles.primary}`}
+            <SourceValidationSummary result={newSourceValidationResult} />
+          </Card.Content>
+          <Card.Footer className='flex flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
+            <Button
+              className='w-full sm:w-auto'
+              variant='secondary'
+              onPress={handleValidateNewSource}
+              isDisabled={!newSource.api || isNewSourceValidating || isLoading('validateNewSource')}
+              isPending={isNewSourceValidating || isLoading('validateNewSource')}
             >
               {isNewSourceValidating || isLoading('validateNewSource') ? '检测中...' : '有效性检测'}
-            </button>
-            <button
-              onClick={handleAddSource}
-              disabled={!newSource.name || !newSource.key || !newSource.api || isLoading('addSource')}
-              className={`px-4 py-2 ${!newSource.name || !newSource.key || !newSource.api || isLoading('addSource') ? buttonStyles.disabled : buttonStyles.success}`}
+            </Button>
+            <Button
+              className='w-full sm:w-auto'
+              variant='primary'
+              onPress={handleAddSource}
+              isDisabled={!newSource.name || !newSource.key || !newSource.api || isLoading('addSource')}
+              isPending={isLoading('addSource')}
             >
               {isLoading('addSource') ? '添加中...' : '添加'}
-            </button>
-          </div>
-        </div>
+            </Button>
+          </Card.Footer>
+        </Card>
       )}
 
       {/* 编辑视频源表单 */}
       {editingSource && (
-        <div className='p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 space-y-4'>
-          <div className='flex items-center justify-between'>
-            <h5 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-              编辑视频源: {editingSource.name}
-            </h5>
-            <button
-              onClick={handleCancelEdit}
-              className='text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+        <Card variant='secondary'>
+          <Card.Header className='flex flex-row items-start justify-between gap-4'>
+            <div>
+              <Card.Title>编辑视频源</Card.Title>
+              <Card.Description>
+                {editingSource.name} · {editingSource.key}
+              </Card.Description>
+            </div>
+            <Button
+              isIconOnly
+              size='sm'
+              variant='tertiary'
+              aria-label='关闭编辑视频源'
+              onPress={handleCancelEdit}
             >
-              ✕
-            </button>
-          </div>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-            <div>
-              <label className='block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                名称
-              </label>
-              <input
-                type='text'
-                value={editingSource.name}
-                onChange={(e) =>
-                  setEditingSource((prev) => prev ? ({ ...prev, name: e.target.value }) : null)
-                }
-                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-              />
-            </div>
-            <div>
-              <label className='block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                Key (不可编辑)
-              </label>
-              <input
-                type='text'
-                value={editingSource.key}
-                disabled
-                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-              />
-            </div>
-            <div>
-              <label className='block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                API 地址
-              </label>
-              <input
-                type='text'
-                value={editingSource.api}
-                onChange={(e) =>
-                  setEditingSource((prev) => prev ? ({ ...prev, api: e.target.value }) : null)
-                }
-                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-              />
-            </div>
-            <div>
-              <label className='block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                Detail 地址（选填）
-              </label>
-              <input
-                type='text'
-                value={editingSource.detail || ''}
-                onChange={(e) =>
-                  setEditingSource((prev) => prev ? ({ ...prev, detail: e.target.value }) : null)
-                }
-                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-              />
+              <X className='size-4' />
+            </Button>
+          </Card.Header>
+          <Card.Content className='space-y-4'>
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+              <TextField fullWidth>
+                <Label>名称</Label>
+                <Input
+                  type='text'
+                  value={editingSource.name}
+                  onChange={(e) =>
+                    setEditingSource((prev) => prev ? ({ ...prev, name: e.target.value }) : null)
+                  }
+                  variant='secondary'
+                />
+              </TextField>
+              <TextField fullWidth>
+                <Label>Key</Label>
+                <Input
+                  type='text'
+                  value={editingSource.key}
+                  disabled
+                  variant='secondary'
+                />
+                <p className='text-xs text-muted'>Key 已用于数据关联，不能编辑。</p>
+              </TextField>
+              <TextField fullWidth>
+                <Label>API 地址</Label>
+                <Input
+                  type='text'
+                  value={editingSource.api}
+                  onChange={(e) =>
+                    setEditingSource((prev) => prev ? ({ ...prev, api: e.target.value }) : null)
+                  }
+                  variant='secondary'
+                />
+              </TextField>
+              <TextField fullWidth>
+                <Label>Detail 地址</Label>
+                <Input
+                  type='text'
+                  value={editingSource.detail || ''}
+                  onChange={(e) =>
+                    setEditingSource((prev) => prev ? ({ ...prev, detail: e.target.value }) : null)
+                  }
+                  variant='secondary'
+                />
+              </TextField>
             </div>
 
-            {/* 有效性检测结果显示 */}
-            {singleValidationResult.status && (
-              <div className='col-span-full mt-4 p-3 rounded-lg border'>
-                <div className='space-y-2'>
-                  <div className='flex items-center space-x-2'>
-                    <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>检测结果:</span>
-                    <span
-                      className={`px-2 py-1 text-xs rounded-full ${singleValidationResult.status === 'valid'
-                        ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300'
-                        : singleValidationResult.status === 'validating'
-                          ? 'bg-accent/10 text-accent'
-                          : singleValidationResult.status === 'no_results'
-                            ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300'
-                            : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300'
-                        }`}
-                    >
-                      {singleValidationResult.status === 'valid' && '✓ '}
-                      {singleValidationResult.status === 'validating' && '⏳ '}
-                      {singleValidationResult.status === 'no_results' && '⚠️ '}
-                      {singleValidationResult.status === 'invalid' && '✗ '}
-                      {singleValidationResult.message}
-                    </span>
-                  </div>
-                  {singleValidationResult.details && (
-                    <div className='text-xs text-gray-600 dark:text-gray-400 space-y-1'>
-                      {singleValidationResult.details.searchKeyword && (
-                        <div>测试关键词: {singleValidationResult.details.searchKeyword}</div>
-                      )}
-                      {singleValidationResult.details.responseTime && (
-                        <div>响应时间: {singleValidationResult.details.responseTime}ms</div>
-                      )}
-                      {singleValidationResult.details.resultCount !== undefined && (
-                        <div>搜索结果数: {singleValidationResult.details.resultCount}</div>
-                      )}
-                      {singleValidationResult.details.error && (
-                        <div className='text-red-600 dark:text-red-400'>错误信息: {singleValidationResult.details.error}</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-          <div className='flex justify-end space-x-2'>
-            <button
-              onClick={handleCancelEdit}
-              className={buttonStyles.secondary}
+            <SourceValidationSummary result={singleValidationResult} />
+          </Card.Content>
+          <Card.Footer className='flex flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
+            <Button
+              className='w-full sm:w-auto'
+              variant='secondary'
+              onPress={handleCancelEdit}
             >
               取消
-            </button>
-            <button
-              onClick={handleValidateSingleSource}
-              disabled={!editingSource.api || isSingleValidating || isLoading('validateSingleSource')}
-              className={`${!editingSource.api || isSingleValidating || isLoading('validateSingleSource') ? buttonStyles.disabled : buttonStyles.primary}`}
+            </Button>
+            <Button
+              className='w-full sm:w-auto'
+              variant='secondary'
+              onPress={handleValidateSingleSource}
+              isDisabled={!editingSource.api || isSingleValidating || isLoading('validateSingleSource')}
+              isPending={isSingleValidating || isLoading('validateSingleSource')}
             >
               {isSingleValidating || isLoading('validateSingleSource') ? '检测中...' : '有效性检测'}
-            </button>
-            <button
-              onClick={handleEditSource}
-              disabled={!editingSource.name || !editingSource.api || isLoading('editSource')}
-              className={`${!editingSource.name || !editingSource.api || isLoading('editSource') ? buttonStyles.disabled : buttonStyles.success}`}
+            </Button>
+            <Button
+              className='w-full sm:w-auto'
+              variant='primary'
+              onPress={handleEditSource}
+              isDisabled={!editingSource.name || !editingSource.api || isLoading('editSource')}
+              isPending={isLoading('editSource')}
             >
               {isLoading('editSource') ? '保存中...' : '保存'}
-            </button>
-          </div>
-        </div>
+            </Button>
+          </Card.Footer>
+        </Card>
       )}
 
 
@@ -4380,7 +4364,7 @@ const LiveSourceConfig = ({
     <div className='space-y-6'>
       {/* 添加直播源表单 */}
       <div className='flex items-center justify-between'>
-        <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+        <h4 className='text-sm font-medium text-foreground'>
           直播源列表
         </h4>
         <div className='flex items-center space-x-2'>
@@ -4403,162 +4387,190 @@ const LiveSourceConfig = ({
       </div>
 
       {showAddForm && (
-        <div className='p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 space-y-4'>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-            <input
-              type='text'
-              placeholder='名称'
-              value={newLiveSource.name}
-              onChange={(e) =>
-                setNewLiveSource((prev) => ({ ...prev, name: e.target.value }))
-              }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-            />
-            <input
-              type='text'
-              placeholder='Key'
-              value={newLiveSource.key}
-              onChange={(e) =>
-                setNewLiveSource((prev) => ({ ...prev, key: e.target.value }))
-              }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-            />
-            <input
-              type='text'
-              placeholder='M3U 地址'
-              value={newLiveSource.url}
-              onChange={(e) =>
-                setNewLiveSource((prev) => ({ ...prev, url: e.target.value }))
-              }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-            />
-            <input
-              type='text'
-              placeholder='节目单地址（选填）'
-              value={newLiveSource.epg}
-              onChange={(e) =>
-                setNewLiveSource((prev) => ({ ...prev, epg: e.target.value }))
-              }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-            />
-            <input
-              type='text'
-              placeholder='自定义 UA（选填）'
-              value={newLiveSource.ua}
-              onChange={(e) =>
-                setNewLiveSource((prev) => ({ ...prev, ua: e.target.value }))
-              }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-            />
-
-          </div>
-          <div className='flex justify-end'>
-            <button
-              onClick={handleAddLiveSource}
-              disabled={!newLiveSource.name || !newLiveSource.key || !newLiveSource.url || isLoading('addLiveSource')}
-              className={`w-full sm:w-auto px-4 py-2 ${!newLiveSource.name || !newLiveSource.key || !newLiveSource.url || isLoading('addLiveSource') ? buttonStyles.disabled : buttonStyles.success}`}
+        <Card variant='secondary'>
+          <Card.Header>
+            <div>
+              <Card.Title>添加直播源</Card.Title>
+              <Card.Description>
+                添加 M3U 直播列表，可选绑定节目单和自定义 UA。
+              </Card.Description>
+            </div>
+          </Card.Header>
+          <Card.Content className='space-y-4'>
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+              <TextField fullWidth>
+                <Label>名称</Label>
+                <Input
+                  type='text'
+                  placeholder='例如：央视频道'
+                  value={newLiveSource.name}
+                  onChange={(e) =>
+                    setNewLiveSource((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  variant='secondary'
+                />
+              </TextField>
+              <TextField fullWidth>
+                <Label>Key</Label>
+                <Input
+                  type='text'
+                  placeholder='例如：cctv'
+                  value={newLiveSource.key}
+                  onChange={(e) =>
+                    setNewLiveSource((prev) => ({ ...prev, key: e.target.value }))
+                  }
+                  variant='secondary'
+                />
+              </TextField>
+              <TextField fullWidth>
+                <Label>M3U 地址</Label>
+                <Input
+                  type='text'
+                  placeholder='https://example.com/live.m3u'
+                  value={newLiveSource.url}
+                  onChange={(e) =>
+                    setNewLiveSource((prev) => ({ ...prev, url: e.target.value }))
+                  }
+                  variant='secondary'
+                />
+              </TextField>
+              <TextField fullWidth>
+                <Label>节目单地址</Label>
+                <Input
+                  type='text'
+                  placeholder='选填，XMLTV EPG 地址'
+                  value={newLiveSource.epg}
+                  onChange={(e) =>
+                    setNewLiveSource((prev) => ({ ...prev, epg: e.target.value }))
+                  }
+                  variant='secondary'
+                />
+              </TextField>
+              <TextField className='sm:col-span-2' fullWidth>
+                <Label>自定义 UA</Label>
+                <Input
+                  type='text'
+                  placeholder='选填，例如 Mozilla/5.0'
+                  value={newLiveSource.ua}
+                  onChange={(e) =>
+                    setNewLiveSource((prev) => ({ ...prev, ua: e.target.value }))
+                  }
+                  variant='secondary'
+                />
+              </TextField>
+            </div>
+          </Card.Content>
+          <Card.Footer className='flex justify-end'>
+            <Button
+              className='w-full sm:w-auto'
+              variant='primary'
+              onPress={handleAddLiveSource}
+              isDisabled={!newLiveSource.name || !newLiveSource.key || !newLiveSource.url || isLoading('addLiveSource')}
+              isPending={isLoading('addLiveSource')}
             >
               {isLoading('addLiveSource') ? '添加中...' : '添加'}
-            </button>
-          </div>
-        </div>
+            </Button>
+          </Card.Footer>
+        </Card>
       )}
 
       {/* 编辑直播源表单 */}
       {editingLiveSource && (
-        <div className='p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 space-y-4'>
-          <div className='flex items-center justify-between'>
-            <h5 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-              编辑直播源: {editingLiveSource.name}
-            </h5>
-            <button
-              onClick={handleCancelEdit}
-              className='text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+        <Card variant='secondary'>
+          <Card.Header className='flex flex-row items-start justify-between gap-4'>
+            <div>
+              <Card.Title>编辑直播源</Card.Title>
+              <Card.Description>
+                {editingLiveSource.name} · {editingLiveSource.key}
+              </Card.Description>
+            </div>
+            <Button
+              isIconOnly
+              size='sm'
+              variant='tertiary'
+              aria-label='关闭编辑直播源'
+              onPress={handleCancelEdit}
             >
-              ✕
-            </button>
-          </div>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-            <div>
-              <label className='block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                名称
-              </label>
-              <input
-                type='text'
-                value={editingLiveSource.name}
-                onChange={(e) =>
-                  setEditingLiveSource((prev) => prev ? ({ ...prev, name: e.target.value }) : null)
-                }
-                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-              />
+              <X className='size-4' />
+            </Button>
+          </Card.Header>
+          <Card.Content className='space-y-4'>
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+              <TextField fullWidth>
+                <Label>名称</Label>
+                <Input
+                  type='text'
+                  value={editingLiveSource.name}
+                  onChange={(e) =>
+                    setEditingLiveSource((prev) => prev ? ({ ...prev, name: e.target.value }) : null)
+                  }
+                  variant='secondary'
+                />
+              </TextField>
+              <TextField fullWidth>
+                <Label>Key</Label>
+                <Input
+                  type='text'
+                  value={editingLiveSource.key}
+                  disabled
+                  variant='secondary'
+                />
+                <p className='text-xs text-muted'>Key 已用于直播源关联，不能编辑。</p>
+              </TextField>
+              <TextField fullWidth>
+                <Label>M3U 地址</Label>
+                <Input
+                  type='text'
+                  value={editingLiveSource.url}
+                  onChange={(e) =>
+                    setEditingLiveSource((prev) => prev ? ({ ...prev, url: e.target.value }) : null)
+                  }
+                  variant='secondary'
+                />
+              </TextField>
+              <TextField fullWidth>
+                <Label>节目单地址</Label>
+                <Input
+                  type='text'
+                  value={editingLiveSource.epg}
+                  onChange={(e) =>
+                    setEditingLiveSource((prev) => prev ? ({ ...prev, epg: e.target.value }) : null)
+                  }
+                  variant='secondary'
+                />
+              </TextField>
+              <TextField className='sm:col-span-2' fullWidth>
+                <Label>自定义 UA</Label>
+                <Input
+                  type='text'
+                  value={editingLiveSource.ua}
+                  onChange={(e) =>
+                    setEditingLiveSource((prev) => prev ? ({ ...prev, ua: e.target.value }) : null)
+                  }
+                  variant='secondary'
+                />
+              </TextField>
             </div>
-            <div>
-              <label className='block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                Key (不可编辑)
-              </label>
-              <input
-                type='text'
-                value={editingLiveSource.key}
-                disabled
-                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-              />
-            </div>
-            <div>
-              <label className='block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                M3U 地址
-              </label>
-              <input
-                type='text'
-                value={editingLiveSource.url}
-                onChange={(e) =>
-                  setEditingLiveSource((prev) => prev ? ({ ...prev, url: e.target.value }) : null)
-                }
-                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-              />
-            </div>
-            <div>
-              <label className='block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                节目单地址（选填）
-              </label>
-              <input
-                type='text'
-                value={editingLiveSource.epg}
-                onChange={(e) =>
-                  setEditingLiveSource((prev) => prev ? ({ ...prev, epg: e.target.value }) : null)
-                }
-                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-              />
-            </div>
-            <div>
-              <label className='block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                自定义 UA（选填）
-              </label>
-              <input
-                type='text'
-                value={editingLiveSource.ua}
-                onChange={(e) =>
-                  setEditingLiveSource((prev) => prev ? ({ ...prev, ua: e.target.value }) : null)
-                }
-                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-              />
-            </div>
-          </div>
-          <div className='flex justify-end space-x-2'>
-            <button
-              onClick={handleCancelEdit}
-              className={buttonStyles.secondary}
+          </Card.Content>
+          <Card.Footer className='flex flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
+            <Button
+              className='w-full sm:w-auto'
+              variant='secondary'
+              onPress={handleCancelEdit}
             >
               取消
-            </button>
-            <button
-              onClick={handleEditLiveSource}
-              disabled={!editingLiveSource.name || !editingLiveSource.url || isLoading('editLiveSource')}
-              className={`${!editingLiveSource.name || !editingLiveSource.url || isLoading('editLiveSource') ? buttonStyles.disabled : buttonStyles.success}`}
+            </Button>
+            <Button
+              className='w-full sm:w-auto'
+              variant='primary'
+              onPress={handleEditLiveSource}
+              isDisabled={!editingLiveSource.name || !editingLiveSource.url || isLoading('editLiveSource')}
+              isPending={isLoading('editLiveSource')}
             >
               {isLoading('editLiveSource') ? '保存中...' : '保存'}
-            </button>
-          </div>
-        </div>
+            </Button>
+          </Card.Footer>
+        </Card>
       )}
 
       {/* 直播源表格 */}
