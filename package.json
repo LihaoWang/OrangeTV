@@ -6,7 +6,6 @@
     "dev": "pnpm gen:manifest && tsx watch src/server/index.ts",
     "dev:redis": "node scripts/dev-with-redis.js",
     "dev:complex": "pnpm dev",
-    "debug:api": "node debug-api.js",
     "build": "pnpm gen:manifest && vite build && node scripts/build-server.js",
     "start": "NODE_ENV=production node dist/server/index.js",
     "lint": "eslint src --ext .ts,.tsx",
