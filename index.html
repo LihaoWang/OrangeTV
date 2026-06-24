@@ -9,6 +9,41 @@
     <meta name="description" content="影视聚合" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <script>
+      (function () {
+        try {
+          var storedTheme = localStorage.getItem('theme') || 'light';
+          var resolvedTheme = 'light';
+
+          if (storedTheme === 'system') {
+            resolvedTheme =
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+          } else if (storedTheme === 'dark') {
+            resolvedTheme = 'dark';
+          }
+
+          var html = document.documentElement;
+          html.classList.remove('light', 'dark');
+          html.classList.add(resolvedTheme);
+          html.style.colorScheme = resolvedTheme;
+
+          var themeColor = document.querySelector('meta[name="theme-color"]');
+          var themeColorValue =
+            resolvedTheme === 'dark' ? '#080707' : '#151212';
+          if (!themeColor) {
+            themeColor = document.createElement('meta');
+            themeColor.name = 'theme-color';
+            document.head.appendChild(themeColor);
+          }
+          themeColor.setAttribute('content', themeColorValue);
+        } catch (error) {
+          document.documentElement.classList.add('light');
+        }
+      })();
+    </script>
     <script src="/runtime-config.js"></script>
     <script>
       (function () {
