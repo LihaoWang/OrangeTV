@@ -110,63 +110,37 @@ export default function ScrollableRow({
       </div>
       {showLeftScroll && (
         <div
-          className={`hidden sm:flex absolute left-0 top-0 bottom-0 w-16 items-center justify-center z-[600] transition-opacity duration-200 ${
+          className={`pointer-events-none absolute top-0 bottom-0 left-0 z-[600] hidden w-20 items-center justify-start pl-3 transition-opacity duration-200 sm:flex ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}
-          style={{
-            background: 'transparent',
-            pointerEvents: 'none', // 允许点击穿透
-          }}
         >
-          <div
-            className='absolute inset-0 flex items-center justify-center'
-            style={{
-              top: '40%',
-              bottom: '60%',
-              left: '-4.5rem',
-              pointerEvents: 'auto',
-            }}
+          <Button
+            isIconOnly
+            variant='secondary'
+            className='pointer-events-auto h-10 w-10 min-w-10 rounded-full bg-surface/85 shadow-lg ring-1 ring-border/70 backdrop-blur-md hover:bg-surface'
+            onPress={handleScrollLeftClick}
+            aria-label='向左滚动'
           >
-            <Button
-              isIconOnly
-              variant='secondary'
-              onPress={handleScrollLeftClick}
-              aria-label='向左滚动'
-            >
-              <ChevronLeft className='h-5 w-5' />
-            </Button>
-          </div>
+            <ChevronLeft className='h-5 w-5' />
+          </Button>
         </div>
       )}
 
       {showRightScroll && (
         <div
-          className={`hidden sm:flex absolute right-0 top-0 bottom-0 w-16 items-center justify-center z-[600] transition-opacity duration-200 ${
+          className={`pointer-events-none absolute top-0 right-0 bottom-0 z-[600] hidden w-20 items-center justify-end pr-3 transition-opacity duration-200 sm:flex ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}
-          style={{
-            background: 'transparent',
-            pointerEvents: 'none', // 允许点击穿透
-          }}
         >
-          <div
-            className='absolute inset-0 flex items-center justify-center'
-            style={{
-              top: '40%',
-              bottom: '60%',
-              right: '-4.5rem',
-              pointerEvents: 'auto',
-            }}
+          <Button
+            isIconOnly
+            variant='secondary'
+            className='pointer-events-auto h-10 w-10 min-w-10 rounded-full bg-surface/85 shadow-lg ring-1 ring-border/70 backdrop-blur-md hover:bg-surface'
+            onPress={handleScrollRightClick}
+            aria-label='向右滚动'
           >
-            <Button
-              isIconOnly
-              variant='secondary'
-              onPress={handleScrollRightClick}
-              aria-label='向右滚动'
-            >
-              <ChevronRight className='h-5 w-5' />
-            </Button>
-          </div>
+            <ChevronRight className='h-5 w-5' />
+          </Button>
         </div>
       )}
     </div>

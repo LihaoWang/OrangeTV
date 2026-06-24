@@ -714,68 +714,76 @@ export const UserMenu: React.FC = () => {
         </section>
 
         <div className='space-y-4'>
-          <Switch
-            isSelected={defaultAggregateSearch}
-            onChange={handleAggregateToggle}
-          >
-            <Switch.Control>
-              <Switch.Thumb />
-            </Switch.Control>
-            <Switch.Content>
-              <div>
-                <p className='text-sm font-medium'>默认聚合搜索结果</p>
-                <p className='text-xs text-muted'>
-                  搜索时默认按标题和年份聚合显示结果
-                </p>
-              </div>
-            </Switch.Content>
-          </Switch>
+          <div className='block w-full'>
+            <Switch
+              isSelected={defaultAggregateSearch}
+              onChange={handleAggregateToggle}
+            >
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+              <Switch.Content>
+                <div>
+                  <p className='text-sm font-medium'>默认聚合搜索结果</p>
+                  <p className='text-xs text-muted'>
+                    搜索时默认按标题和年份聚合显示结果
+                  </p>
+                </div>
+              </Switch.Content>
+            </Switch>
+          </div>
 
-          <Switch
-            isSelected={enableOptimization}
-            onChange={handleOptimizationToggle}
-          >
-            <Switch.Control>
-              <Switch.Thumb />
-            </Switch.Control>
-            <Switch.Content>
-              <div>
-                <p className='text-sm font-medium'>优选和测速</p>
-                <p className='text-xs text-muted'>如出现播放器劫持问题可关闭</p>
-              </div>
-            </Switch.Content>
-          </Switch>
+          <div className='block w-full'>
+            <Switch
+              isSelected={enableOptimization}
+              onChange={handleOptimizationToggle}
+            >
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+              <Switch.Content>
+                <div>
+                  <p className='text-sm font-medium'>优选和测速</p>
+                  <p className='text-xs text-muted'>如出现播放器劫持问题可关闭</p>
+                </div>
+              </Switch.Content>
+            </Switch>
+          </div>
 
-          <Switch isSelected={fluidSearch} onChange={handleFluidSearchToggle}>
-            <Switch.Control>
-              <Switch.Thumb />
-            </Switch.Control>
-            <Switch.Content>
-              <div>
-                <p className='text-sm font-medium'>流式搜索输出</p>
-                <p className='text-xs text-muted'>
-                  启用搜索结果实时流式输出，关闭后使用传统一次性搜索
-                </p>
-              </div>
-            </Switch.Content>
-          </Switch>
+          <div className='block w-full'>
+            <Switch isSelected={fluidSearch} onChange={handleFluidSearchToggle}>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+              <Switch.Content>
+                <div>
+                  <p className='text-sm font-medium'>流式搜索输出</p>
+                  <p className='text-xs text-muted'>
+                    启用搜索结果实时流式输出，关闭后使用传统一次性搜索
+                  </p>
+                </div>
+              </Switch.Content>
+            </Switch>
+          </div>
 
-          <Switch
-            isSelected={liveDirectConnect}
-            onChange={handleLiveDirectConnectToggle}
-          >
-            <Switch.Control>
-              <Switch.Thumb />
-            </Switch.Control>
-            <Switch.Content>
-              <div>
-                <p className='text-sm font-medium'>IPTV 视频浏览器直连</p>
-                <p className='text-xs text-muted'>
-                  开启 IPTV 视频浏览器直连时，需要自备 Allow CORS 插件
-                </p>
-              </div>
-            </Switch.Content>
-          </Switch>
+          <div className='block w-full'>
+            <Switch
+              isSelected={liveDirectConnect}
+              onChange={handleLiveDirectConnectToggle}
+            >
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+              <Switch.Content>
+                <div>
+                  <p className='text-sm font-medium'>IPTV 视频浏览器直连</p>
+                  <p className='text-xs text-muted'>
+                    开启 IPTV 视频浏览器直连时，需要自备 Allow CORS 插件
+                  </p>
+                </div>
+              </Switch.Content>
+            </Switch>
+          </div>
         </div>
       </div>
     </AppDialog>
