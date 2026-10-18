@@ -137,7 +137,7 @@ export default changelog;
 function updateVersionFile(version) {
   const versionTxtPath = path.join(process.cwd(), 'VERSION.txt');
   try {
-    fs.writeFileSync(versionTxtPath, version, 'utf8');
+    fs.writeFileSync(versionTxtPath, `${version}\n`, 'utf8');
     console.log(`✅ 已更新 VERSION.txt: ${version}`);
   } catch (error) {
     console.error(`❌ 无法更新 VERSION.txt:`, error.message);

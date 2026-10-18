@@ -1,6 +1,6 @@
 # Nginx production reverse proxy example.
 
-upstream orangetv_app {
+upstream novatv_app {
     server localhost:3000;
 }
 
@@ -16,7 +16,7 @@ server {
     client_max_body_size 100M;
 
     location / {
-        proxy_pass http://orangetv_app;
+        proxy_pass http://novatv_app;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

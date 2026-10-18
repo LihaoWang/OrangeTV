@@ -1,8 +1,16 @@
-import '@/client/globals.css';
-
 import React, { Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+
+import '@/client/globals.css';
+
+import { PRODUCT_NAME } from '@/lib/branding';
+
+import { GlobalErrorIndicator } from '@/components/GlobalErrorIndicator';
+import GlobalThemeLoader from '@/components/GlobalThemeLoader';
+import { SiteProvider } from '@/components/SiteProvider';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { ToastProvider } from '@/components/Toast';
 
 import AdminPage from '@/pages/admin';
 import DoubanPage from '@/pages/douban';
@@ -13,11 +21,6 @@ import PlayPage from '@/pages/play';
 import SearchPage from '@/pages/search';
 import ShortDramaPage from '@/pages/shortdrama';
 import WarningPage from '@/pages/warning';
-import { GlobalErrorIndicator } from '@/components/GlobalErrorIndicator';
-import GlobalThemeLoader from '@/components/GlobalThemeLoader';
-import { SiteProvider } from '@/components/SiteProvider';
-import { ThemeProvider } from '@/components/ThemeProvider';
-import { ToastProvider } from '@/components/Toast';
 
 function Providers({ children }: { children: React.ReactNode }) {
   const runtimeConfig = window.RUNTIME_CONFIG;
@@ -31,7 +34,7 @@ function Providers({ children }: { children: React.ReactNode }) {
     >
       <ToastProvider>
         <SiteProvider
-          siteName={runtimeConfig?.SITE_NAME || 'OrangeTV'}
+          siteName={runtimeConfig?.SITE_NAME || PRODUCT_NAME}
           announcement={runtimeConfig?.ANNOUNCEMENT}
         >
           <GlobalThemeLoader />
@@ -66,4 +69,8 @@ function App() {
   );
 }
 
-createRoot(document.getElementById('root')!).render(<App />);
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error('Application root element is missing');
+}
+createRoot(rootElement).render(<App />);

@@ -1,27 +1,37 @@
 /* eslint-disable @typescript-eslint/no-explicit-any,no-console */
 
-import { AppRequest, AppResponse } from '@/server/web';
-import { getRouteUsername } from '@/server/route-auth';
-
+import { PRODUCT_NAME } from '@/lib/branding';
 import { getAvailableApiSites, getConfig } from '@/lib/config';
 import { searchFromApi } from '@/lib/downstream';
 import { yellowWords } from '@/lib/yellow';
 
+import { getRouteUsername } from '@/server/route-auth';
+import { AppRequest, AppResponse } from '@/server/web';
+
 // 短剧搜索函数
-async function searchShortDrama(query: string, page = 1, limit = 20): Promise<any[]> {
+async function searchShortDrama(
+  query: string,
+  page = 1,
+  limit = 20
+): Promise<any[]> {
   try {
     // 使用 AbortController 实现超时控制
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    const response = await fetch(`https://api.r2afosne.dpdns.org/vod/search?name=${encodeURIComponent(query)}&page=${page}&limit=${limit}`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'LunaTV/1.0',
-      },
-      signal: controller.signal,
-    });
+    const response = await fetch(
+      `https://api.r2afosne.dpdns.org/vod/search?name=${encodeURIComponent(
+        query
+      )}&page=${page}&limit=${limit}`,
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': `${PRODUCT_NAME}/1.0`,
+        },
+        signal: controller.signal,
+      }
+    );
 
     clearTimeout(timeoutId);
 
@@ -41,7 +51,9 @@ async function searchShortDrama(query: string, page = 1, limit = 20): Promise<an
       id: item.id?.toString() || '',
       title: item.name || '',
       poster: item.cover || '',
-      year: item.update_time ? new Date(item.update_time).getFullYear().toString() : 'unknown',
+      year: item.update_time
+        ? new Date(item.update_time).getFullYear().toString()
+        : 'unknown',
       episodes: [{ id: '1', name: '第1集' }], // 短剧通常有多集，但这里简化处理
       source: 'shortdrama',
       source_name: '短剧',
@@ -59,7 +71,6 @@ async function searchShortDrama(query: string, page = 1, limit = 20): Promise<an
   }
 }
 
-
 export async function GET(request: AppRequest) {
   const username = getRouteUsername(request);
   if (!username) {
@@ -70,15 +81,12 @@ export async function GET(request: AppRequest) {
   const query = searchParams.get('q');
 
   if (!query) {
-    return new Response(
-      JSON.stringify({ error: '搜索关键词不能为空' }),
-      {
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    return new Response(JSON.stringify({ error: '搜索关键词不能为空' }), {
+      status: 400,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
   }
 
   const config = await getConfig();
@@ -115,7 +123,7 @@ export async function GET(request: AppRequest) {
         type: 'start',
         query,
         totalSources: expectedSources,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       })}\n\n`;
 
       if (!safeEnqueue(encoder.encode(startEvent))) {
@@ -128,7 +136,11 @@ export async function GET(request: AppRequest) {
       const allResults: any[] = [];
 
       const sendCompleteIfDone = () => {
-        if (streamClosed || completeSent || completedSources !== expectedSources) {
+        if (
+          streamClosed ||
+          completeSent ||
+          completedSources !== expectedSources
+        ) {
           return;
         }
 
@@ -137,7 +149,7 @@ export async function GET(request: AppRequest) {
           type: 'complete',
           totalResults: allResults.length,
           completedSources,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         })}\n\n`;
 
         if (safeEnqueue(encoder.encode(completeEvent))) {
@@ -150,131 +162,136 @@ export async function GET(request: AppRequest) {
       };
 
       // 为每个源创建搜索 Promise
-      const searchPromises = [...apiSites.map(async (site) => {
-        try {
-          // 添加超时控制
-          const searchPromise = Promise.race([
-            searchFromApi(site, query),
-            new Promise((_, reject) =>
-              setTimeout(() => reject(new Error(`${site.name} timeout`)), 20000)
-            ),
-          ]);
+      const searchPromises = [
+        ...apiSites.map(async (site) => {
+          try {
+            // 添加超时控制
+            const searchPromise = Promise.race([
+              searchFromApi(site, query),
+              new Promise((_, reject) =>
+                setTimeout(
+                  () => reject(new Error(`${site.name} timeout`)),
+                  20000
+                )
+              ),
+            ]);
 
-          const results = await searchPromise as any[];
+            const results = (await searchPromise) as any[];
 
-          // 过滤黄色内容并限制结果数量
-          let filteredResults = results;
-          if (!config.SiteConfig.DisableYellowFilter) {
-            filteredResults = results.filter((result) => {
-              const typeName = result.type_name || '';
-              return !yellowWords.some((word: string) => typeName.includes(word));
-            });
-          }
+            // 过滤黄色内容并限制结果数量
+            let filteredResults = results;
+            if (!config.SiteConfig.DisableYellowFilter) {
+              filteredResults = results.filter((result) => {
+                const typeName = result.type_name || '';
+                return !yellowWords.some((word: string) =>
+                  typeName.includes(word)
+                );
+              });
+            }
 
-          // 限制每个源的结果数量，避免页面卡顿
-          const limitedResults = filteredResults.slice(0, 50);
+            // 限制每个源的结果数量，避免页面卡顿
+            const limitedResults = filteredResults.slice(0, 50);
 
-          // 发送该源的搜索结果
-          completedSources++;
+            // 发送该源的搜索结果
+            completedSources++;
 
-          if (!streamClosed) {
-            const sourceEvent = `data: ${JSON.stringify({
-              type: 'source_result',
-              source: site.key,
-              sourceName: site.name,
-              results: limitedResults,
-              timestamp: Date.now()
-            })}\n\n`;
+            if (!streamClosed) {
+              const sourceEvent = `data: ${JSON.stringify({
+                type: 'source_result',
+                source: site.key,
+                sourceName: site.name,
+                results: limitedResults,
+                timestamp: Date.now(),
+              })}\n\n`;
 
-            if (!safeEnqueue(encoder.encode(sourceEvent))) {
-              streamClosed = true;
-              return; // 连接已关闭，停止处理
+              if (!safeEnqueue(encoder.encode(sourceEvent))) {
+                streamClosed = true;
+                return; // 连接已关闭，停止处理
+              }
+            }
+
+            if (limitedResults.length > 0) {
+              allResults.push(...limitedResults);
+            }
+          } catch (error) {
+            console.warn(`搜索失败 ${site.name}:`, error);
+
+            // 发送源错误事件
+            completedSources++;
+
+            if (!streamClosed) {
+              const errorEvent = `data: ${JSON.stringify({
+                type: 'source_error',
+                source: site.key,
+                sourceName: site.name,
+                error: error instanceof Error ? error.message : '搜索失败',
+                timestamp: Date.now(),
+              })}\n\n`;
+
+              if (!safeEnqueue(encoder.encode(errorEvent))) {
+                streamClosed = true;
+                return; // 连接已关闭，停止处理
+              }
             }
           }
 
-          if (limitedResults.length > 0) {
-            allResults.push(...limitedResults);
-          }
+          sendCompleteIfDone();
+        }),
+        // 短剧搜索Promise
+        (async () => {
+          try {
+            const results = await searchShortDrama(query, 1, 20);
 
-        } catch (error) {
-          console.warn(`搜索失败 ${site.name}:`, error);
+            // 发送短剧搜索结果
+            completedSources++;
 
-          // 发送源错误事件
-          completedSources++;
+            if (!streamClosed && results.length > 0) {
+              const sourceEvent = `data: ${JSON.stringify({
+                type: 'source_result',
+                source: 'shortdrama',
+                sourceName: '短剧',
+                results: results,
+                timestamp: Date.now(),
+              })}\n\n`;
 
-          if (!streamClosed) {
-            const errorEvent = `data: ${JSON.stringify({
-              type: 'source_error',
-              source: site.key,
-              sourceName: site.name,
-              error: error instanceof Error ? error.message : '搜索失败',
-              timestamp: Date.now()
-            })}\n\n`;
+              if (!safeEnqueue(encoder.encode(sourceEvent))) {
+                streamClosed = true;
+                return;
+              }
 
-            if (!safeEnqueue(encoder.encode(errorEvent))) {
-              streamClosed = true;
-              return; // 连接已关闭，停止处理
+              allResults.push(...results);
+            } else if (!streamClosed) {
+              // 即使没有结果，也要发送完成事件
+              const sourceEvent = `data: ${JSON.stringify({
+                type: 'source_result',
+                source: 'shortdrama',
+                sourceName: '短剧',
+                results: [],
+                timestamp: Date.now(),
+              })}\n\n`;
+
+              safeEnqueue(encoder.encode(sourceEvent));
+            }
+          } catch (error) {
+            console.warn('短剧搜索失败:', error);
+            completedSources++;
+
+            if (!streamClosed) {
+              const errorEvent = `data: ${JSON.stringify({
+                type: 'source_error',
+                source: 'shortdrama',
+                sourceName: '短剧',
+                error: error instanceof Error ? error.message : '搜索失败',
+                timestamp: Date.now(),
+              })}\n\n`;
+
+              safeEnqueue(encoder.encode(errorEvent));
             }
           }
-        }
 
-        sendCompleteIfDone();
-      }),
-      // 短剧搜索Promise
-      (async () => {
-        try {
-          const results = await searchShortDrama(query, 1, 20);
-
-          // 发送短剧搜索结果
-          completedSources++;
-
-          if (!streamClosed && results.length > 0) {
-            const sourceEvent = `data: ${JSON.stringify({
-              type: 'source_result',
-              source: 'shortdrama',
-              sourceName: '短剧',
-              results: results,
-              timestamp: Date.now()
-            })}\n\n`;
-
-            if (!safeEnqueue(encoder.encode(sourceEvent))) {
-              streamClosed = true;
-              return;
-            }
-
-            allResults.push(...results);
-          } else if (!streamClosed) {
-            // 即使没有结果，也要发送完成事件
-            const sourceEvent = `data: ${JSON.stringify({
-              type: 'source_result',
-              source: 'shortdrama',
-              sourceName: '短剧',
-              results: [],
-              timestamp: Date.now()
-            })}\n\n`;
-
-            safeEnqueue(encoder.encode(sourceEvent));
-          }
-
-        } catch (error) {
-          console.warn('短剧搜索失败:', error);
-          completedSources++;
-
-          if (!streamClosed) {
-            const errorEvent = `data: ${JSON.stringify({
-              type: 'source_error',
-              source: 'shortdrama',
-              sourceName: '短剧',
-              error: error instanceof Error ? error.message : '搜索失败',
-              timestamp: Date.now()
-            })}\n\n`;
-
-            safeEnqueue(encoder.encode(errorEvent));
-          }
-        }
-
-        sendCompleteIfDone();
-      })()];
+          sendCompleteIfDone();
+        })(),
+      ];
 
       // 等待所有搜索完成
       await Promise.allSettled(searchPromises);
@@ -292,7 +309,7 @@ export async function GET(request: AppRequest) {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
+      Connection: 'keep-alive',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET',
       'Access-Control-Allow-Headers': 'Content-Type',

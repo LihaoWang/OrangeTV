@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -53,7 +53,10 @@
           const themeConfig = JSON.parse(cachedTheme);
           const html = document.documentElement;
           html.removeAttribute('data-theme');
-          if (themeConfig.defaultTheme && themeConfig.defaultTheme !== 'default') {
+          if (
+            themeConfig.defaultTheme &&
+            themeConfig.defaultTheme !== 'default'
+          ) {
             html.setAttribute('data-theme', themeConfig.defaultTheme);
           }
           if (themeConfig.customCSS) {
@@ -70,7 +73,7 @@
         }
       })();
     </script>
-    <title>OrangeTV</title>
+    <title>NovaTV</title>
   </head>
   <body class="min-h-[100dvh] bg-background text-foreground antialiased">
     <div id="root"></div>

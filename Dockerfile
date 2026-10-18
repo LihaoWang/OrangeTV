@@ -31,7 +31,7 @@ FROM node:${NODE_VERSION}-alpine AS runner
 
 ARG PNPM_VERSION
 RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
-RUN addgroup -g 1001 -S nodejs && adduser -u 1001 -S orangetv -G nodejs
+RUN addgroup -g 1001 -S nodejs && adduser -u 1001 -S novatv -G nodejs
 
 WORKDIR /app
 
@@ -43,8 +43,8 @@ ENV DOCKER_ENV=true
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts && pnpm store prune
 
-COPY --from=builder --chown=orangetv:nodejs /app/dist ./dist
-COPY --from=builder --chown=orangetv:nodejs /app/public ./public
+COPY --from=builder --chown=novatv:nodejs /app/dist ./dist
+COPY --from=builder --chown=novatv:nodejs /app/public ./public
 
 RUN cat > /app/healthcheck.js <<'EOF'
 const http = require('http');
@@ -70,9 +70,9 @@ req.on('timeout', () => {
 req.end();
 EOF
 
-RUN chown orangetv:nodejs /app/healthcheck.js
+RUN chown novatv:nodejs /app/healthcheck.js
 
-USER orangetv
+USER novatv
 
 EXPOSE 3000
 

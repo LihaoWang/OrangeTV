@@ -32,9 +32,15 @@ describe('hidden front-end options', () => {
   it('does not render manga, short drama, or live in desktop navigation', () => {
     render(<Sidebar activePath='/' />);
 
-    expect(screen.queryByRole('button', { name: '动漫' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '短剧' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '直播' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '动漫' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '短剧' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '直播' })
+    ).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '电影' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '剧集' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '综艺' })).toBeInTheDocument();
@@ -43,9 +49,15 @@ describe('hidden front-end options', () => {
   it('does not render manga, short drama, or live in mobile navigation', () => {
     render(<MobileBottomNav activePath='/' />);
 
-    expect(screen.queryByRole('button', { name: '动漫' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '短剧' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '直播' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '动漫' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '短剧' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '直播' })
+    ).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '电影' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '剧集' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '综艺' })).toBeInTheDocument();
@@ -55,10 +67,33 @@ describe('hidden front-end options', () => {
     render(<ThemeToggle />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Toggle theme' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Toggle theme' })
+      ).toBeInTheDocument();
     });
 
-    expect(screen.queryByRole('button', { name: 'Open chat' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('dialog', { name: '聊天' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Open chat' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('dialog', { name: '聊天' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders OrangeTV attribution without legacy upstream branding', () => {
+    render(<Sidebar activePath='/' />);
+
+    expect(screen.getByRole('link', { name: 'OrangeTV' })).toHaveAttribute(
+      'href',
+      'https://github.com/LihaoWang/OrangeTV'
+    );
+    expect(screen.getByLabelText('访问 OrangeTV 项目')).toHaveAttribute(
+      'href',
+      'https://github.com/LihaoWang/OrangeTV'
+    );
+    expect(screen.getByText('本项目基于').parentElement).toHaveTextContent(
+      '本项目基于 OrangeTV'
+    );
+    expect(screen.queryByText('MoonTV')).not.toBeInTheDocument();
   });
 });

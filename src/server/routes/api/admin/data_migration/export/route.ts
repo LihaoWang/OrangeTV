@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any,no-console */
 
-import { AppRequest, AppResponse } from '@/server/web';
 import { promisify } from 'util';
 import { gzip } from 'zlib';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
+import { PRODUCT_NAME } from '@/lib/branding';
 import { SimpleCrypto } from '@/lib/crypto';
 import { db } from '@/lib/db';
 import { CURRENT_VERSION } from '@/lib/version';
 
+import { AppRequest, AppResponse } from '@/server/web';
 
 const gzipAsync = promisify(gzip);
 
@@ -31,7 +32,10 @@ export async function POST(req: AppRequest) {
 
     // 检查用户权限（只有站长可以导出数据）
     if (authInfo.username !== process.env.USERNAME) {
-      return AppResponse.json({ error: '权限不足，只有站长可以导出数据' }, { status: 401 });
+      return AppResponse.json(
+        { error: '权限不足，只有站长可以导出数据' },
+        { status: 401 }
+      );
     }
 
     const config = await db.getAdminConfig();
@@ -53,8 +57,8 @@ export async function POST(req: AppRequest) {
         // 管理员配置
         adminConfig: config,
         // 所有用户数据
-        userData: {} as { [username: string]: any }
-      }
+        userData: {} as { [username: string]: any },
+      },
     };
 
     // 获取所有用户
@@ -75,14 +79,15 @@ export async function POST(req: AppRequest) {
         // 跳过片头片尾配置
         skipConfigs: await db.getAllSkipConfigs(username),
         // 用户密码（通过验证空密码来检查用户是否存在，然后获取密码）
-        password: await getUserPassword(username)
+        password: await getUserPassword(username),
       };
 
       exportData.data.userData[username] = userData;
     }
 
     // 覆盖站长密码
-    exportData.data.userData[process.env.USERNAME].password = process.env.PASSWORD;
+    exportData.data.userData[process.env.USERNAME].password =
+      process.env.PASSWORD;
 
     // 将数据转换为JSON字符串
     const jsonData = JSON.stringify(exportData);
@@ -91,12 +96,21 @@ export async function POST(req: AppRequest) {
     const compressedData = await gzipAsync(jsonData);
 
     // 使用提供的密码加密压缩后的数据
-    const encryptedData = SimpleCrypto.encrypt(compressedData.toString('base64'), password);
+    const encryptedData = SimpleCrypto.encrypt(
+      compressedData.toString('base64'),
+      password
+    );
 
     // 生成文件名
     const now = new Date();
-    const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
-    const filename = `OrangeTV-backup-${timestamp}.dat`;
+    const timestamp = `${now.getFullYear()}${String(
+      now.getMonth() + 1
+    ).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(
+      now.getHours()
+    ).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(
+      now.getSeconds()
+    ).padStart(2, '0')}`;
+    const filename = `${PRODUCT_NAME}-backup-${timestamp}.dat`;
 
     // 返回加密的数据作为文件下载
     return new AppResponse(encryptedData, {
@@ -107,7 +121,6 @@ export async function POST(req: AppRequest) {
         'Content-Length': encryptedData.length.toString(),
       },
     });
-
   } catch (error) {
     console.error('数据导出失败:', error);
     return AppResponse.json(

@@ -6,6 +6,7 @@ const net = require('net');
 
 function getRedisConfig(env = process.env) {
   return {
+    // Keep the existing storage identity so rebranding reuses development data.
     containerName: env.REDIS_CONTAINER_NAME || 'orangetv-redis-dev',
     image: env.REDIS_IMAGE || 'redis:alpine',
     port: env.REDIS_PORT || '6379',
@@ -51,7 +52,9 @@ async function assertDevPortsAvailable(ports = [3000]) {
     throw new Error(
       `Dev port${blocked.length > 1 ? 's are' : ' is'} already in use: ${blocked
         .map((check) => check.port)
-        .join(', ')}.\nStop the existing OrangeTV dev server or free those ports, then retry.`
+        .join(
+          ', '
+        )}.\nStop the existing NovaTV dev server or free those ports, then retry.`
     );
   }
 }
@@ -68,7 +71,9 @@ function assertDockerAvailable() {
   if (result.status !== 0) {
     const detail = result.stderr?.trim() || result.stdout?.trim();
     throw new Error(
-      `Docker is not available. Start Docker Desktop and retry.\n${detail || ''}`
+      `Docker is not available. Start Docker Desktop and retry.\n${
+        detail || ''
+      }`
     );
   }
 }
@@ -98,7 +103,9 @@ function ensureRedis(config = getRedisConfig()) {
   const action = resolveRedisAction(state);
 
   if (action === 'none') {
-    console.log(`Redis container "${config.containerName}" is already running.`);
+    console.log(
+      `Redis container "${config.containerName}" is already running.`
+    );
     return;
   }
 
@@ -108,7 +115,9 @@ function ensureRedis(config = getRedisConfig()) {
       stdio: 'inherit',
     });
     if (result.status !== 0) {
-      throw new Error(`Failed to start Redis container "${config.containerName}".`);
+      throw new Error(
+        `Failed to start Redis container "${config.containerName}".`
+      );
     }
     return;
   }
@@ -145,7 +154,7 @@ function startFastifyDev(config = getRedisConfig()) {
   };
 
   console.log(`Using Redis storage: ${redisUrl}`);
-  console.log('Starting OrangeTV Fastify/Vite dev server...');
+  console.log('Starting NovaTV Fastify/Vite dev server...');
 
   const child = spawn('pnpm', ['dev'], {
     env,

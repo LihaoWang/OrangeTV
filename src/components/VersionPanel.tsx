@@ -2,6 +2,7 @@
 
 'use client';
 
+import { Alert, Button, Card, Chip, Link as HeroLink } from '@heroui/react';
 import {
   Bug,
   CheckCircle,
@@ -11,9 +12,9 @@ import {
   Plus,
   RefreshCw,
 } from 'lucide-react';
-import { Alert, Button, Card, Chip, Link as HeroLink } from '@heroui/react';
 import { useEffect, useState } from 'react';
 
+import { REPO_RAW_CHANGELOG_URL, REPO_URL } from '@/lib/branding';
 import { changelog, ChangelogEntry } from '@/lib/changelog';
 import { CURRENT_VERSION } from '@/lib/version';
 import { compareVersions, UpdateStatus } from '@/lib/version_check';
@@ -59,9 +60,7 @@ export const VersionPanel: React.FC<VersionPanelProps> = ({
   // 获取远程变更日志
   const fetchRemoteChangelog = async () => {
     try {
-      const response = await fetch(
-        'https://raw.githubusercontent.com/djteang/OrangeTV/refs/heads/main/CHANGELOG'
-      );
+      const response = await fetch(REPO_RAW_CHANGELOG_URL);
       if (response.ok) {
         const content = await response.text();
         const parsed = parseChangelog(content);
@@ -172,10 +171,7 @@ export const VersionPanel: React.FC<VersionPanelProps> = ({
     const isUpdate = isRemote && hasUpdate && entry.version === latestVersion;
 
     return (
-      <Card
-        key={entry.version}
-        className='p-4'
-      >
+      <Card key={entry.version} className='p-4'>
         {/* 版本标题 */}
         <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3'>
           <div className='flex flex-wrap items-center gap-2'>
@@ -183,7 +179,9 @@ export const VersionPanel: React.FC<VersionPanelProps> = ({
               v{entry.version}
             </h4>
             {isCurrentVersion && (
-              <Chip size='sm' variant='primary'>当前版本</Chip>
+              <Chip size='sm' variant='primary'>
+                当前版本
+              </Chip>
             )}
             {isUpdate && (
               <Chip size='sm' variant='secondary'>
@@ -207,10 +205,7 @@ export const VersionPanel: React.FC<VersionPanelProps> = ({
               </h5>
               <ul className='space-y-1'>
                 {entry.added.map((item, index) => (
-                  <li
-                    key={index}
-                    className='text-sm text-muted'
-                  >
+                  <li key={index} className='text-sm text-muted'>
                     {item}
                   </li>
                 ))}
@@ -226,10 +221,7 @@ export const VersionPanel: React.FC<VersionPanelProps> = ({
               </h5>
               <ul className='space-y-1'>
                 {entry.changed.map((item, index) => (
-                  <li
-                    key={index}
-                    className='text-sm text-muted'
-                  >
+                  <li key={index} className='text-sm text-muted'>
                     {item}
                   </li>
                 ))}
@@ -245,10 +237,7 @@ export const VersionPanel: React.FC<VersionPanelProps> = ({
               </h5>
               <ul className='space-y-1'>
                 {entry.fixed.map((item, index) => (
-                  <li
-                    key={index}
-                    className='text-sm text-muted'
-                  >
+                  <li key={index} className='text-sm text-muted'>
                     {item}
                   </li>
                 ))}
@@ -303,12 +292,14 @@ export const VersionPanel: React.FC<VersionPanelProps> = ({
             </Alert.Indicator>
             <Alert.Content>
               <Alert.Title>当前为最新版本</Alert.Title>
-              <Alert.Description>已是最新版本 v{CURRENT_VERSION}</Alert.Description>
+              <Alert.Description>
+                已是最新版本 v{CURRENT_VERSION}
+              </Alert.Description>
             </Alert.Content>
           </Alert>
         )}
 
-        <HeroLink href='https://github.com/djteang/OrangeTV' target='_blank'>
+        <HeroLink href={REPO_URL} target='_blank'>
           前往仓库
         </HeroLink>
 
@@ -356,7 +347,11 @@ export const VersionPanel: React.FC<VersionPanelProps> = ({
             </Chip>
           </div>
           {changelog.map((entry) =>
-            renderChangelogEntry(entry, entry.version === CURRENT_VERSION, false)
+            renderChangelogEntry(
+              entry,
+              entry.version === CURRENT_VERSION,
+              false
+            )
           )}
         </div>
       </div>
