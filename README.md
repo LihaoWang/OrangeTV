@@ -1,10 +1,10 @@
-# OrangeTV
+# NovaTV
 
 <div align="center">
-  <img src="public/logo.png" alt="OrangeTV Logo" width="120">
+  <img src="public/logo.png" alt="NovaTV Logo" width="120">
 </div>
 
-> 🎬 **OrangeTV** 是一个开箱即用的、跨平台的影视聚合播放器。它基于 **Vite + React**、**Fastify**、**Tailwind&nbsp;CSS** 和 **TypeScript** 构建，支持多资源搜索、在线播放、收藏同步、播放记录、云端存储，让你可以随时随地畅享海量免费影视内容。
+> 🎬 **NovaTV** 是一个开箱即用的、跨平台的影视聚合播放器。它基于 **Vite + React**、**Fastify**、**Tailwind&nbsp;CSS** 和 **TypeScript** 构建，支持多资源搜索、在线播放、收藏同步、播放记录、云端存储，让你可以随时随地畅享海量免费影视内容。
 
 <div align="center">
 
@@ -38,7 +38,7 @@
   <img src="public/screenshot3.png" alt="项目截图" style="max-width:600px">
 </details>
 
-### 请不要在 B站、小红书、微信公众号、抖音、今日头条或其他中国大陆社交平台发布视频或文章宣传本项目，不授权任何“科技周刊/月刊”类项目或站点收录本项目。
+### 请不要在 B 站、小红书、微信公众号、抖音、今日头条或其他中国大陆社交平台发布视频或文章宣传本项目，不授权任何“科技周刊/月刊”类项目或站点收录本项目。
 
 ## 🗺 目录
 
@@ -64,7 +64,7 @@
 | 语言      | TypeScript 5                                                                                          |
 | 播放器    | [ArtPlayer](https://github.com/zhw2590582/ArtPlayer) · [HLS.js](https://github.com/video-dev/hls.js/) |
 | 代码质量  | ESLint · Prettier · Jest                                                                              |
-| 部署      | Docker                                                                    |
+| 部署      | Docker                                                                                                |
 
 ## 本地开发环境
 
@@ -76,19 +76,23 @@
 
 本项目**仅支持 Docker 或其他基于 Docker 的平台** 部署。
 
-主镜像发布到 `ghcr.io/lihaowang/orangetv:latest`。测试当前 refactor 分支构建时，可以先拉取分支标签：
+主镜像地址为 `ghcr.io/lihaowang/novatv:latest`，由 `main` 分支通过质量检查和 Docker 冒烟测试后发布。开发分支需要在 GitHub Actions 中手动运行 **CI and Docker image** 工作流，成功后才会生成对应的 `branch-<分支标签>` 镜像；具体标签以工作流输出为准。
+
+尚未发布的改动可先在本地构建：
 
 ```bash
-docker pull ghcr.io/lihaowang/orangetv:branch-codex-vite-fastify-refactor-plan
+docker build -t novatv:local .
 ```
+
+已有 OrangeTV 部署升级时，请仅替换应用的 `image`，保留原有 Compose 项目名、服务名、容器名和数据卷配置。以下示例适用于全新部署。本地 `pnpm dev:redis` 也保留 `orangetv-redis-dev` 容器名以复用已有数据，可通过 `REDIS_CONTAINER_NAME` 指定其他容器。
 
 ### Kvrocks 存储（推荐）
 
 ```yml
 services:
-  OrangeTV-core:
-    image: ghcr.io/lihaowang/orangetv:latest
-    container_name: OrangeTV-core
+  novatv-core:
+    image: ghcr.io/lihaowang/novatv:latest
+    container_name: novatv-core
     restart: on-failure
     ports:
       - '3000:3000'
@@ -96,21 +100,21 @@ services:
       - USERNAME=admin
       - PASSWORD=orange
       - VITE_STORAGE_TYPE=kvrocks
-      - KVROCKS_URL=redis://OrangeTV-kvrocks:6666
+      - KVROCKS_URL=redis://novatv-kvrocks:6666
     networks:
-      - OrangeTV-network
+      - novatv-network
     depends_on:
-      - OrangeTV-kvrocks
-  OrangeTV-kvrocks:
+      - novatv-kvrocks
+  novatv-kvrocks:
     image: apache/kvrocks
-    container_name: OrangeTV-kvrocks
+    container_name: novatv-kvrocks
     restart: unless-stopped
     volumes:
       - kvrocks-data:/var/lib/kvrocks
     networks:
-      - OrangeTV-network
+      - novatv-network
 networks:
-  OrangeTV-network:
+  novatv-network:
     driver: bridge
 volumes:
   kvrocks-data:
@@ -120,9 +124,9 @@ volumes:
 
 ```yml
 services:
-  OrangeTV-core:
-    image: ghcr.io/lihaowang/orangetv:latest
-    container_name: OrangeTV-core
+  novatv-core:
+    image: ghcr.io/lihaowang/novatv:latest
+    container_name: novatv-core
     restart: on-failure
     ports:
       - '3000:3000'
@@ -130,22 +134,22 @@ services:
       - USERNAME=admin
       - PASSWORD=orange
       - VITE_STORAGE_TYPE=redis
-      - REDIS_URL=redis://OrangeTV-redis:6379
+      - REDIS_URL=redis://novatv-redis:6379
     networks:
-      - OrangeTV-network
+      - novatv-network
     depends_on:
-      - OrangeTV-redis
-  OrangeTV-redis:
+      - novatv-redis
+  novatv-redis:
     image: redis:alpine
-    container_name: OrangeTV-redis
+    container_name: novatv-redis
     restart: unless-stopped
     networks:
-      - OrangeTV-network
+      - novatv-network
     # 请开启持久化，否则升级/重启后数据丢失
     volumes:
       - ./data:/data
 networks:
-  OrangeTV-network:
+  novatv-network:
     driver: bridge
 ```
 
@@ -154,11 +158,12 @@ networks:
 1. 在 [upstash](https://upstash.com/) 注册账号并新建一个 Redis 实例，名称任意。
 2. 复制新数据库的 **HTTPS ENDPOINT 和 TOKEN**
 3. 使用如下 docker compose
+
 ```yml
 services:
-  OrangeTV-core:
-    image: ghcr.io/lihaowang/orangetv:latest
-    container_name: OrangeTV-core
+  novatv-core:
+    image: ghcr.io/lihaowang/novatv:latest
+    container_name: novatv-core
     restart: on-failure
     ports:
       - '3000:3000'
@@ -215,7 +220,7 @@ custom_category 支持的自定义分类已知如下：
 
 也可输入如 "哈利波特" 效果等同于豆瓣搜索
 
-OrangeTV 支持标准的苹果 CMS V10 API 格式。
+NovaTV 支持标准的苹果 CMS V10 API 格式。
 
 ## 自动更新
 
@@ -225,25 +230,25 @@ dockge/komodo 等 docker compose UI 也有自动更新功能
 
 ## 环境变量
 
-| 变量                                | 说明                                         | 可选值                           | 默认值                                                                                                                     |
-| ----------------------------------- | -------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| USERNAME                            | 站长账号           | 任意字符串                       | 无默认，必填字段                                                                                                                     |
-| PASSWORD                            | 站长密码           | 任意字符串                       | 无默认，必填字段                                                                                                                     |
-| SITE_BASE                           | 站点 url              |       形如 https://example.com                  | 空                                                                                                                     |
-| VITE_SITE_NAME               | 站点名称                                     | 任意字符串                       | OrangeTV                                                                                                                     |
-| ANNOUNCEMENT                        | 站点公告                                     | 任意字符串                       | 本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。 |
-| VITE_STORAGE_TYPE            | 播放记录/收藏的存储方式                      | redis、kvrocks、upstash | 无默认，必填字段                                                                                                               |
-| KVROCKS_URL                           | kvrocks 连接 url                               | 连接 url                         | 空                                                                                                                         |
-| REDIS_URL                           | redis 连接 url                               | 连接 url                         | 空                                                                                                                         |
-| UPSTASH_URL                         | upstash redis 连接 url                       | 连接 url                         | 空                                                                                                                         |
-| UPSTASH_TOKEN                       | upstash redis 连接 token                     | 连接 token                       | 空                                                                                                                         |
-| VITE_SEARCH_MAX_PAGE         | 搜索接口可拉取的最大页数                     | 1-50                             | 5                                                                                                                          |
-| VITE_DOUBAN_PROXY_TYPE       | 豆瓣数据源请求方式                           | 见下方                           | direct                                                                                                                     |
-| VITE_DOUBAN_PROXY            | 自定义豆瓣数据代理 URL                       | url prefix                       | (空)                                                                                                                       |
-| VITE_DOUBAN_IMAGE_PROXY_TYPE | 豆瓣图片代理类型                             | 见下方                           | direct                                                                                                                     |
-| VITE_DOUBAN_IMAGE_PROXY      | 自定义豆瓣图片代理 URL                       | url prefix                       | (空)                                                                                                                       |
-| VITE_DISABLE_YELLOW_FILTER   | 关闭色情内容过滤                             | true/false                       | false                                                                                                                      |
-| VITE_FLUID_SEARCH | 是否开启搜索接口流式输出 | true/ false | true |
+| 变量                         | 说明                     | 可选值                   | 默认值                                                                                                                     |
+| ---------------------------- | ------------------------ | ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| USERNAME                     | 站长账号                 | 任意字符串               | 无默认，必填字段                                                                                                           |
+| PASSWORD                     | 站长密码                 | 任意字符串               | 无默认，必填字段                                                                                                           |
+| SITE_BASE                    | 站点 url                 | 形如 https://example.com | 空                                                                                                                         |
+| VITE_SITE_NAME               | 站点名称                 | 任意字符串               | NovaTV                                                                                                                     |
+| ANNOUNCEMENT                 | 站点公告                 | 任意字符串               | 本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。 |
+| VITE_STORAGE_TYPE            | 播放记录/收藏的存储方式  | redis、kvrocks、upstash  | 无默认，必填字段                                                                                                           |
+| KVROCKS_URL                  | kvrocks 连接 url         | 连接 url                 | 空                                                                                                                         |
+| REDIS_URL                    | redis 连接 url           | 连接 url                 | 空                                                                                                                         |
+| UPSTASH_URL                  | upstash redis 连接 url   | 连接 url                 | 空                                                                                                                         |
+| UPSTASH_TOKEN                | upstash redis 连接 token | 连接 token               | 空                                                                                                                         |
+| VITE_SEARCH_MAX_PAGE         | 搜索接口可拉取的最大页数 | 1-50                     | 5                                                                                                                          |
+| VITE_DOUBAN_PROXY_TYPE       | 豆瓣数据源请求方式       | 见下方                   | direct                                                                                                                     |
+| VITE_DOUBAN_PROXY            | 自定义豆瓣数据代理 URL   | url prefix               | (空)                                                                                                                       |
+| VITE_DOUBAN_IMAGE_PROXY_TYPE | 豆瓣图片代理类型         | 见下方                   | direct                                                                                                                     |
+| VITE_DOUBAN_IMAGE_PROXY      | 自定义豆瓣图片代理 URL   | url prefix               | (空)                                                                                                                       |
+| VITE_DISABLE_YELLOW_FILTER   | 关闭色情内容过滤         | true/false               | false                                                                                                                      |
+| VITE_FLUID_SEARCH            | 是否开启搜索接口流式输出 | true/ false              | true                                                                                                                       |
 
 VITE_DOUBAN_PROXY_TYPE 选项解释：
 
@@ -290,14 +295,13 @@ VITE_DOUBAN_IMAGE_PROXY_TYPE 选项解释：
 
 ## License
 
-[MIT](LICENSE) © 2025 OrangeTV & Contributors
+[MIT](LICENSE) © 2025 NovaTV & Contributors
 
 ## 致谢
 
-- OrangeTV has moved to a pure Vite/Fastify runtime while preserving the original product flows.
+- NovaTV 基于 [OrangeTV](https://github.com/LihaoWang/OrangeTV)，并保持 Vite/Fastify 单体运行时。
 - [LibreTV](https://github.com/LibreSpark/LibreTV) — 由此启发，站在巨人的肩膀上。
-- [MoonTV](https://github.com/MoonTechLab/LunaTV) — 由此启发，第二次站在巨人的肩膀上。
-- [艾福森昵] - 感谢论坛佬友提供的短剧API
+- [艾福森昵] - 感谢论坛佬友提供的短剧 API
 - [ArtPlayer](https://github.com/zhw2590582/ArtPlayer) — 提供强大的网页视频播放器。
 - [HLS.js](https://github.com/video-dev/hls.js) — 实现 HLS 流媒体在浏览器中的播放支持。
 - [Zwei](https://github.com/bestzwei) — 提供获取豆瓣数据的 cors proxy
@@ -306,4 +310,4 @@ VITE_DOUBAN_IMAGE_PROXY_TYPE 选项解释：
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=MoonTechLab/LunaTV&type=Date)](https://www.star-history.com/#MoonTechLab/LunaTV&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=LihaoWang/OrangeTV&type=Date)](https://www.star-history.com/#LihaoWang/OrangeTV&Date)

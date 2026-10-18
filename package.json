@@ -1,6 +1,6 @@
 {
-  "name": "OrangeTV",
-  "version": "0.1.0",
+  "name": "NovaTV",
+  "version": "9.0.0",
   "private": true,
   "scripts": {
     "dev": "pnpm gen:manifest && tsx watch src/server/index.ts",

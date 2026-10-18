@@ -5,6 +5,7 @@
 import type { createApp as createAppType } from '@/server/app';
 
 describe('Fastify app shell', () => {
+  const originalEnv = process.env;
   let createApp: typeof createAppType;
 
   beforeAll(async () => {
@@ -31,10 +32,16 @@ describe('Fastify app shell', () => {
   });
 
   beforeEach(() => {
+    process.env = { ...originalEnv };
+    delete process.env.VITE_SITE_NAME;
     process.env.PASSWORD = 'secret';
     process.env.USERNAME = 'owner';
     process.env.VITE_STORAGE_TYPE = 'redis';
     process.env.REDIS_URL = 'redis://localhost:6379';
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
   });
 
   it('serves health and runtime config without authentication', async () => {
@@ -49,9 +56,12 @@ describe('Fastify app shell', () => {
 
     const runtimeConfig = await app.inject('/runtime-config.js');
     expect(runtimeConfig.statusCode).toBe(200);
-    expect(runtimeConfig.headers['content-type']).toContain('application/javascript');
+    expect(runtimeConfig.headers['content-type']).toContain(
+      'application/javascript'
+    );
     expect(runtimeConfig.body).toContain('window.RUNTIME_CONFIG');
     expect(runtimeConfig.body).toContain('"STORAGE_TYPE":"redis"');
+    expect(runtimeConfig.body).toContain('"SITE_NAME":"NovaTV"');
 
     await app.close();
   });
@@ -59,7 +69,9 @@ describe('Fastify app shell', () => {
   it('redirects protected browser routes to login and serves the SPA when authenticated', async () => {
     process.env.VITE_STORAGE_TYPE = 'localstorage';
     const app = await createApp({ dev: false, clientDist: null });
-    const auth = encodeURIComponent(JSON.stringify({ password: 'secret', role: 'user' }));
+    const auth = encodeURIComponent(
+      JSON.stringify({ password: 'secret', role: 'user' })
+    );
 
     const unauthenticated = await app.inject('/admin');
     expect(unauthenticated.statusCode).toBe(302);

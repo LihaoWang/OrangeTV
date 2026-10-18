@@ -2,6 +2,7 @@
 
 'use client';
 
+import { REPO_RAW_VERSION_URL } from '@/lib/branding';
 import { CURRENT_VERSION } from '@/lib/version';
 
 // 版本检查结果枚举
@@ -12,9 +13,7 @@ export enum UpdateStatus {
 }
 
 // 远程版本检查URL配置
-const VERSION_CHECK_URLS = [
-  'https://raw.githubusercontent.com/djteang/OrangeTV/refs/heads/main/VERSION.txt',
-];
+const VERSION_CHECK_URLS = [REPO_RAW_VERSION_URL];
 
 /**
  * 检查是否有新版本可用

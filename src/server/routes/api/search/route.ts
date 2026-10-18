@@ -1,27 +1,37 @@
 /* eslint-disable @typescript-eslint/no-explicit-any,no-console */
 
-import { AppRequest, AppResponse } from '@/server/web';
-import { getRouteUsername } from '@/server/route-auth';
-
+import { PRODUCT_NAME } from '@/lib/branding';
 import { getAvailableApiSites, getCacheTime, getConfig } from '@/lib/config';
 import { searchFromApi } from '@/lib/downstream';
 import { yellowWords } from '@/lib/yellow';
 
+import { getRouteUsername } from '@/server/route-auth';
+import { AppRequest, AppResponse } from '@/server/web';
+
 // 短剧搜索函数
-async function searchShortDrama(query: string, page = 1, limit = 20): Promise<any[]> {
+async function searchShortDrama(
+  query: string,
+  page = 1,
+  limit = 20
+): Promise<any[]> {
   try {
     // 使用 AbortController 实现超时控制
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    const response = await fetch(`https://api.r2afosne.dpdns.org/vod/search?name=${encodeURIComponent(query)}&page=${page}&limit=${limit}`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'LunaTV/1.0',
-      },
-      signal: controller.signal,
-    });
+    const response = await fetch(
+      `https://api.r2afosne.dpdns.org/vod/search?name=${encodeURIComponent(
+        query
+      )}&page=${page}&limit=${limit}`,
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': `${PRODUCT_NAME}/1.0`,
+        },
+        signal: controller.signal,
+      }
+    );
 
     clearTimeout(timeoutId);
 
@@ -41,7 +51,9 @@ async function searchShortDrama(query: string, page = 1, limit = 20): Promise<an
       id: item.id?.toString() || '',
       title: item.name || '',
       poster: item.cover || '',
-      year: item.update_time ? new Date(item.update_time).getFullYear().toString() : 'unknown',
+      year: item.update_time
+        ? new Date(item.update_time).getFullYear().toString()
+        : 'unknown',
       episodes: [{ id: '1', name: '第1集' }], // 短剧通常有多集，但这里简化处理
       source: 'shortdrama',
       source_name: '短剧',
@@ -58,7 +70,6 @@ async function searchShortDrama(query: string, page = 1, limit = 20): Promise<an
     return [];
   }
 }
-
 
 export async function GET(request: AppRequest) {
   const username = getRouteUsername(request);
@@ -94,20 +105,24 @@ export async function GET(request: AppRequest) {
       new Promise((_, reject) =>
         setTimeout(() => reject(new Error(`${site.name} timeout`)), 20000)
       ),
-    ]).then((results: unknown) => {
-      // 限制每个源的结果数量，避免页面卡顿
-      return Array.isArray(results) ? results.slice(0, 50) : [];
-    }).catch((err) => {
-      console.warn(`搜索失败 ${site.name}:`, err.message);
-      return []; // 返回空数组而不是抛出错误
-    })
+    ])
+      .then((results: unknown) => {
+        // 限制每个源的结果数量，避免页面卡顿
+        return Array.isArray(results) ? results.slice(0, 50) : [];
+      })
+      .catch((err) => {
+        console.warn(`搜索失败 ${site.name}:`, err.message);
+        return []; // 返回空数组而不是抛出错误
+      })
   );
 
   // 添加短剧搜索
-  const shortDramaSearchPromise = searchShortDrama(query, 1, 20).catch((err) => {
-    console.warn('短剧搜索失败:', err.message);
-    return [];
-  });
+  const shortDramaSearchPromise = searchShortDrama(query, 1, 20).catch(
+    (err) => {
+      console.warn('短剧搜索失败:', err.message);
+      return [];
+    }
+  );
 
   // 将短剧搜索添加到所有搜索Promise中
   searchPromises.push(shortDramaSearchPromise);

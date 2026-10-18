@@ -1,8 +1,9 @@
+import { PRODUCT_NAME } from '@/lib/branding';
 import { getConfig } from '@/lib/config';
 
 export async function getRuntimeConfig() {
   const storageType = process.env.VITE_STORAGE_TYPE || 'localstorage';
-  let siteName = process.env.VITE_SITE_NAME || 'OrangeTV';
+  let siteName = process.env.VITE_SITE_NAME || PRODUCT_NAME;
   let announcement =
     process.env.ANNOUNCEMENT ||
     '本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。';
@@ -12,13 +13,14 @@ export async function getRuntimeConfig() {
   let doubanImageProxyType =
     process.env.VITE_DOUBAN_IMAGE_PROXY_TYPE || 'cmliussss-cdn-tencent';
   let doubanImageProxy = process.env.VITE_DOUBAN_IMAGE_PROXY || '';
-  let disableYellowFilter =
-    process.env.VITE_DISABLE_YELLOW_FILTER === 'true';
+  let disableYellowFilter = process.env.VITE_DISABLE_YELLOW_FILTER === 'true';
   let fluidSearch = process.env.VITE_FLUID_SEARCH !== 'false';
-  let requireDeviceCode =
-    process.env.VITE_REQUIRE_DEVICE_CODE !== 'false';
-  let customCategories: { name: string; type: 'movie' | 'tv'; query: string }[] =
-    [];
+  let requireDeviceCode = process.env.VITE_REQUIRE_DEVICE_CODE !== 'false';
+  let customCategories: {
+    name: string;
+    type: 'movie' | 'tv';
+    query: string;
+  }[] = [];
 
   if (storageType !== 'localstorage') {
     const config = await getConfig();

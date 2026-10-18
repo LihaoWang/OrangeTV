@@ -17,12 +17,12 @@ describe('loadEnvFiles', () => {
   });
 
   it('loads local env defaults without overriding existing process env', () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'orangetv-env-'));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'novatv-env-'));
     fs.writeFileSync(
       path.join(tmp, '.env.local'),
       [
         'USERNAME=admin',
-        'PASSWORD=orangetv-local-dev',
+        'PASSWORD=novatv-local-dev',
         'VITE_STORAGE_TYPE=localstorage',
       ].join('\n')
     );
@@ -34,7 +34,7 @@ describe('loadEnvFiles', () => {
     loadEnvFiles({ cwd: tmp, nodeEnv: 'development' });
 
     expect(process.env.USERNAME).toBe('admin');
-    expect(process.env.PASSWORD).toBe('orangetv-local-dev');
+    expect(process.env.PASSWORD).toBe('novatv-local-dev');
     expect(process.env.VITE_STORAGE_TYPE).toBe('redis');
   });
 });

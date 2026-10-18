@@ -3,6 +3,13 @@
 'use client';
 
 import {
+  Button,
+  Card,
+  Link as HeroLink,
+  Separator,
+  Tooltip,
+} from '@heroui/react';
+import {
   Clover,
   ExternalLink,
   Film,
@@ -12,9 +19,7 @@ import {
   Star,
   Tv,
 } from 'lucide-react';
-import Image from '@/client/AppImage';
-import { usePathname, useRouter, useSearchParams } from '@/client/router';
-import { Button, Card, Link as HeroLink, Separator, Tooltip } from '@heroui/react';
+import type { ComponentType } from 'react';
 import {
   createContext,
   useCallback,
@@ -23,7 +28,11 @@ import {
   useLayoutEffect,
   useState,
 } from 'react';
-import type { ComponentType } from 'react';
+
+import { ATTRIBUTION_NAME, REPO_URL } from '@/lib/branding';
+
+import Image from '@/client/AppImage';
+import { usePathname, useRouter, useSearchParams } from '@/client/router';
 
 import { useSite } from './SiteProvider';
 
@@ -66,10 +75,7 @@ const Logo = ({ isCollapsed, onClick }: LogoProps) => {
   }
 
   return (
-    <HeroLink
-      href='/'
-      className='flex h-16 items-center justify-center gap-2'
-    >
+    <HeroLink href='/' className='flex h-16 items-center justify-center gap-2'>
       <Image
         src='/logo.png'
         alt={siteName}
@@ -77,9 +83,7 @@ const Logo = ({ isCollapsed, onClick }: LogoProps) => {
         height={40}
         className='rounded-lg'
       />
-      <span className='text-xl font-semibold'>
-        {siteName}
-      </span>
+      <span className='text-xl font-semibold'>{siteName}</span>
     </HeroLink>
   );
 };
@@ -238,7 +242,9 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
         <Tooltip.Trigger>{button}</Tooltip.Trigger>
         <Tooltip.Content placement='right'>{label}</Tooltip.Content>
       </Tooltip>
-    ) : button;
+    ) : (
+      button
+    );
   };
 
   return (
@@ -247,8 +253,9 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
       <div className='hidden md:flex'>
         <Card
           data-sidebar
-          className={`fixed left-0 top-0 z-10 h-screen rounded-none p-0 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'
-            }`}
+          className={`fixed left-0 top-0 z-10 h-screen rounded-none p-0 transition-all duration-300 ${
+            isCollapsed ? 'w-16' : 'w-64'
+          }`}
         >
           <div className='flex h-full flex-col'>
             {/* 顶部 Logo 区域 */}
@@ -332,36 +339,32 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                 {!isCollapsed ? (
                   <div className='px-2 text-center text-xs leading-relaxed text-muted'>
                     <span>本项目基于 </span>
-                    <HeroLink
-                      href='https://github.com/MoonTechLab/LunaTV'
-                      target='_blank'
-                    >
-                      MoonTV
+                    <HeroLink href={REPO_URL} target='_blank'>
+                      {ATTRIBUTION_NAME}
                     </HeroLink>
                     <HeroLink
-                      href='https://github.com/MoonTechLab/LunaTV'
+                      href={REPO_URL}
                       target='_blank'
-                      aria-label='访问 MoonTV 项目'
+                      aria-label={`访问 ${ATTRIBUTION_NAME} 项目`}
                       className='ml-1'
                     >
                       <ExternalLink className='h-3 w-3 inline' />
                     </HeroLink>
-                    <span> 的二次开发</span>
                   </div>
                 ) : (
                   <div className='flex justify-center'>
                     <Tooltip>
                       <Tooltip.Trigger>
-                      <HeroLink
-                        href='https://github.com/MoonTechLab/LunaTV'
-                        target='_blank'
-                        aria-label='基于 MoonTV 的二次开发'
-                      >
-                        <ExternalLink className='h-4 w-4' />
-                      </HeroLink>
+                        <HeroLink
+                          href={REPO_URL}
+                          target='_blank'
+                          aria-label={`基于 ${ATTRIBUTION_NAME}`}
+                        >
+                          <ExternalLink className='h-4 w-4' />
+                        </HeroLink>
                       </Tooltip.Trigger>
                       <Tooltip.Content placement='right'>
-                        基于 MoonTV 的二次开发
+                        基于 {ATTRIBUTION_NAME}
                       </Tooltip.Content>
                     </Tooltip>
                   </div>
@@ -371,8 +374,9 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
           </div>
         </Card>
         <div
-          className={`transition-all duration-300 sidebar-offset ${isCollapsed ? 'w-16' : 'w-64'
-            }`}
+          className={`transition-all duration-300 sidebar-offset ${
+            isCollapsed ? 'w-16' : 'w-64'
+          }`}
         ></div>
       </div>
     </SidebarContext.Provider>

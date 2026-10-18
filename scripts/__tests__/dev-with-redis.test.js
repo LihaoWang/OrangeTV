@@ -1,5 +1,14 @@
+/* eslint-env jest */
+
+jest.mock('child_process', () => ({
+  spawn: jest.fn(),
+  spawnSync: jest.fn(),
+}));
+
+const { spawnSync } = require('child_process');
 const {
   buildRedisUrl,
+  ensureRedis,
   getRedisConfig,
   isPortAvailable,
   resolveRedisAction,
@@ -7,7 +16,12 @@ const {
 const net = require('net');
 
 describe('dev-with-redis helpers', () => {
-  test('uses stable defaults for the local Redis container', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
+
+  test('preserves the legacy Redis container identity across rebranding', () => {
     const config = getRedisConfig({});
 
     expect(config).toEqual({
@@ -31,6 +45,29 @@ describe('dev-with-redis helpers', () => {
     });
   });
 
+  test.each([true, false])(
+    'reuses the existing legacy Redis container when running=%s',
+    (running) => {
+      jest.spyOn(console, 'log').mockImplementation(() => {});
+      spawnSync.mockImplementation((_command, args) => {
+        if (args[0] === 'inspect') {
+          return args[args.length - 1] === 'orangetv-redis-dev'
+            ? { status: 0, stdout: String(running) }
+            : { status: 1, stdout: '' };
+        }
+        return { status: 0, stdout: '' };
+      });
+
+      ensureRedis(getRedisConfig({}));
+
+      const dockerCommands = spawnSync.mock.calls.map((call) => call[1]);
+      expect(dockerCommands.some((args) => args[0] === 'run')).toBe(false);
+      expect(dockerCommands.filter((args) => args[0] === 'start')).toEqual(
+        running ? [] : [['start', 'orangetv-redis-dev']]
+      );
+    }
+  );
+
   test('builds the Redis URL passed to the local dev process', () => {
     expect(buildRedisUrl('6380')).toBe('redis://localhost:6380');
   });
@@ -44,7 +81,9 @@ describe('dev-with-redis helpers', () => {
   });
 
   test('creates the container when it does not exist', () => {
-    expect(resolveRedisAction({ exists: false, running: false })).toBe('create');
+    expect(resolveRedisAction({ exists: false, running: false })).toBe(
+      'create'
+    );
   });
 
   test('detects when a dev port is already occupied', async () => {

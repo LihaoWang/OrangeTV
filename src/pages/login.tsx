@@ -2,19 +2,29 @@
 
 'use client';
 
+import {
+  Alert,
+  Checkbox,
+  Form,
+  Input,
+  Label,
+  Link,
+  TextField,
+} from '@heroui/react';
 import { AlertCircle, CheckCircle, Shield } from 'lucide-react';
-import { Alert, Checkbox, Form, Input, Label, Link, TextField } from '@heroui/react';
-import { useRouter, useSearchParams } from '@/client/router';
 import { Suspense, useEffect, useState } from 'react';
 
+import { REPO_URL } from '@/lib/branding';
+import MachineCode from '@/lib/machine-code';
 import { CURRENT_VERSION } from '@/lib/version';
 import { checkForUpdates, UpdateStatus } from '@/lib/version_check';
-import MachineCode from '@/lib/machine-code';
 
+import GlobalThemeLoader from '@/components/GlobalThemeLoader';
 import { useSite } from '@/components/SiteProvider';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import GlobalThemeLoader from '@/components/GlobalThemeLoader';
 import { AppButton, AppSurface } from '@/components/ui/HeroPrimitives';
+
+import { useRouter, useSearchParams } from '@/client/router';
 
 // 版本显示组件
 function VersionDisplay() {
@@ -38,19 +48,20 @@ function VersionDisplay() {
 
   return (
     <Link
-      href='https://github.com/djteang/OrangeTV'
+      href={REPO_URL}
       target='_blank'
       className='absolute bottom-4 left-1/2 -translate-x-1/2 text-xs'
     >
       <span className='font-mono'>v{CURRENT_VERSION}</span>
       {!isChecking && updateStatus !== UpdateStatus.FETCH_FAILED && (
         <div
-          className={`flex items-center gap-1.5 ${updateStatus === UpdateStatus.HAS_UPDATE
-            ? 'text-yellow-600 dark:text-yellow-400'
-            : updateStatus === UpdateStatus.NO_UPDATE
+          className={`flex items-center gap-1.5 ${
+            updateStatus === UpdateStatus.HAS_UPDATE
+              ? 'text-yellow-600 dark:text-yellow-400'
+              : updateStatus === UpdateStatus.NO_UPDATE
               ? 'text-success'
               : ''
-            }`}
+          }`}
         >
           {updateStatus === UpdateStatus.HAS_UPDATE && (
             <>
@@ -85,7 +96,6 @@ function LoginPageClient() {
   const [, setShowMachineCodeInput] = useState(false);
   const [requireMachineCode, setRequireMachineCode] = useState(false);
   const [machineCodeGenerated, setMachineCodeGenerated] = useState(false);
-  const [, setShowBindOption] = useState(false);
   const [bindMachineCode, setBindMachineCode] = useState(false);
   const [deviceCodeEnabled, setDeviceCodeEnabled] = useState(true); // 站点是否启用设备码功能
 
@@ -111,6 +121,7 @@ function LoginPageClient() {
             setDeviceInfo(info);
             setMachineCodeGenerated(true);
           } catch (error) {
+            // eslint-disable-next-line no-console -- Keep device-generation diagnostics available.
             console.error('生成机器码失败:', error);
           }
         }
@@ -136,7 +147,11 @@ function LoginPageClient() {
       };
 
       // 只有在启用设备码功能时才处理机器码逻辑
-      if (deviceCodeEnabled && (requireMachineCode || bindMachineCode) && machineCode) {
+      if (
+        deviceCodeEnabled &&
+        (requireMachineCode || bindMachineCode) &&
+        machineCode
+      ) {
         requestData.machineCode = machineCode;
       }
 
@@ -150,7 +165,12 @@ function LoginPageClient() {
 
       if (res.ok) {
         // 登录成功，如果启用设备码功能且用户选择绑定机器码，则绑定
-        if (deviceCodeEnabled && bindMachineCode && machineCode && shouldAskUsername) {
+        if (
+          deviceCodeEnabled &&
+          bindMachineCode &&
+          machineCode &&
+          shouldAskUsername
+        ) {
           try {
             await fetch('/api/machine-code', {
               method: 'POST',
@@ -161,6 +181,7 @@ function LoginPageClient() {
               }),
             });
           } catch (bindError) {
+            // eslint-disable-next-line no-console -- Binding failure does not interrupt a successful login.
             console.error('绑定机器码失败:', bindError);
           }
         }
@@ -193,8 +214,6 @@ function LoginPageClient() {
     }
   };
 
-
-
   return (
     <div className='relative min-h-screen flex items-center justify-center px-4 overflow-hidden'>
       <GlobalThemeLoader />
@@ -202,9 +221,7 @@ function LoginPageClient() {
         <ThemeToggle />
       </div>
       <AppSurface className='relative z-10 w-full max-w-md p-8 sm:p-10'>
-        <h1 className='mb-8 text-center text-3xl font-semibold'>
-          {siteName}
-        </h1>
+        <h1 className='mb-8 text-center text-3xl font-semibold'>{siteName}</h1>
         <Form onSubmit={handleSubmit} className='space-y-6'>
           {shouldAskUsername && (
             <TextField name='username' className='w-full'>
@@ -284,7 +301,11 @@ function LoginPageClient() {
               !password ||
               loading ||
               (shouldAskUsername && !username) ||
-              (deviceCodeEnabled && machineCodeGenerated && shouldAskUsername && !requireMachineCode && !bindMachineCode)
+              (deviceCodeEnabled &&
+                machineCodeGenerated &&
+                shouldAskUsername &&
+                !requireMachineCode &&
+                !bindMachineCode)
             }
             isPending={loading}
           >

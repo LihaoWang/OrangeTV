@@ -1,0 +1,9 @@
+{
+  "productName": "NovaTV",
+  "legacyProductName": "OrangeTV",
+  "attributionName": "OrangeTV",
+  "repoOwner": "LihaoWang",
+  "repoName": "OrangeTV",
+  "repoBranch": "main",
+  "ghcrImageName": "ghcr.io/lihaowang/novatv"
+}

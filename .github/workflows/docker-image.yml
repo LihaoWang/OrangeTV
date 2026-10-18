@@ -26,7 +26,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ghcr.io/lihaowang/orangetv
+  IMAGE_NAME: ghcr.io/lihaowang/novatv
   NODE_VERSION: 24.14.1
   PNPM_VERSION: 10.14.0
 
@@ -85,7 +85,7 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           load: true
-          tags: orangetv-actions-smoke:ci
+          tags: novatv-actions-smoke:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -100,7 +100,7 @@ jobs:
               -e USERNAME=admin \
               -e PASSWORD=orange \
               -e VITE_STORAGE_TYPE=localstorage \
-              orangetv-actions-smoke:ci
+              novatv-actions-smoke:ci
           )"
 
           cleanup() {

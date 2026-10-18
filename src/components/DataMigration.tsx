@@ -1,9 +1,29 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { AlertCircle, AlertTriangle, CheckCircle, Download, FileCheck, Lock, Upload } from 'lucide-react';
+import {
+  Alert,
+  Button,
+  Card,
+  Chip,
+  Input,
+  Label,
+  Spinner,
+  TextField,
+} from '@heroui/react';
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle,
+  Download,
+  FileCheck,
+  Lock,
+  Upload,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Button, Card, Chip, Input, Label, Spinner, TextField } from '@heroui/react';
+
+import { PRODUCT_NAME } from '@/lib/branding';
+
 import { AppDialog } from './ui/HeroPrimitives';
 
 interface DataMigrationProps {
@@ -33,7 +53,7 @@ const AlertModal = ({
   confirmText = '确定',
   onConfirm,
   showConfirm = false,
-  timer
+  timer,
 }: AlertModalProps) => {
   useEffect(() => {
     if (isOpen && timer) {
@@ -45,11 +65,11 @@ const AlertModal = ({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="h-5 w-5" />;
+        return <CheckCircle className='h-5 w-5' />;
       case 'error':
-        return <AlertCircle className="h-5 w-5" />;
+        return <AlertCircle className='h-5 w-5' />;
       case 'warning':
-        return <AlertTriangle className="h-5 w-5" />;
+        return <AlertTriangle className='h-5 w-5' />;
       default:
         return null;
     }
@@ -140,7 +160,7 @@ const DataMigration = ({ onRefreshConfig }: DataMigrationProps) => {
   };
 
   const hideAlert = () => {
-    setAlertModal(prev => ({ ...prev, isOpen: false }));
+    setAlertModal((prev) => ({ ...prev, isOpen: false }));
   };
 
   // 导出数据
@@ -150,7 +170,7 @@ const DataMigration = ({ onRefreshConfig }: DataMigrationProps) => {
         type: 'error',
         title: '错误',
         message: '请输入加密密码',
-        showConfirm: true
+        showConfirm: true,
       });
       return;
     }
@@ -176,7 +196,7 @@ const DataMigration = ({ onRefreshConfig }: DataMigrationProps) => {
       // 获取文件名
       const contentDisposition = response.headers.get('content-disposition');
       const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
-      const filename = filenameMatch?.[1] || 'OrangeTV-backup.dat';
+      const filename = filenameMatch?.[1] || `${PRODUCT_NAME}-backup.dat`;
 
       // 下载文件
       const blob = await response.blob();
@@ -228,7 +248,7 @@ const DataMigration = ({ onRefreshConfig }: DataMigrationProps) => {
         type: 'error',
         title: '错误',
         message: '请选择备份文件',
-        showConfirm: true
+        showConfirm: true,
       });
       return;
     }
@@ -238,7 +258,7 @@ const DataMigration = ({ onRefreshConfig }: DataMigrationProps) => {
         type: 'error',
         title: '错误',
         message: '请输入解密密码',
-        showConfirm: true
+        showConfirm: true,
       });
       return;
     }
@@ -268,7 +288,9 @@ const DataMigration = ({ onRefreshConfig }: DataMigrationProps) => {
           <div class="text-left">
             <p><strong>导入完成！</strong></p>
             <p class="mt-2">导入的用户数量: ${result.importedUsers}</p>
-            <p>备份时间: ${new Date(result.timestamp).toLocaleString('zh-CN')}</p>
+            <p>备份时间: ${new Date(result.timestamp).toLocaleString(
+              'zh-CN'
+            )}</p>
             <p>服务器版本: ${result.serverVersion || '未知版本'}</p>
             <p class="mt-3 text-orange-600">请刷新页面以查看最新数据。</p>
           </div>
@@ -297,7 +319,7 @@ const DataMigration = ({ onRefreshConfig }: DataMigrationProps) => {
         type: 'error',
         title: '导入失败',
         message: error instanceof Error ? error.message : '导入过程中发生错误',
-        showConfirm: true
+        showConfirm: true,
       });
     } finally {
       setIsImporting(false);
@@ -306,50 +328,46 @@ const DataMigration = ({ onRefreshConfig }: DataMigrationProps) => {
 
   return (
     <>
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className='max-w-6xl mx-auto space-y-6'>
         {/* 简洁警告提示 */}
-        <Alert status='warning'>
-          数据迁移操作请谨慎，确保已备份重要数据
-        </Alert>
+        <Alert status='warning'>数据迁移操作请谨慎，确保已备份重要数据</Alert>
 
         {/* 主要操作区域 - 响应式布局 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
           {/* 数据导出 */}
           <Card variant='default' className='p-6'>
-            <div className="flex items-center gap-3 mb-6">
+            <div className='flex items-center gap-3 mb-6'>
               <Chip variant='secondary' size='lg'>
-                <Download className="w-4 h-4" />
+                <Download className='w-4 h-4' />
               </Chip>
               <div>
-                <h3 className="font-semibold">数据导出</h3>
-                <p className="text-sm text-muted">创建加密备份文件</p>
+                <h3 className='font-semibold'>数据导出</h3>
+                <p className='text-sm text-muted'>创建加密备份文件</p>
               </div>
             </div>
 
-            <div className="flex-1 flex flex-col">
-              <div className="space-y-4">
+            <div className='flex-1 flex flex-col'>
+              <div className='space-y-4'>
                 {/* 密码输入 */}
                 <TextField>
-                  <Label className="flex items-center gap-2">
-                    <Lock className="w-4 h-4" />
+                  <Label className='flex items-center gap-2'>
+                    <Lock className='w-4 h-4' />
                     加密密码
                   </Label>
                   <Input
-                    type="password"
+                    type='password'
                     value={exportPassword}
                     onChange={(e) => setExportPassword(e.target.value)}
-                    placeholder="设置强密码保护备份文件"
+                    placeholder='设置强密码保护备份文件'
                     disabled={isExporting}
                   />
-                  <p className="text-xs text-muted">
-                    导入时需要使用相同密码
-                  </p>
+                  <p className='text-xs text-muted'>导入时需要使用相同密码</p>
                 </TextField>
 
                 {/* 备份内容列表 */}
-                <div className="text-xs text-muted space-y-1">
-                  <p className="font-medium text-foreground mb-2">备份内容：</p>
-                  <div className="grid grid-cols-2 gap-1">
+                <div className='text-xs text-muted space-y-1'>
+                  <p className='font-medium text-foreground mb-2'>备份内容：</p>
+                  <div className='grid grid-cols-2 gap-1'>
                     <div>• 管理配置</div>
                     <div>• 用户数据</div>
                     <div>• 播放记录</div>
@@ -367,13 +385,13 @@ const DataMigration = ({ onRefreshConfig }: DataMigrationProps) => {
                 isDisabled={isExporting || !exportPassword.trim()}
               >
                 {isExporting ? (
-                  <div className="flex items-center justify-center gap-2">
+                  <div className='flex items-center justify-center gap-2'>
                     <Spinner size='sm' />
                     导出中...
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center gap-2">
-                    <Download className="w-4 h-4" />
+                  <div className='flex items-center justify-center gap-2'>
+                    <Download className='w-4 h-4' />
                     导出数据
                   </div>
                 )}
@@ -383,35 +401,36 @@ const DataMigration = ({ onRefreshConfig }: DataMigrationProps) => {
 
           {/* 数据导入 */}
           <Card variant='default' className='p-6'>
-            <div className="flex items-center gap-3 mb-6">
+            <div className='flex items-center gap-3 mb-6'>
               <Chip color='danger' variant='secondary' size='lg'>
-                <Upload className="w-4 h-4" />
+                <Upload className='w-4 h-4' />
               </Chip>
               <div>
-                <h3 className="font-semibold">数据导入</h3>
-                <p className="text-sm text-danger">将清空现有数据</p>
+                <h3 className='font-semibold'>数据导入</h3>
+                <p className='text-sm text-danger'>将清空现有数据</p>
               </div>
             </div>
 
-            <div className="flex-1 flex flex-col">
-              <div className="space-y-4">
+            <div className='flex-1 flex flex-col'>
+              <div className='space-y-4'>
                 {/* 文件选择 */}
                 <div className='space-y-2'>
-                  <p className="flex items-center gap-2 text-sm font-medium">
-                    <FileCheck className="w-4 h-4" />
+                  <p className='flex items-center gap-2 text-sm font-medium'>
+                    <FileCheck className='w-4 h-4' />
                     备份文件
                     {selectedFile && (
-                      <span className="ml-auto text-xs text-success font-normal">
-                        {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+                      <span className='ml-auto text-xs text-success font-normal'>
+                        {selectedFile.name} (
+                        {(selectedFile.size / 1024).toFixed(1)} KB)
                       </span>
                     )}
                   </p>
                   <input
                     ref={fileInputRef}
-                    type="file"
-                    accept=".dat"
+                    type='file'
+                    accept='.dat'
                     onChange={handleFileSelect}
-                    className="sr-only"
+                    className='sr-only'
                     disabled={isImporting}
                   />
                   <Button
@@ -426,15 +445,15 @@ const DataMigration = ({ onRefreshConfig }: DataMigrationProps) => {
 
                 {/* 密码输入 */}
                 <TextField>
-                  <Label className="flex items-center gap-2">
-                    <Lock className="w-4 h-4" />
+                  <Label className='flex items-center gap-2'>
+                    <Lock className='w-4 h-4' />
                     解密密码
                   </Label>
                   <Input
-                    type="password"
+                    type='password'
                     value={importPassword}
                     onChange={(e) => setImportPassword(e.target.value)}
-                    placeholder="输入导出时的加密密码"
+                    placeholder='输入导出时的加密密码'
                     disabled={isImporting}
                   />
                 </TextField>
@@ -446,16 +465,18 @@ const DataMigration = ({ onRefreshConfig }: DataMigrationProps) => {
                 variant='primary'
                 className='mt-10'
                 onPress={handleImport}
-                isDisabled={isImporting || !selectedFile || !importPassword.trim()}
+                isDisabled={
+                  isImporting || !selectedFile || !importPassword.trim()
+                }
               >
                 {isImporting ? (
-                  <div className="flex items-center justify-center gap-2">
+                  <div className='flex items-center justify-center gap-2'>
                     <Spinner size='sm' />
                     导入中...
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center gap-2">
-                    <Upload className="w-4 h-4" />
+                  <div className='flex items-center justify-center gap-2'>
+                    <Upload className='w-4 h-4' />
                     导入数据
                   </div>
                 )}
